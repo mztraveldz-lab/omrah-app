@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>نظام إدارة المعتمرين والمرشد</title>
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: system-ui, -apple-system, sans-serif; background-color: #080e1e; color: #f8fafc; padding-bottom: 75px; }
+    
+    header { background: #064e3b; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    .header-title { font-size: 1rem; font-weight: bold; color: #ffffff; }
+    .role-badge { font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; font-weight: bold; background: #022c22; color: #6ee7b7; border: 1px solid #059669; }
+    
+    #auth-screen { position: fixed; inset: 0; background: #080e1e; z-index: 2000; display: flex; flex-direction: column; justify-content: center; padding: 20px; overflow-y: auto; }
+    .auth-card { background: #131c31; border: 1px solid #25334d; border-radius: 20px; padding: 22px; text-align: center; }
+    .auth-input { width: 100%; background: #080e1e; border: 1px solid #3b4e6d; color: white; padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 0.95rem; text-align: right; }
+    .role-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 10px; }
+    .btn-pilgrim { background: #059669; color: white; }
+    .btn-guide { background: #1e3a8a; color: white; }
+
+    #pin-modal, #transfer-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
+    .pin-card { background: #131c31; border: 2px solid #3b82f6; border-radius: 18px; padding: 20px; width: 100%; max-width: 340px; text-align: center; }
+
+    nav { display: flex; overflow-x: auto; white-space: nowrap; background: #131c31; border-bottom: 1px solid #2d3b55; position: sticky; top: 49px; z-index: 999; scrollbar-width: none; }
+    nav::-webkit-scrollbar { display: none; }
+    nav button { flex: 0 0 auto; padding: 12px 14px; background: none; border: none; color: #94a3b8; font-weight: bold; font-size: 0.85rem; cursor: pointer; }
+    nav button.active { color: #34d399; border-bottom: 3px solid #10b981; background: rgba(16, 185, 129, 0.08); }
+    
+    .view { padding: 14px; display: none; }
+    .view.active { display: block; }
+    
+    .card { background: #131c31; border: 1px solid #25334d; border-radius: 16px; padding: 16px; margin-bottom: 14px; text-align: center; }
+    
+    .round-counter-btn {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      margin: 12px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+    }
+    .round-counter-btn:active { transform: scale(0.93); }
+    .counter-tawaf { background: radial-gradient(circle, #064e3b 0%, #022c22 100%); border: 4px solid #10b981; }
+    .counter-saey { background: radial-gradient(circle, #0f766e 0%, #042f2e 100%); border: 4px solid #2dd4bf; box-shadow: 0 0 25px rgba(45, 212, 191, 0.25); }
+    .counter-num { font-size: 4rem; font-weight: 900; line-height: 1; font-family: monospace; }
+    .counter-label { font-size: 0.8rem; font-weight: bold; margin-top: 2px; }
+
+    .btn-row { display: flex; gap: 8px; justify-content: center; align-items: center; }
+    .btn-main { flex: 1; background: #059669; color: white; border: none; padding: 13px; border-radius: 12px; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
+    .btn-main:active { transform: scale(0.98); background: #10b981; }
+    .btn-sub { background: #25334d; color: #cbd5e1; border: none; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; }
+    .btn-transfer-sm { background: #1e3a8a; color: #bfdbfe; border: 1px solid #3b82f6; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
+    .btn-danger-sm { background: #7f1d1d; color: #fca5a5; border: 1px solid #b91c1c; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
+
+    .sos-container { background: #1c1322; border: 2px solid #ef4444; border-radius: 20px; padding: 20px 16px; text-align: center; margin-bottom: 16px; }
+    .sos-btn { width: 100%; background: #dc2626; color: white; border: none; padding: 20px 12px; border-radius: 16px; font-size: 1.25rem; font-weight: 900; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+    .sos-btn:active { transform: scale(0.97); background: #b91c1c; }
+
+    #map { height: 380px; width: 100%; border-radius: 16px; border: 2px solid #25334d; margin-bottom: 14px; z-index: 10; }
+    .pilgrim-item { background: #080e1e; border: 1px solid #25334d; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+    .group-manager { background: #080e1e; border: 1px solid #25334d; border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+    .map-controls { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .layer-toggle { display: flex; background: #1e293b; border-radius: 8px; padding: 2px; }
+    .layer-btn { background: none; border: none; color: #94a3b8; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+    .layer-btn.active { background: #059669; color: white; }
+
+    .tracking-status { background: rgba(6, 78, 59, 0.4); border: 1px solid #10b981; border-radius: 10px; padding: 8px 12px; font-size: 0.78rem; color: #6ee7b7; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 12px; }
+    .pulse-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; animation: blink 1.5s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .dua-box { background: #131c31; border: 1px solid #25334d; border-radius: 16px; padding: 18px; margin-bottom: 14px; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
+    .dua-text { font-size: 22px; line-height: 1.7; color: #fef3c7; text-align: center; margin: 12px 0; font-family: serif; }
+    
+    .info-box { background: rgba(120, 53, 15, 0.25); border: 1px solid #b45309; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+    .info-title { color: #f59e0b; font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; }
+    .info-text { color: #fde68a; font-family: serif; font-size: 1.1rem; line-height: 1.8; text-align: justify; }
+
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+    .filter-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #2d3b55; background: #131c31; color: #94a3b8; font-weight: bold; font-size: 0.8rem; }
+    .filter-btn.active { background: #064e3b; color: #34d399; border-color: #10b981; }
+
+    .item-card { background: #131c31; border: 1px solid #25334d; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+    .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .badge { font-size: 0.72rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; }
+    .badge-green { background: #064e3b; color: #a7f3d0; }
+    .badge-amber { background: #78350f; color: #fde68a; }
+    .badge-rose { background: #881337; color: #fecdd3; }
+    .badge-blue { background: #1e3a8a; color: #bfdbfe; }
+    .badge-purple { background: #4c1d95; color: #ddd6fe; }
+    .tag-time { font-size: 0.72rem; color: #94a3b8; }
+    .item-title { color: #ffffff; font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; }
+    .item-content { font-size: 0.95rem; color: #e2e8f0; line-height: 1.9; background: #080e1e; padding: 14px; border-radius: 10px; border-right: 4px solid #10b981; text-align: justify; }
+
+    .acc-item { background: #131c31; border: 1px solid #25334d; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+    .acc-btn { width: 100%; padding: 14px; text-align: right; background: none; border: none; color: #f8fafc; font-weight: bold; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .acc-body { display: none; padding: 14px; background: #080e1e; border-top: 1px solid #25334d; font-size: 0.9rem; line-height: 1.7; color: #cbd5e1; }
+    .acc-body.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <div id="pin-modal">
+    <div class="pin-card">
+      <div style="font-size: 2rem; margin-bottom: 6px;">🔐</div>
+      <h3 style="color: white; margin-bottom: 6px;">بوابة المرشد الخاصة</h3>
+      <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 14px;">أدخل الرمز السري للدخول للوحة الإدارة والخريطة</p>
+      
+      <input type="password" id="guide-pin-input" class="auth-input" placeholder="الرمز السري (PIN)" style="text-align: center; font-size: 1.3rem; letter-spacing: 4px;" maxlength="6">
+      <div id="pin-error" style="color: #ef4444; font-size: 0.8rem; min-height: 20px; margin-bottom: 8px;"></div>
+      
+      <div style="display: flex; gap: 8px;">
+        <button onclick="verifyGuidePin()" class="btn-main" style="background: #2563eb;">تأكيد الدخول</button>
+        <button onclick="closePinModal()" class="btn-sub">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="transfer-modal">
+    <div class="pin-card" style="border-color: #10b981;">
+      <div style="font-size: 2rem; margin-bottom: 6px;">⇄</div>
+      <h3 style="color: white; margin-bottom: 6px;">نقل المعتمر إلى فوج آخر</h3>
+      <p id="transfer-pilgrim-name" style="font-size: 0.85rem; color: #34d399; margin-bottom: 14px; font-weight: bold;"></p>
+      
+      <div style="text-align: right; margin-bottom: 14px;">
+        <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px;">اختر الفوج الجديد:</label>
+        <select id="transfer-group-select" class="auth-input" style="padding: 10px;"></select>
+      </div>
+      
+      <div style="display: flex; gap: 8px;">
+        <button onclick="confirmTransferPilgrim()" class="btn-main">حفظ النقل</button>
+        <button onclick="closeTransferModal()" class="btn-sub">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="auth-screen">
+    <div class="auth-card">
+      <div style="font-size: 2.2rem; margin-bottom: 8px;">🕋</div>
+      <h2 style="color: white; margin-bottom: 6px;">مرحباً بكم في رحاب الحرمين</h2>
+      <p id="auth-msg" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 18px;">سجل بياناتك للبدء ومزامنة موقعك مع الفوج</p>
+
+      <input type="text" id="user-name" class="auth-input" placeholder="الاسم الكامل (مثال: بدر الدين)">
+      <input type="tel" id="user-phone" class="auth-input" placeholder="رقم الهاتف">
+
+      <div style="text-align: right; margin-bottom: 14px;">
+        <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px;">اختر الفوج المخصص لك:</label>
+        <select id="user-group-select" class="auth-input" style="padding: 10px;"></select>
+      </div>
+
+      <button class="role-btn btn-pilgrim" onclick="setupProfile('pilgrim')">
+        🟢 الدخول كـ (معتمر)
+      </button>
+
+      <button class="role-btn btn-guide" onclick="promptGuidePin()">
+        🔒 الدخول كـ (مرشد الفوج)
+      </button>
+    </div>
+  </div>
+
+  <header>
+    <div class="header-title" id="app-title">🕋 رفيق المعتمر</div>
+    <div style="display: flex; gap: 6px; align-items: center;">
+      <span id="role-indicator" class="role-badge">معتمر</span>
+      <button onclick="toggleUserRole()" style="background: #334155; border: none; color: white; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">تبديل الدور ⇄</button>
+    </div>
+  </header>
+
+  <nav id="nav-bar"></nav>
+
+  <!-- 1. شاشة نجدة المعتمر -->
+  <main id="view-sos" class="view">
+    <div class="tracking-status">
+      <div class="pulse-dot"></div>
+      <span id="auto-gps-text">تتبع GPS التلقائي نشط: يتم إرسال موقعك للمرشد كل 30 ثانية</span>
+    </div>
+
+    <div class="sos-container">
+      <h2 style="color: #fca5a5; font-size: 1.25rem; font-weight: 900; margin-bottom: 6px;">هل ضعت أو تحتاج مساعدة عاجلة؟</h2>
+      <p style="font-size: 0.95rem; color: #e2e8f0; margin-bottom: 18px; line-height: 1.6;">
+        اضغط على الزر الأحمر.. سيحدد الهاتف موقعك ويرسله مباشرة للوكالة عبر الواتساب لنجدتك في الحال.
+      </p>
+
+      <button onclick="sendSOS()" class="sos-btn">
+        <span style="font-size: 1.8rem;">🚨 اضغط هنا لطلب النجدة</span>
+        <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.95;">إرسال موقعي الحالي لواتساب الوكالة فوراً</span>
+      </button>
+
+      <div id="sos-status" style="font-size: 0.88rem; color: #34d399; font-weight: bold; margin-top: 12px; min-height: 22px;"></div>
+      <div style="margin-top: 10px; font-size: 0.78rem; color: #94a3b8;">
+        رقم طوارئ الوكالة المعتمد: <strong id="sos-display-phone" style="color: #6ee7b7; direction: ltr; display: inline-block;">+213795353719</strong>
+      </div>
+    </div>
+
+    <div class="info-box" style="background: rgba(30, 41, 59, 0.6); border-color: #475569;">
+      <div class="info-title" style="color: #38bdf8; font-size: 0.9rem;">💡 وصايا مهمة عند التيه:</div>
+      <div style="font-size: 0.9rem; color: #e2e8f0; line-height: 1.7;">
+        • قف في مكانك عند أقرب باب مرقم في الحرم أو برج الساعة.<br>
+        • أظهر بطاقة الفندق لأي رجل أمن أو كشافة.<br>
+        • اطمئن تماماً؛ فريق المرشدين يتابع إشارتك على الخريطة وسيصل إليك فوراً.
+      </div>
+    </div>
+  </main>
+
+  <!-- 2. شاشة تتبع المعتمرين بالخريطة والأفواج -->
+  <main id="view-map" class="view">
+    <div class="card" style="text-align: right; padding: 14px;">
+      
+      <div style="background: #080e1e; border: 1px solid #10b981; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="font-size: 0.85rem; font-weight: bold; color: #34d399;">⚙️ رقم واتساب طوارئ الوكالة (المستلم):</span>
+          <span style="font-size: 0.7rem; color: #94a3b8;">(الرقم الذي تصله استغاثات المعتمرين)</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <input type="tel" id="agency-phone-input" class="auth-input" style="padding: 8px; margin: 0; direction: ltr; text-align: left; font-family: monospace; font-size: 0.95rem;" placeholder="213795353719">
+          <button onclick="saveAgencyPhone()" class="btn-main" style="flex: 0 0 auto; padding: 8px 14px; font-size: 0.8rem;">💾 حفظ الرقم</button>
+        </div>
+      </div>
+
+      <div class="map-controls">
+        <div style="font-weight: bold; color: #34d399; font-size: 0.95rem;">🗺️ خريطة الفوج المباشرة (تحديث تلقائي)</div>
+        <div class="layer-toggle">
+          <button class="layer-btn active" id="btn-layer-streets" onclick="setMapLayer('streets')">شوارع 🗺️</button>
+          <button class="layer-btn" id="btn-layer-satellite" onclick="setMapLayer('satellite')">ساتلايت 🛰️</button>
+        </div>
+      </div>
+
+      <div id="map"></div>
+
+      <div class="group-manager">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 0.85rem; font-weight: bold; color: #f1f5f9;">📁 تصفية وإدارة الأفواج:</span>
+          <button onclick="createNewGroup()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #064e3b; color: #a7f3d0;">+ إنشاء فوج جديد</button>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <select id="filter-group-select" class="auth-input" style="padding: 6px; margin: 0; flex: 1;" onchange="changeActiveGroupFilter()">
+            <option value="all">كل الأفواج (عرض شامل)</option>
+          </select>
+          <button onclick="deleteCurrentFilteredGroup()" class="btn-danger-sm" style="padding: 6px 10px;" title="حذف هذا الفوج بالكامل">🗑️ مسح الفوج المحدد</button>
+        </div>
+
+        <div style="font-size: 0.72rem; color: #94a3b8;">
+          الفوج الافتراضي لتسجيل الجدد: <strong id="active-group-label" style="color: #34d399;">الفوج 1</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div style="font-size: 0.85rem; color: #94a3b8;">المعتمرون المعروضون: <span id="pilgrim-count" style="color: #34d399; font-weight: bold;">0</span></div>
+        <button onclick="refreshMap()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem;">🔄 تحديث المواقع</button>
+      </div>
+
+      <div id="pilgrims-list"></div>
+    </div>
+  </main>
+
+  <!-- 3. شاشة الطواف -->
+  <main id="view-tawaf" class="view">
+    <div class="card">
+      <div style="font-size: 0.85rem; color: #94a3b8;" id="tawaf-progress">الشوط 1 من 7</div>
+
+      <div class="round-counter-btn counter-tawaf" onclick="handleTawafCircleClick()">
+        <span class="counter-num" id="tawaf-count" style="color: #34d399;">1</span>
+        <span class="counter-label" style="color: #a7f3d0;">اضغط للزيادة</span>
+      </div>
+
+      <div style="font-size: 0.82rem; color: #6ee7b7; margin-bottom: 10px;" id="tawaf-title">الشوط 1: يبدأ من محاذاة الحجر الأسود</div>
+      
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button onclick="prevTawaf()" class="btn-sub" style="font-size: 0.75rem;">↩ رجوع شوط</button>
+        <button onclick="resetTawaf()" class="btn-sub" style="font-size: 0.75rem;">🔄 إعادة الطواف</button>
+      </div>
+    </div>
+
+    <div class="dua-box">
+      <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #34d399; font-weight: bold;">
+        <span id="dua-counter">دعاء 1 من 30</span>
+        <span style="color: #94a3b8;">أدعية الشوط الحالي</span>
+      </div>
+      <p class="dua-text" id="active-dua-text"></p>
+      <div class="btn-row">
+        <button onclick="prevDua()" class="btn-sub" style="flex: 1;">السابق</button>
+        <button onclick="nextDua()" class="btn-main" style="padding: 10px;">الدعاء التالي</button>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-title">⭐ يُسن بين الركن اليماني والحجر الأسود:</div>
+      <div class="info-text">"رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ"</div>
+    </div>
+  </main>
+
+  <!-- 4. شاشة السعي -->
+  <main id="view-saey" class="view">
+    <div class="card">
+      <div style="font-size: 0.85rem; color: #94a3b8;" id="saey-progress">الشوط 1 من 7</div>
+
+      <div class="round-counter-btn counter-saey" onclick="handleSaeyCircleClick()">
+        <span class="counter-num" id="saey-count" style="color: #2dd4bf;">1</span>
+        <span class="counter-label" style="color: #99f6e4;">اضغط لإكمال الشوط</span>
+      </div>
+
+      <div style="font-weight: bold; color: #5eead4; margin-bottom: 10px;" id="saey-direction">الشوط 1: من الصفا نحو المروة</div>
+      
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button onclick="prevSaey()" class="btn-sub" style="font-size: 0.75rem;">↩ رجوع شوط</button>
+        <button onclick="resetSaey()" class="btn-sub" style="font-size: 0.75rem;">🔄 إعادة السعي</button>
+      </div>
+    </div>
+
+    <div class="dua-box">
+      <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #2dd4bf; font-weight: bold;">
+        <span id="saey-dua-counter">دعاء السعي 1 من 10</span>
+        <span style="color: #94a3b8;">أدعية أثناء المشي بين العلمين</span>
+      </div>
+      <p class="dua-text" id="active-saey-dua-text" style="color: #ccfbf1;"></p>
+      <div class="btn-row">
+        <button onclick="prevSaeyDua()" class="btn-sub" style="flex: 1;">السابق</button>
+        <button onclick="nextSaeyDua()" class="btn-main" style="background: #0f766e; padding: 10px;">الدعاء التالي</button>
+      </div>
+    </div>
+
+    <div class="info-box" style="background: rgba(15, 118, 110, 0.25); border: 2px solid #0d9488;">
+      <div class="info-title" style="color: #2dd4bf; font-size: 0.95rem;">
+        📍 الذكر الثابت عند صعود الصفا والمروة:
+      </div>
+      <div class="info-text" style="color: #e6fffa;">
+        يقرأ المعتمر في بداية الشوط الأول فقط عند دنوه من الصفا:<br>
+        <span style="color: #5eead4; font-weight: bold;">«نَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ، ﴿إِنَّ الصَّفَا وَالْمَرْوَةَ مِن شَعَائِرِ اللَّهِ ۖ فَمَنْ حَجَّ الْبَيْتَ أَوِ اعْتَمَرَ فَلَا جُنَاحَ عَلَيْهِ أَن يَطَّوَّفَ بِهِمَا ۚ وَمَن تَطَوَّعَ خَيْرًا فَإِنَّ اللَّهَ شَاكِرٌ عَلِيمٌ﴾»</span>.<br><br>
+        ثم يستقبل القبلة على الصفا والمروة ويرفع يديه ويوحد الله ويكبره قائلاً:<br>
+        <span style="color: #fef08a; font-weight: bold;">«اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الْأَحْزَابَ وَحْدَهُ»</span>.<br><br>
+        <span style="font-size: 0.9rem; color: #99f6e4;">يُردد هذا الذكر (3 مرات)، ويدعو بينها بما يشاء من خيري الدنيا والآخرة.</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- 5. شاشة فقه وأحكام العمرة -->
+  <main id="view-fiqh" class="view">
+    <div class="acc-item">
+      <button class="acc-btn" onclick="toggleAcc(this)">
+        <span>🕋 1. أركان العمرة (لا تجبر بدم)</span>
+        <span>▼</span>
+      </button>
+      <div class="acc-body">
+        <strong>1. الإحرام:</strong> نية الدخول في النسك عند الميقات.<br>
+        <strong>2. الطواف:</strong> سبعة أشواط تامة حول الكعبة بطهارة كاملة.<br>
+        <strong>3. السعي:</strong> سبعة أشواط بين الصفا والمروة.
+      </div>
+    </div>
+
+    <div class="acc-item">
+      <button class="acc-btn" onclick="toggleAcc(this)">
+        <span>📌 2. واجبات العمرة (تُجبر بدم)</span>
+        <span>▼</span>
+      </button>
+      <div class="acc-body">
+        <strong>1. الإحرام من الميقات المعتبر شرعاً.</strong><br>
+        <strong>2. الحلق أو التقصير:</strong> للرجال الحلق أفضل، وللنساء قص قدر أنملة من أطراف الشعر.
+      </div>
+    </div>
+
+    <div class="acc-item">
+      <button class="acc-btn" onclick="toggleAcc(this)">
+        <span>⚠️ 3. محظورات الإحرام</span>
+        <span>▼</span>
+      </button>
+      <div class="acc-body">
+        إزالة الشعر، تقليم الأظافر، الطيب، تغطية الرأس للرجل، لبس المخيط للرجل، لبس النقاب والقفازين للمرأة، وعقد النكاح والجماع.
+      </div>
+    </div>
+  </main>
+
+  <!-- 6. حقيبة دروس الحافلة (للمرشد فقط) -->
+  <main id="view-dourous" class="view">
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterLessons('all')" id="flt-l-all">الكل</button>
+      <button class="filter-btn" onclick="filterLessons('أخلاق')" id="flt-l-akhlak">الأخلاق واللحمة 🤝</button>
+      <button class="filter-btn" onclick="filterLessons('تنظيم')" id="flt-l-org">المطار والتسكين 🧳</button>
+      <button class="filter-btn" onclick="filterLessons('صلاة')" id="flt-l-salah">الصلاة والجنائز 🤲</button>
+      <button class="filter-btn" onclick="filterLessons('عمرة')" id="flt-l-omrah">دروس النسك 🕋</button>
+    </div>
+    <div id="lessons-list"></div>
+  </main>
+
+  <!-- 7. موسوعة المزارات والقصص التاريخية الكبرى (للمرشد فقط) -->
+  <main id="view-ziyarat" class="view">
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterPlaces('all')" id="flt-p-all">كل المزارات 📖</button>
+      <button class="filter-btn" onclick="filterPlaces('مكة')" id="flt-p-makkah">مكة المكرمة والمشاعر 🕋</button>
+      <button class="filter-btn" onclick="filterPlaces('المدينة')" id="flt-p-madinah">المدينة المنورة 🕌</button>
+    </div>
+    <div id="places-list"></div>
+  </main>
+
+  <script>
+    const DEFAULT_AGENCY_PHONE = "213795353719";
+    const GUIDE_SECRET_PIN = "7788";
+
+    let currentUser = null;
+    let mapInstance = null;
+    let mapMarkers = [];
+    let transferringPilgrimId = null;
+
+    let currentMapLayer = 'streets';
+    let streetsLayer, satelliteLayer;
+    let autoTrackingInterval = null;
+    let mapRefreshInterval = null;
+
+    function getAgencyPhone() {
+      const stored = localStorage.getItem('omrah_agency_phone');
+      return (stored && stored.trim()) ? stored.trim() : DEFAULT_AGENCY_PHONE;
+    }
+
+    function saveAgencyPhone() {
+      const input = document.getElementById('agency-phone-input');
+      let val = input.value.replace(/[^0-9]/g, '');
+      if (!val || val.length < 8) {
+        alert("يرجى إدخال رقم هاتف صحيح مع رمز الدولة (مثال: 213795353719)");
+        return;
+      }
+      localStorage.setItem('omrah_agency_phone', val);
+      updateDisplayPhone();
+      alert(`تم حفظ رقم طوارئ الوكالة الجديد بنجاح:\n+${val}`);
+    }
+
+    function updateDisplayPhone() {
+      const p = getAgencyPhone();
+      const displayElem = document.getElementById('sos-display-phone');
+      if (displayElem) displayElem.innerText = `+${p}`;
+      const inputElem = document.getElementById('agency-phone-input');
+      if (inputElem) inputElem.value = p;
+    }
+
+    function getStoredGroups() {
+      const stored = localStorage.getItem('omrah_groups');
+      if (stored !== null) return JSON.parse(stored);
+      const defaultGroups = ["الفوج 1 (الرئيسي)", "فوج 14 نوفمبر"];
+      localStorage.setItem('omrah_groups', JSON.stringify(defaultGroups));
+      return defaultGroups;
+    }
+
+    function saveGroups(groups) {
+      localStorage.setItem('omrah_groups', JSON.stringify(groups));
+    }
+
+    function createNewGroup() {
+      const name = prompt("أدخل اسم الفوج الجديد (مثال: فوج الوادي 3):");
+      if (name && name.trim()) {
+        let groups = getStoredGroups();
+        if (!groups.includes(name.trim())) {
+          groups.push(name.trim());
+          saveGroups(groups);
+          updateGroupsDropdowns();
+          alert(`تم إنشاء (${name.trim()}) بنجاح.`);
+        }
+      }
+    }
+
+    function deleteCurrentFilteredGroup() {
+      const select = document.getElementById('filter-group-select');
+      const groupToDelete = select.value;
+
+      if (groupToDelete === 'all') {
+        alert("يرجى اختيار فوج محدد من القائمة لحذفه.");
+        return;
+      }
+
+      if (confirm(`⚠️ هل تريد حذف (${groupToDelete}) ومسح جميع المعتمرين المسجلين فيه بالكامل؟`)) {
+        let pilgrims = getStoredPilgrims();
+        pilgrims = pilgrims.filter(p => p.group !== groupToDelete);
+        savePilgrims(pilgrims);
+
+        let groups = getStoredGroups();
+        groups = groups.filter(g => g !== groupToDelete);
+        saveGroups(groups);
+
+        updateGroupsDropdowns();
+        renderPilgrimMarkers();
+        alert(`تم حذف (${groupToDelete}) وتفريغ معتمريه بنجاح.`);
+      }
+    }
+
+    function updateGroupsDropdowns() {
+      const groups = getStoredGroups();
+      
+      const regSelect = document.getElementById('user-group-select');
+      if (regSelect) {
+        regSelect.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+      }
+
+      const filterSelect = document.getElementById('filter-group-select');
+      if (filterSelect) {
+        const curVal = filterSelect.value || 'all';
+        filterSelect.innerHTML = `<option value="all">كل الأفواج (عرض شامل)</option>` +
+          groups.map(g => `<option value="${g}">${g}</option>`).join('');
+        filterSelect.value = curVal;
+      }
+
+      const transferSelect = document.getElementById('transfer-group-select');
+      if (transferSelect) {
+        transferSelect.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+      }
+
+      const activeLabel = document.getElementById('active-group-label');
+      if (activeLabel && groups.length > 0) {
+        activeLabel.innerText = groups[0];
+      }
+    }
+
+    function changeActiveGroupFilter() {
+      renderPilgrimMarkers();
+    }
+
+    function getStoredPilgrims() {
+      const stored = localStorage.getItem('omrah_pilgrims');
+      if (stored !== null) return JSON.parse(stored);
+      return [];
+    }
+
+    function savePilgrims(list) {
+      localStorage.setItem('omrah_pilgrims', JSON.stringify(list));
+    }
+
+    function openTransferModal(id, name, currentGroup) {
+      transferringPilgrimId = id;
+      document.getElementById('transfer-pilgrim-name').innerText = `المعتمر: ${name} (حالياً في: ${currentGroup || 'فوج 1'})`;
+      
+      const select = document.getElementById('transfer-group-select');
+      updateGroupsDropdowns();
+      if (currentGroup && select) {
+        select.value = currentGroup;
+      }
+
+      document.getElementById('transfer-modal').style.display = 'flex';
+    }
+
+    function closeTransferModal() {
+      document.getElementById('transfer-modal').style.display = 'none';
+      transferringPilgrimId = null;
+    }
+
+    function confirmTransferPilgrim() {
+      if (!transferringPilgrimId) return;
+
+      const newGroup = document.getElementById('transfer-group-select').value;
+      let list = getStoredPilgrims();
+      
+      list = list.map(p => {
+        if (p.id === transferringPilgrimId) {
+          return { ...p, group: newGroup };
+        }
+        return p;
+      });
+
+      savePilgrims(list);
+
+      if (currentUser) {
+        const target = list.find(p => p.id === transferringPilgrimId);
+        if (target && (target.phone === currentUser.phone || target.name === currentUser.name)) {
+          currentUser.group = newGroup;
+          localStorage.setItem('omrah_user', JSON.stringify(currentUser));
+        }
+      }
+
+      closeTransferModal();
+      renderPilgrimMarkers();
+      alert(`تم نقل المعتمر بنجاح إلى (${newGroup}).`);
+    }
+
+    function deletePilgrim(id, name) {
+      if (confirm(`هل أنت متأكد من حذف المعتمر (${name}) من هذا الفوج؟`)) {
+        let list = getStoredPilgrims();
+        list = list.filter(p => p.id !== id);
+        savePilgrims(list);
+        renderPilgrimMarkers();
+      }
+    }
+
+    function promptGuidePin() {
+      document.getElementById('pin-error').innerText = '';
+      document.getElementById('guide-pin-input').value = '';
+      document.getElementById('pin-modal').style.display = 'flex';
+      setTimeout(() => document.getElementById('guide-pin-input').focus(), 100);
+    }
+
+    function closePinModal() {
+      document.getElementById('pin-modal').style.display = 'none';
+    }
+
+    function verifyGuidePin() {
+      const enteredPin = document.getElementById('guide-pin-input').value.trim();
+      const errBox = document.getElementById('pin-error');
+      if (enteredPin === GUIDE_SECRET_PIN) {
+        closePinModal();
+        if (currentUser) {
+          currentUser.role = 'guide';
+          localStorage.setItem('omrah_user', JSON.stringify(currentUser));
+          applyRoleUI();
+        } else {
+          setupProfile('guide');
+        }
+      } else {
+        errBox.innerText = "❌ الرمز السري غير صحيح! يرجى إعادة المحاولة.";
+      }
+    }
+
+    function toggleUserRole() {
+      if (!currentUser) return;
+
+      if (currentUser.role === 'pilgrim') {
+        promptGuidePin();
+      } else {
+        const list = getStoredPilgrims();
+        const livePilgrim = list.find(p => p.phone === currentUser.phone || p.name === currentUser.name);
+
+        if (!livePilgrim) {
+          alert("تنبيه: لقد تم حذف هذا المعتمر من الفوج بواسطة المرشد، يرجى التسجيل من جديد.");
+          localStorage.removeItem('omrah_user');
+          location.reload();
+          return;
+        }
+
+        currentUser.role = 'pilgrim';
+        currentUser.group = livePilgrim.group;
+        localStorage.setItem('omrah_user', JSON.stringify(currentUser));
+        applyRoleUI();
+      }
+    }
+
+    function setupProfile(role) {
+      const name = document.getElementById('user-name').value.trim() || (role === 'guide' ? 'مرشد الفوج' : 'معتمر');
+      const phone = document.getElementById('user-phone').value.trim() || 'غير مسجل';
+      const groupSelect = document.getElementById('user-group-select');
+      const group = (groupSelect && groupSelect.value) ? groupSelect.value : 'الفوج 1 (الرئيسي)';
+
+      currentUser = { name, phone, role, group };
+      localStorage.setItem('omrah_user', JSON.stringify(currentUser));
+
+      if (role === 'pilgrim') {
+        registerOrUpdatePilgrim(name, phone, group);
+      }
+
+      applyRoleUI();
+    }
+
+    function registerOrUpdatePilgrim(name, phone, group) {
+      let list = getStoredPilgrims();
+
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          updatePilgrimLocationInList(list, name, phone, group, pos.coords.latitude, pos.coords.longitude);
+        }, err => {
+          updatePilgrimLocationInList(list, name, phone, group, 21.4225, 39.8262);
+        }, { enableHighAccuracy: false, timeout: 5000 });
+      } else {
+        updatePilgrimLocationInList(list, name, phone, group, 21.4225, 39.8262);
+      }
+    }
+
+    function updatePilgrimLocationInList(list, name, phone, group, lat, lng) {
+      const now = new Date();
+      const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      
+      const filtered = list.filter(p => p.phone !== phone && p.name !== name);
+      filtered.unshift({
+        id: Date.now(),
+        name: name,
+        phone: phone,
+        group: group,
+        lat: lat,
+        lng: lng,
+        time: timeStr
+      });
+      savePilgrims(filtered);
+      if (currentUser && currentUser.role === 'guide') {
+        renderPilgrimMarkers();
+      }
+    }
+
+    function startAutoGpsTracking() {
+      if (autoTrackingInterval) clearInterval(autoTrackingInterval);
+
+      const updateLocation = () => {
+        if (!currentUser || currentUser.role !== 'pilgrim') return;
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(pos => {
+            let list = getStoredPilgrims();
+            updatePilgrimLocationInList(list, currentUser.name, currentUser.phone, currentUser.group, pos.coords.latitude, pos.coords.longitude);
+            const statusElem = document.getElementById('auto-gps-text');
+            if (statusElem) {
+              const d = new Date();
+              statusElem.innerText = `📡 تتبع حي متصل: آخر إرسال لموقعك للمرشد (${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')})`;
+            }
+          }, err => {}, { enableHighAccuracy: false, timeout: 8000, maximumAge: 30000 });
+        }
+      };
+
+      updateLocation();
+      autoTrackingInterval = setInterval(updateLocation, 30000);
+    }
+
+    function applyRoleUI() {
+      const saved = localStorage.getItem('omrah_user');
+      if (!saved) {
+        document.getElementById('auth-screen').style.display = 'flex';
+        updateGroupsDropdowns();
+        updateDisplayPhone();
+        return;
+      }
+      currentUser = JSON.parse(saved);
+
+      if (currentUser.role === 'pilgrim') {
+        const list = getStoredPilgrims();
+        const liveRecord = list.find(p => p.phone === currentUser.phone || p.name === currentUser.name);
+        
+        if (!liveRecord) {
+          localStorage.removeItem('omrah_user');
+          document.getElementById('auth-msg').innerText = "⚠️ تم إخراجك من الفوج السابق، يرجى التسجيل للانضمام للفوج الحالي.";
+          document.getElementById('auth-msg').style.color = "#f87171";
+          document.getElementById('auth-screen').style.display = 'flex';
+          updateGroupsDropdowns();
+          updateDisplayPhone();
+          return;
+        }
+
+        currentUser.group = liveRecord.group;
+        localStorage.setItem('omrah_user', JSON.stringify(currentUser));
+        startAutoGpsTracking();
+      } else {
+        if (autoTrackingInterval) clearInterval(autoTrackingInterval);
+        if (!mapRefreshInterval) {
+          mapRefreshInterval = setInterval(() => {
+            if (currentUser && currentUser.role === 'guide') {
+              renderPilgrimMarkers();
+            }
+          }, 15000);
+        }
+      }
+
+      document.getElementById('auth-screen').style.display = 'none';
+
+      const nav = document.getElementById('nav-bar');
+      const roleInd = document.getElementById('role-indicator');
+      const appTitle = document.getElementById('app-title');
+
+      updateDisplayPhone();
+
+      if (currentUser.role === 'guide') {
+        roleInd.innerText = "مرشد الفوج 🛡️";
+        roleInd.style.background = "#1e3a8a";
+        roleInd.style.color = "#93c5fd";
+        appTitle.innerText = "🕋 لوحة تحكم المرشد";
+
+        nav.innerHTML = `
+          <button onclick="switchTab('map')" id="tab-map" class="active">🗺️ خريطة الأفواج</button>
+          <button onclick="switchTab('tawaf')" id="tab-tawaf">أدعية الطواف</button>
+          <button onclick="switchTab('saey')" id="tab-saey">السعي</button>
+          <button onclick="switchTab('dourous')" id="tab-dourous">حقيبة الحافلة</button>
+          <button onclick="switchTab('ziyarat')" id="tab-ziyarat">موسوعة المزارات الكبرى</button>
+          <button onclick="switchTab('fiqh')" id="tab-fiqh">فقه العمرة</button>
+        `;
+        switchTab('map');
+        initMap();
+        updateGroupsDropdowns();
+      } else {
+        roleInd.innerText = `معتمر: ${currentUser.name} (${currentUser.group || 'فوج عام'})`;
+        roleInd.style.background = "#064e3b";
+        roleInd.style.color = "#a7f3d0";
+        appTitle.innerText = "🕋 رفيق المعتمر";
+
+        nav.innerHTML = `
+          <button onclick="switchTab('sos')" id="tab-sos" class="active" style="color: #f87171;">🚨 نجدة المعتمر</button>
+          <button onclick="switchTab('tawaf')" id="tab-tawaf">أدعية الطواف</button>
+          <button onclick="switchTab('saey')" id="tab-saey">السعي</button>
+          <button onclick="switchTab('fiqh')" id="tab-fiqh">كيفية العمرة</button>
+        `;
+        switchTab('sos');
+      }
+    }
+
+    function initMap() {
+      setTimeout(() => {
+        if (!mapInstance) {
+          mapInstance = L.map('map').setView([21.4225, 39.8262], 16);
+
+          streetsLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+          });
+
+          satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: 'Tiles &copy; Esri'
+          });
+
+          streetsLayer.addTo(mapInstance);
+        }
+        renderPilgrimMarkers();
+      }, 300);
+    }
+
+    function setMapLayer(layerType) {
+      if (!mapInstance) return;
+      currentMapLayer = layerType;
+
+      document.getElementById('btn-layer-streets').classList.remove('active');
+      document.getElementById('btn-layer-satellite').classList.remove('active');
+
+      if (layerType === 'satellite') {
+        mapInstance.removeLayer(streetsLayer);
+        satelliteLayer.addTo(mapInstance);
+        document.getElementById('btn-layer-satellite').classList.add('active');
+      } else {
+        mapInstance.removeLayer(satelliteLayer);
+        streetsLayer.addTo(mapInstance);
+        document.getElementById('btn-layer-streets').classList.add('active');
+      }
+    }
+
+    function renderPilgrimMarkers() {
+      if (!mapInstance) return;
+      mapMarkers.forEach(m => mapInstance.removeLayer(m));
+      mapMarkers = [];
+
+      const listContainer = document.getElementById('pilgrims-list');
+      const countElem = document.getElementById('pilgrim-count');
+      const filterSelect = document.getElementById('filter-group-select');
+      const selectedGroup = filterSelect ? filterSelect.value : 'all';
+
+      listContainer.innerHTML = '';
+
+      let localPilgrims = getStoredPilgrims();
+      if (selectedGroup !== 'all') {
+        localPilgrims = localPilgrims.filter(p => p.group === selectedGroup);
+      }
+
+      countElem.innerText = localPilgrims.length;
+
+      if (localPilgrims.length === 0) {
+        listContainer.innerHTML = `
+          <div style="text-align:center; padding: 20px; color: #94a3b8; font-size: 0.85rem;">
+            لا يوجد معتمرون مسجلون في هذا الفوج حالياً.
+          </div>
+        `;
+        return;
+      }
+
+      localPilgrims.forEach(p => {
+        const marker = L.marker([p.lat, p.lng]).addTo(mapInstance)
+          .bindPopup(`<b>${p.name}</b><br>الفوج: ${p.group || 'غير محدد'}<br>هاتف: ${p.phone}<br>آخر تحديث: ${p.time}`);
+        mapMarkers.push(marker);
+
+        listContainer.innerHTML += `
+          <div class="pilgrim-item">
+            <div>
+              <div style="font-weight: bold; color: white; font-size: 0.95rem;">
+                👤 ${p.name} 
+                <span style="font-size: 0.7rem; background: #064e3b; color: #6ee7b7; padding: 1px 6px; border-radius: 4px; margin-right: 4px;">${p.group || 'فوج عام'}</span>
+              </div>
+              <div style="font-size: 0.75rem; color: #94a3b8;">📞 ${p.phone} • آخر رصد: <span style="color: #34d399; font-weight: bold;">${p.time}</span></div>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <button onclick="focusOnMap(${p.lat}, ${p.lng})" class="btn-sub" style="font-size: 0.75rem; padding: 6px 10px;">📍 تحديد</button>
+              <button onclick="openTransferModal(${p.id}, '${p.name}', '${p.group || ''}')" class="btn-transfer-sm" title="نقل إلى فوج آخر">⇄ نقل</button>
+              <button onclick="deletePilgrim(${p.id}, '${p.name}')" class="btn-danger-sm" title="حذف من الفوج">🗑️</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function focusOnMap(lat, lng) {
+      if (mapInstance) mapInstance.setView([lat, lng], 18);
+    }
+
+    function refreshMap() {
+      renderPilgrimMarkers();
+    }
+
+    function sendSOS() {
+      const status = document.getElementById('sos-status');
+      status.innerText = "⏳ جاري التقاط إحداثيات موقعك الحالي...";
+
+      const targetPhone = getAgencyPhone();
+      const pilgrimName = currentUser ? currentUser.name : "معتمر";
+      const pilgrimPhone = currentUser ? currentUser.phone : "";
+      const pilgrimGroup = currentUser ? (currentUser.group || "فوج عام") : "";
+
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          function(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const mapUrl = `https://maps.google.com/?q=${lat},${lng}`;
+            const msg = encodeURIComponent(`🚨 نداء استغاثة من معتمر ضائع!\nالاسم: ${pilgrimName}\nالفوج: ${pilgrimGroup}\nالهاتف: ${pilgrimPhone}\nموقعي الحالي الدقيق على الخريطة:\n${mapUrl}`);
+            status.innerText = "✅ تم تحديد الموقع! جاري فتح الواتساب...";
+            window.location.href = `whatsapp://send?phone=${targetPhone}&text=${msg}`;
+          },
+          function(err) {
+            const fallbackMsg = encodeURIComponent(`🚨 نداء استغاثة عاجل!\nالاسم: ${pilgrimName}\nالفوج: ${pilgrimGroup}\nالهاتف: ${pilgrimPhone}\nأنا تائه في الحرم وبحاجة للمساعدة، يرجى الاتصال بي فوراً.`);
+            window.location.href = `whatsapp://send?phone=${targetPhone}&text=${fallbackMsg}`;
+          },
+          { enableHighAccuracy: true, timeout: 7000 }
+        );
+      } else {
+        const fallbackMsg = encodeURIComponent(`🚨 نداء استغاثة: أنا ${pilgrimName} من ${pilgrimGroup} تائه وبحاجة لمساعدة.`);
+        window.location.href = `whatsapp://send?phone=${targetPhone}&text=${fallbackMsg}`;
+      }
+    }
+
+    const baseDuas = [
+      "بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ، اللَّهُمَّ إِيمَانًا بِكَ، وَتَصْدِيقًا بِكِتَابِكَ، وَوَفَاءً بِعَهْدِكَ، وَاتِّبَاعًا لِسُنَّةِ نَبِيِّكَ مُحَمَّدٍ ﷺ.",
+      "سُبْحَانَ اللَّهِ، وَالْحَمْدُ لِلَّهِ، وَلا إِلَهَ إِلا اللَّهُ، وَاللَّهُ أَكْبَرُ، وَلا حَوْلَ وَلا قُوَّةَ إِلا بِاللَّهِ الْعَلِيِّ الْعَظِيمِ.",
+      "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي.",
+      "اللَّهُمَّ اسْتُرْ عَوْرَاتِي، وَآمِنْ رَوْعَاتِي، وَاحْفَظْنِي مِنْ بَيْنِ يَدَيَّ، وَمِنْ خَلْفِي، وَعَنْ يَمِينِي، وَعَنْ شِمَالِي، وَمِنْ فَوْقِي.",
+      "رَبَّنَا اغْفِرْ لِي وَلِوَالِدَيَّ وَلِلْمُؤْمِنِينَ يَوْمَ يَقُومُ الْحِسَابُ.",
+      "اللَّهُمَّ آتِ نُفُوسَنَا تَقْوَاهَا، وَزَكِّهَا أَنْتَ خَيْرُ مَنْ زَكَّاهَا، أَنْتَ وَلِيُّهَا وَمَوْلَاهَا.",
+      "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ زَوَالِ نِعْمَتِكَ، وَتَحَوُّلِ عَافِيَتِكَ، وَفُجَاءَةِ نِقْمَتِكَ، وَجَمِيعِ سَخَطِكَ.",
+      "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ، وَالْعَجْزِ وَالْكَسَلِ، وَالْبُخْلِ وَالْجُبْنِ، وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ.",
+      "رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّكَ أَنْتَ الْوَهَّابُ.",
+      "اللَّهُمَّ حَبِّبْ إِلَيْنَا الإِيمَانَ وَزَيِّنْهُ فِي قُلُوبِنَا، وَكَرِّهْ إِلَيْنَا الْكُفْرَ وَالْفُسُوقَ وَالْعِصْيَانَ.",
+      "اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ.",
+      "رَبِّ إِنِّي ظَلَمْتُ نَفْسِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ.",
+      "اللَّهُمَّ إِنَّكَ عَفُوٌّ كَرِيمٌ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي.",
+      "اللَّهُمَّ أَصْلِحْ لِي دِينِي الَّذِي هُوَ عِصْمَةُ أَمْرِي، وَأَصْلِحْ لِي دُنْيَايَ الَّتِي فِيهَا مَعَاشِي، وَأَصْلِحْ لِي آخِرَتِي الَّتِي فِيهَا مَعَادِي.",
+      "اللَّهُمَّ اجْعَلِ الْحَيَاةَ زِيَادَةً لِي فِي كُلِّ خَيْرٍ، وَاجْعَلِ الْمَوْتَ رَاحَةً لِي مِنْ كُلِّ شَرٍّ.",
+      "لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ.",
+      "اللَّهُمَّ ارْزُقْنِي قَلْبًا خَاشِعًا، وَلِسَانًا ذَاكِرًا، وَعَمَلًا صَالِحًا مُتَقَبَّلًا.",
+      "اللَّهُمَّ إِنِّي أَسْأَلُكَ الثَّبَاتَ فِي الأَمْرِ، وَالْعَزِيمَةَ عَلَى الرُّشْدِ.",
+      "اللَّهُمَّ فَرِّجْ هَمَّ الْمَهْمُومِينَ، وَنَفِّسْ كَرْبَ الْمَكْرُوبِينَ، وَاقْضِ الدَّيْنَ عَنِ الْمَدِينِينَ.",
+      "اللَّهُمَّ اشْفِ مَرْضَانَا وَمَرْضَى الْمُسْلِمِينَ، وَارْحَمْ مَوْتَانَا وَمَوْتَى الْمُسْلِمِينَ."
+    ];
+    const tawafDuas = {};
+    for (let r = 1; r <= 7; r++) { tawafDuas[r] = [...baseDuas]; }
+
+    const saeyDuas = [
+      "رَبِّ اغْفِرْ وَارْحَمْ، وَتَجَاوَزْ عَمَّا تَعْلَمْ، إِنَّكَ أَنْتَ الْأَعَزُّ الْأَكْرَمُ.",
+      "اللَّهُمَّ إِنِّي أَسْأَلُكَ مُوجِبَاتِ رَحْمَتِكَ، وَعَزَائِمَ مَغْفِرَتِكَ، وَالسَّلَامَةَ مِنْ كُلِّ إِثْمٍ، وَالْفَوْزَ بِالْجَنَّةِ، وَالنَّجَاةَ مِنَ النَّارِ.",
+      "اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ، وَتَقَبَّلْ مِنِّي سَعْيِي وَعُمْرَتِي.",
+      "رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنْتَ السَّمِيعُ الْعَلِيمُ، وَتُبْ عَلَيْنَا إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ.",
+      "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ."
+    ];
+
+    const lessonsData = [
+      {
+        category: "أخلاق",
+        badge: "badge-purple",
+        time: "⏱ وقت الإلقاء: دقيقتان",
+        title: "درس اللحمة وجعل الفوج عائلة واحدة (أخلاق الرفقة في السفر)",
+        content: "بسم الله الرحمن الرحيم. أيها الإخوة والأخوات، يا ضيوف الرحمن.. أنتم الآن لستم مجرد ركاب تجمعهم حافلة واحدة، بل اختاركم الله لتكونوا 'عائلة واحدة' في هذه الرحلة المباركة التي تتنزل فيها الرحمات.<br><br>يقول الحبيب المصطفى ﷺ: 'مَثَلُ الْمُؤْمِنِينَ فِي تَوَادِّهِمْ وَتَرَاحُمِهِمْ وَتَعَاطُفِهِمْ مَثَلُ الْجَسَدِ الْوَاحِدِ إِذَا اشْتَكَى مِنْهُ عُضْوٌ تَدَاعَى لَهُ سَائِرُ الْجَسَدِ بِالسَّهَرِ وَالْحُمَّى'. في رحلتنا هذه سيكون بيننا الشيخ الكبير الذي يحتاج من يمسك بيده، والمريض الذي يحتاج صبراً، والضعيف الذي يمشي ببطء.<br><br><strong>وصيتي لكم ثلاث وصايا من ذهب احفظوها:</strong><br>• <strong>أولاً: الإيثار والتنازل:</strong> قدّم أخاك وأختك في الصعود للركوب، في أسبقية المصعد، وعند استلام الوجبات، فوالله إن الإيثار في الحرم له طعم يفتح أبواب الإجابة.<br>• <strong>ثانياً: التغافل والابتسامة:</strong> السفر فيه تعب ومشقة، فاجعل شعارك المسامحة، والتغافل عن الهفوات وبادر رفيقك بالابتسامة.<br>• <strong>ثالثاً: تفقد الغائب:</strong> إذا رأيتم أحداً تخلف عن الصلاة أو الطعام فاسألوا عنه وتفقدوه، فكم من تائه أغاثته لفتة أخوية.<br>كونوا كالبنيان المرصوص يشد بعضه بعضاً، حتى يرجع الجميع برحمة ومغفرة وأخوة تدوم في الله."
+      },
+      {
+        category: "أخلاق",
+        badge: "badge-purple",
+        time: "⏱ وقت الإلقاء: دقيقة ونصف",
+        title: "درس الصبر عند التعب والزحام وضبط النفس",
+        content: "أيها الأحباب الكرام، يقول الله تعالى في كتابه الحكيم: ﴿فَمَن فَرَضَ فِيهِنَّ الْحَجَّ فَلَا رَفَثَ وَلَا فُسُوقَ وَلَا جِدَالَ فِي الْحَجِّ﴾، وهذا الأدب هو روح العمرة وعنوان قبولها.<br><br>في الحرمين ستواجهون زحاماً كبيراً وتدافعاً، وهنا تحديداً يظهر جوهر عبادتك؛ هل جئت لتختبر صبرك وترتقي بروحك أم لتتذمر وتضيع أجر سفرك؟<br><br>إذا دفعك أحد في الطواف عن غير قصد، فلا تنفعل بيدك أو لسانك، بل استغفر الله وقل: 'غفر الله لك ويسر أمرك'. وتذكر أن أجرك على قدر تعبك كما قال النبي ﷺ لعائشة رضي الله عنها: 'أجركِ على قدرِ نَصَبِك'. اشغل لسانك دائماً بالاستغفار والحوقلة، فمن كظم غيظاً في الحرم ملأ الله قلبه أمناً وإيماناً وسكينة."
+      },
+      {
+        category: "تنظيم",
+        badge: "badge-amber",
+        time: "⏱ وقت الإلقاء: دقيقتان",
+        title: "درس الحافلة: عند الوصول من المطار إلى الفندق والتسكين",
+        content: "حمداً لله على سلامتكم ووصولكم المبارك لأطهر البقاع. نرجو منكم تفريغ الأذهان والانتباه للنقاط التالية بكل هدوء:<br>• <strong>أولاً: بطاقة الفندق (شريان الأمان):</strong> عند استلام مفتاح غرفتك، خذ مباشرة 'كارت الفندق' وضعه في جيبك، فهو دليلك للعودة إن ضللت الطريق في شوارع مكة والمدينة.<br>• <strong>ثانياً: الهدوء أثناء التسكين:</strong> تسليم الغرف وتوزيع الأمتعة يأخذ وقتاً يسيراً، فاجعلوا الصبر شعاركم وتجنبوا التزاحم في الاستقبال أو أمام المصاعد.<br>• <strong>ثالثاً: الحفاظ على الأمتعة:</strong> احفظوا جوازات السفر والأموال في قاصة الغرفة الإلكترونية (Safety Box).<br>• <strong>رابعاً: الراحة قبل النسك:</strong> خذوا قسطاً من الراحة والاستحمام قبل الذهاب للحرم، لتؤدوا عمرتكم بخشوع ونشاط وحضور قلب."
+      },
+      {
+        category: "صلاة",
+        badge: "badge-rose",
+        time: "⏱ وقت الإلقاء: دقيقتان",
+        title: "درس تفصيلي: صلاة الجنازة في الحرمين (خاصة لأمهاتنا وأخواتنا)",
+        content: "في الحرمين يعلن المؤذن بعد كل صلاة مكتوبة تقريباً: 'الصلاة على الجنائز يرحمكم الله'.<br>صلاة الجنازة مشروعة للرجال والنساء على السواء، وفيها قيراط من الأجر مثل جبل أحد، فلا تفوتن هذا الفضل العظيم.<br><br><strong>كيفيتها سهلة جداً فاحفظوها:</strong><br>• صلاة الجنازة <strong>كلها قيام.. ليس فيها ركوع ولا سجود إطلاقاً!</strong><br>• <strong>التكبيرة 1:</strong> الفاتحة سراً.<br>• <strong>التكبيرة 2:</strong> الصلاة الإبراهيمية (اللهم صلِّ على محمد وعلى آل محمد كما صليت على إبراهيم...).<br>• <strong>التكبيرة 3:</strong> الدعاء للميت سراً (اللهم اغفر له وارحمه وعافه واعف عنه وأكرم نزله ووسع مدخله...).<br>• <strong>التكبيرة 4:</strong> نسكت يسيراً أو ندعو للمسلمين، ثم نُسلّم تسليمة واحدة جهة اليمين."
+      }
+    ];
+
+    // موسوعة المزارات الكبرى المفصلة (1 إلى 2.5 دقيقة لكل قصة)
+    const ziyaratData = [
+      // 🕋 مزارات مكة المكرمة والمشاعر
+      {
+        city: "مكة",
+        title: "غار حراء (جبل النور) - مهبط الوحي وفجر الرسالة",
+        story: "نحن نقف هنا أمام جبل النور، الجبل الذي كان يصعده النبي ﷺ قبل البعثة بأقدامه الشريفة، متحملاً وعورة الصخور ليخلو في هذا الغار الصغير المطل على الكعبة المشرفة، فيتفكر في ملكوت السماوات ويتعبد الليالي ذوات العدد.<br><br>وفي ليلة مباركة من شهر رمضان، انشق سكون الليل ونزل الروح الأمين جبريل عليه السلام ليضم النبي ﷺ ضمة شديدة حتى بلغ منه الجهد، ثم قال له: 'اقرأ'، فيجيب ﷺ: 'ما أنا بقارئ'، وتكررت ثلاثاً حتى نزل قوله تعالى: ﴿اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ ۝ خَلَقَ الْإِنْسَانَ مِنْ عَلَقٍ ۝ اقْرَأْ وَرَبُّكَ الْأَكْرَمُ ۝ الَّذِي عَلَّمَ بِالْقَلَمِ﴾. من هذا الغار الصغير اتصلت الأرض بالسماء وانبلج فجر الإسلام الذي بدد ظلمات الشرك والجهل."
+      },
+      {
+        city: "مكة",
+        title: "غار ثور (جبل ثور) - ملحمة الهجرة ومعية الله الخالدة",
+        story: "هذا الجبل الشامخ جنوب مكة هو جبل ثور، الشاهد على أعظم رحلة غيرت التاريخ؛ رحلة الهجرة النبوية. لما تآمرت قريش على قتل النبي ﷺ، خرج مع رفيقه الصادق أبي بكر الصديق وتوجها جنوباً للتمويه.<br><br>ضرب الصديق هنا أروع أمثلة الفداء، دخل الغار قبله يتفقده ويسد جحوره بردائه لئلا يُلدغ رسول الله. مكثا فيه ثلاث ليالٍ، حتى وقف فرسان قريش بسيوفهم على فم الغار مباشرة! ارتجف الصديق خوفاً على النبي ﷺ وقال: 'لو أن أحدهم نظر إلى قدميه لأبصرنا!' فنظر إليه الحبيب بيقين يملأ الكون سكينة: 'يا أبا بكر، ما ظنك باثنين الله ثالثهما؟ لا تحزن إن الله معنا'. فأنزل الله سكينته وأيدهما بجنود لم يروها."
+      },
+      {
+        city: "مكة",
+        title: "مسجد الجن (حي الحجون) - إيمان الغيب وسماع القرآن",
+        story: "في هذا الموضع بحي الحجون شمال المسجد الحرام، وقع حدث إيماني فريد يثبت شمول رسالة النبي ﷺ للثقلين. خرج النبي ﷺ في ظلمة الليل ومعه الصحابي عبد الله بن مسعود، فخط له خطاً في الأرض وقال له: 'لا تبرح مكانك حتى آتيك'.<br><br>وتقدم النبي ﷺ بمفرده فاجتمعت عليه وفود الجن كالسحاب يستمعون القرآن. تلا عليهم سورة الرحمن، فكان كلما قرأ: ﴿فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ﴾، قالوا بأدب: 'ولا بشيء من نِعَمِكَ ربنا نُكذب، فلك الحمد'. فآمنوا ورجعوا إلى قومهم منذرين، ونزلت في هذا المكان سورة الجن تخليداً لهذا اللقاء العظيم."
+      },
+      {
+        city: "مكة",
+        title: "مسجد الراية - موضع فتح مكة الأعظم ودخول النصر",
+        story: "نقف هنا بأعلى مكة عند موضع تاريخي مجيد يُعرف بمسجد الراية. في هذا المكان في شهر رمضان من العام الثامن للهجرة، دخل رسول الله ﷺ مكة فاتحاً ومعه عشرة آلاف صحابي، بعد سنوات طويلة من الاضطهاد والتهجير.<br><br>لكنه لم يدخل متكبراً، بل دخل وهو يطأطئ رأسه الشريف تواضعاً لله حتى كادت لحيته تلامس رحله شكراً لله. وفي هذه البقعة ركّز النبي ﷺ رايته وصلى ركعات الفتح، ثم انطلق إلى الكعبة ليطهرها من الأصنام وهو يصدع بالحق: ﴿وَقُلْ جَاءَ الْحَقُّ وَزَهَقَ الْبَاطِلُ ۚ إِنَّ الْبَاطِلَ كَانَ زَهُوقًا﴾."
+      },
+      {
+        city: "مكة",
+        title: "مسجد الشجرة - معجزة التثبيت الإلهي لقلب النبي ﷺ",
+        story: "هذا المسجد الصغير المقابل لمقبرة المعلاة يروي معجزة حسية ناطقة بصدق نبوة محمد ﷺ. في بدايات الدعوة، لما اشتد أذى قريش وطغيانهم وتجرأوا على النبي ﷺ حتى أصابه الحزن الشديد، نزل جبريل عليه السلام ليواسيه ويثبت فؤاده.<br><br>قال جبريل: 'يا رسول الله، أتحب أن أريك آية تطمئن بها نفسك؟' قال: 'نعم'. فأشار إلى شجرة كانت قائمة في هذا الموضع وقال: 'ادعُ تلك الشجرة'. فناداها النبي ﷺ، فانشقت الأرض وخرجت الشجرة من عروقها تسعى حتى وقفت بين يديه وسلمت عليه، ثم أمرها فعادت مكانها كما كانت. فقال ﷺ بسكينة: 'حسبي.. حسبي'."
+      },
+      {
+        city: "مكة",
+        title: "مشعر عرفات وجبل الرحمة - موطن إتمام الدين ومباهاة الملائكة",
+        story: "هذا الصعيد الطاهر هو قلب عرفات، وهذه الأكمة الصخرية هي جبل الرحمة (جبل إيلال). هنا وقف النبي ﷺ في حجة الوداع على ناقته القصواء بين جموع الصحابة في يوم الجمعة المبارك، خاشعاً باسطاً يديه يدعو ربه حتى غابت الشمس.<br><br>وفي هذا الموضع نزل قول الله تعالى: ﴿الْيَوْمَ أَكْمَلْتُ لَكُمْ دِينَكُمْ وَأَتْمَمْتُ عَلَيْكُمْ نِعْمَتِي وَرَضِيتُ لَكُمُ الْإِسْلَامَ دِينًا﴾. وسُمي جبل الرحمة لفيوض المغفرة التي تتنزل على أهل الموقف؛ حيث يباهي الله بعباده ملائكة السماء ويقول: 'انظروا إلى عبادي أتوني شعثاً غبراً، أشهدكم أني قد غفرت لهم'، وما رُئي الشيطان أصغر ولا أدحر منه في يوم عرفة."
+      },
+      {
+        city: "مكة",
+        title: "مسجد نَمِرَة (عرفات) - موضع خطبة الوداع الخالدة",
+        story: "هذا المسجد الشامخ يقع جزء من مقدمته في وادي عُرنة (خارج حدود عرفات) ومؤخرته في صعيد عرفات. في هذا الموضع ضُربت للنبي ﷺ قبة بنَمِرة في حجة الوداع، فلما زالت الشمس ركب ناقته وألقى خطبة الوداع التاريخية العظيمة التي أرسى فيها حقوق الإنسان، وحرمة الدماء والأموال والأعراض، ووصى بالنساء خيراً، وأبطل مآثر الجاهلية ورباها.<br><br>ثم أذن بلال وصلى النبي ﷺ بالمسلمين الظهر والعصر جمعاً وقصراً بأذان واحد وإقامتين، ثم توجه إلى موقفه عند جبل الرحمة. وبُني هذا المسجد الجامع تخليداً لموقف خطبته وصلاته ﷺ."
+      },
+      {
+        city: "مكة",
+        title: "مشعر مزدلفة والمشعر الحرام - موطن السكينة والجمع",
+        story: "هذا الصعيد المبارك يقع بين عرفات ومنى، ويُسمى 'مزدلفة' لازدلاف الناس إليه واجتماعهم فيه بعد الإفاضة، ويسمى أيضاً 'جَمْعاً'. لما أفاض النبي ﷺ من عرفات غابت الشمس ووصل إلى مزدلفة، فأمر الناس بالسكينة والوقار قائلاً: 'أيها الناس، السكينة السكينة! فإن البر ليس بالإيضاع (الإسراع)'.<br><br>صلى ﷺ هنا المغرب والعشاء جمعاً وقصراً بأذان وإقامتين، ثم بات حتى طلع الفجر، وصلى الفجر ثم ركب حتى أتى المشعر الحرام، فاستقبل القبلة ودعا الله وكبره وهلله حتى أسفر الصباح جداً، وأخذ من هنا الحصيات لجمرة العقبة."
+      },
+      {
+        city: "مكة",
+        title: "مشعر منى ومسجد الخَيْف - مصلّى الأنبياء ومبيت الحجيج",
+        story: "منى هو وادي تحفه الجبال، وهو وادي الذكريات الإبراهيمية حيث افتدى الله إسماعيل بذبح عظيم، وموضع رجم الجمار والتحلل. وفي قلب منى يقع هذا المسجد العظيم؛ مسجد الخَيْف (والخيف هو ما انحدر عن غلظ الجبل وارتفع عن بطن المسيل).<br><br>لهذا المسجد قدسية وتاريخ ممتد في عمق الرسالات؛ قال عنه النبي ﷺ: 'صلى في مسجد الخيف سبعون نبياً'. وفي هذا الموضع نزل النبي ﷺ وصلى بالمسلمين في حجة الوداع، وخطب خطبة بليغة حث فيها على نقاء القلوب ولزوم جماعة المسلمين."
+      },
+
+      // 🕌 مزارات المدينة المنورة
+      {
+        city: "المدينة",
+        title: "المسجد النبوي الشريف والروضة - قلب المدينة ومهوى الأفئدة",
+        story: "هذا هو مسجد رسول الله ﷺ، ثاني أقدس بقعة على وجه الأرض، المسجد الذي خطه الحبيب وبناه بلبنات الطين وجذوع النخل وعرق صحابته الأطهار. جعل الله للصلاة فيه فضلاً مضاعفاً: 'صلاةٌ في مسجدي هذا خيرٌ من ألف صلاة فيما سواه إلا المسجد الحرام'.<br><br>وفي رحابه تقع الروضة الشريفة التي قال عنها ﷺ: 'ما بين بيتي ومنبري روضةٌ من رياض الجنة'. وهنا يرقد الجسد الطاهر لخير خلق الله ﷺ وبجانبه رفيقاه الصديق والفاروق عمر. نقف هنا بأدب وخشوع نُسلّم على النبي وصاحبيه ونستشعر خطواته وأنفاسه التي بنت أمة الإسلام."
+      },
+      {
+        city: "المدينة",
+        title: "مسجد قباء ودرب السنّة - أول لبنة أُسست على التقوى",
+        story: "أول مسجد أُسس على التقوى في تاريخ الإسلام، خطه النبي ﷺ بيده وشارك في حمل حجارته حتى غبّر التراب صدره الشريف. أثنى الله على أهله فقال: ﴿فِيهِ رِجَالٌ يُحِبُّونَ أَن يَتَطَهَّرُوا ۚ وَاللَّهُ يُحِبُّ الْمُطَّهِّرِينَ﴾.<br><br>وجعل الله للصلاة فيه فضلاً استثنائياً: 'من تطهر في بيته ثم أتى مسجد قباء فصلى فيه صلاة، كان له كأجر عمرة'. وكان ﷺ يحبه حباً جماً ويزوره في كل يوم سبت راكباً وماشياً عبر الطريق التاريخي الرابط بالمسجد النبوي والمعروف بـ 'درب السنّة'."
+      },
+      {
+        city: "المدينة",
+        title: "جبل أُحُد ومقبرة الشهداء وملحمة الغزوة - مدرسة الفداء والامتثال",
+        story: "هذا الجبل الشامخ الذي أمامنا قال عنه الحبيب ﷺ: 'أُحد جبل يحبنا ونحبه'. دارت عند سفحه غزوة أحد في السنة الثالثة للهجرة. وضع النبي ﷺ خمسين رامياً على جبل الرماة وقال مؤكداً: 'إن رأيتمونا تخطفنا الطير فلا تبرحوا مكانكم'.<br><br>فلما لاحت تباشير النصر وظن الرماة نهاية المعركة نزل أغلبهم لجمع الغنائم، فاستغل خالد بن الوليد الثغرة وطوق الجيش، فانقلبت الموازين وشُج وجه النبي ﷺ وشاع أنه قُتل. ثبتت معه ثلة صادقة تحميه بصدورها، واستشهد سبعون من خيار الصحابة يرقدون في هذه المقبرة الشريفة، يتقدمهم أسد الله حمزة بن عبد المطلب، ومصعب بن عمير، وأنس بن النضر."
+      },
+      {
+        city: "المدينة",
+        title: "مسجد القبلتين - الاستجابة والامتثال الفوري لأمر الله",
+        story: "نحن هنا في ديار بني سَلِمة، أمام مسجد القبلتين الذي شهد حادثة تشريعية فاصلة غيرت وجه التاريخ. صلى المسلمون نحو بيت المقدس ستة عشر أو سبعة عشر شهراً بعد الهجرة، وكان قلب النبي ﷺ يهفو ويتطلع إلى قبلة أبيه إبراهيم نحو الكعبة المشرفة بمكة.<br><br>وبينما كان ﷺ يصلي بأصحابه صلاة الظهر في هذا الموضع، وفي الركعة الثانية تحديداً، نزل الوحي: ﴿قَدْ نَرَىٰ تَقَلُّبَ وَجْهِكَ فِي السَّمَاءِ ۖ فَلَنُوَلِّيَنَّكَ قِبْلَةً تَرْضَاهَا ۚ فَوَلِّ وَجْهَكَ شَطْرَ الْمَسْجِدِ الْحَرَامِ﴾. وبمنتهى الطاعة، استدار النبي ﷺ واستدار المصلون في نفس الصلاة بزاوية 180 درجة نحو الكعبة، فكان مسجداً فريداً صُليت فيه صلاة واحدة إلى قبلتين."
+      },
+      {
+        city: "المدينة",
+        title: "مسجد الجمعة - أول خطبة واجتماع في المدينة المنورة",
+        story: "في هذا الموضع بوادي الرانوناء بين قباء والمسجد النبوي، أدركت النبي ﷺ صلاة الجمعة ضحى وهو في طريقه إلى قلب المدينة بعد مكوثه في قباء. فنزل النبي ﷺ واجتمع حوله المهاجرون والأنصار، فخطب فيهم أول خطبة جمعة في تاريخ المدينة وصلى بهم أول صلاة جمعة جمعت الأمة في صف واحد.<br><br>شهد هذا المكان صدوع الآيات الكريمة من سورة الجمعة: ﴿يَا أَيُّهَا الَّذِينَ آمَنُوا إِذَا نُودِيَ لِلصَّلَاةِ مِن يَوْمِ الْجُمُعَةِ فَاسْعَوْا إِلَىٰ ذِكْرِ اللَّهِ وَذَرُوا الْبَيْعَ﴾، فكان تأسيس المسجد هنا تخليداً لأول جمعة صلى فيها إمام الأنبياء ﷺ."
+      },
+      {
+        city: "المدينة",
+        title: "مسجد الغمامة ومنطقة المُصلّى - بركات الاستسقاء وصلاة العيد",
+        story: "نحن هنا بالقرب من باب السلام بالمسجد النبوي، أمام مسجد الغمامة الذي عُرف قديماً بـ 'المُصلّى'. كانت هذه الساحة هي المكان الذي يخرج إليه النبي ﷺ ليصلي بالناس صلوات الأعياد والاستسقاء، حيث قال عنه: 'هذا مجمعنا ومستمطرنا ومدعانا لعيدنا وفطرنا وأضحانا'.<br><br>وسمي بالغمامة لأن أهل المدينة لما أصابهم الجدب، خرج بهم النبي ﷺ فصلى وتضرع ورفع يديه يدعو الله حتى استسقى، فما فرغ من دعائه حتى أظلت السماء غمامة بيضاء ورعدت وأمطرت بغزارة وسقى الله به العباد والبلاد وظللته الغمامة من حر الشمس. وفي هذا المسجد أيضاً صلى النبي ﷺ آخر صلاة عيد في حياته الشريفة وصلى صلاة الغائب على النجاشي ملك الحبشة."
+      }
+    ];
+
+    let currentTawaf = 1;
+    let currentDuaIdx = 0;
+    let currentSaey = 1;
+    let currentSaeyDuaIdx = 0;
+
+    function handleTawafCircleClick() {
+      if (navigator.vibrate) navigator.vibrate(60);
+      if (currentTawaf < 7) {
+        currentTawaf++;
+        currentDuaIdx = 0;
+        updateTawafUI();
+      } else {
+        alert("🎉 الحمد لله، أتممت 7 أشواط كاملة من الطواف!\nتوجه الآن لصلاة ركعتين خلف مقام إبراهيم ثم اشرب من ماء زمزم.");
+      }
+    }
+
+    function prevTawaf() {
+      if (currentTawaf > 1) {
+        currentTawaf--;
+        currentDuaIdx = 0;
+        updateTawafUI();
+      }
+    }
+
+    function resetTawaf() {
+      if (confirm("هل تريد إعادة عداد الطواف إلى الشوط الأول؟")) {
+        currentTawaf = 1;
+        currentDuaIdx = 0;
+        updateTawafUI();
+      }
+    }
+
+    function updateTawafUI() {
+      document.getElementById('tawaf-count').innerText = currentTawaf;
+      document.getElementById('tawaf-progress').innerText = `الشوط ${currentTawaf} من 7`;
+      document.getElementById('tawaf-title').innerText = `الشوط ${currentTawaf}: يبدأ من محاذاة الحجر الأسود`;
+      renderDua();
+    }
+
+    function renderDua() {
+      const list = tawafDuas[currentTawaf] || [];
+      document.getElementById('active-dua-text').innerText = `"${list[currentDuaIdx]}"`;
+      document.getElementById('dua-counter').innerText = `دعاء ${currentDuaIdx + 1} من ${list.length}`;
+    }
+    function nextDua() { currentDuaIdx = (currentDuaIdx + 1) % tawafDuas[currentTawaf].length; renderDua(); }
+    function prevDua() { currentDuaIdx = (currentDuaIdx - 1 + tawafDuas[currentTawaf].length) % tawafDuas[currentTawaf].length; renderDua(); }
+
+    function handleSaeyCircleClick() {
+      if (navigator.vibrate) navigator.vibrate(60);
+      if (currentSaey < 7) {
+        currentSaey++;
+        updateSaeyUI();
+      } else {
+        alert("🎉 الحمد لله، أتممت السعي في المروة تماماً!\nبقي لك الحلق أو التقصير للتحلل الكامل من إحرامك.");
+      }
+    }
+
+    function prevSaey() {
+      if (currentSaey > 1) {
+        currentSaey--;
+        updateSaeyUI();
+      }
+    }
+
+    function resetSaey() {
+      if (confirm("هل تريد إعادة عداد السعي إلى الشوط الأول؟")) {
+        currentSaey = 1;
+        updateSaeyUI();
+      }
+    }
+
+    function updateSaeyUI() {
+      document.getElementById('saey-count').innerText = currentSaey;
+      document.getElementById('saey-progress').innerText = `الشوط ${currentSaey} من 7`;
+      const isSafa = currentSaey % 2 !== 0;
+      document.getElementById('saey-direction').innerText = isSafa ? `الشوط ${currentSaey}: من الصفا نحو المروة` : `الشوط ${currentSaey}: من المروة نحو الصفا`;
+    }
+
+    function renderSaeyDua() {
+      document.getElementById('active-saey-dua-text').innerText = `"${saeyDuas[currentSaeyDuaIdx]}"`;
+      document.getElementById('saey-dua-counter').innerText = `دعاء السعي ${currentSaeyDuaIdx + 1} من ${saeyDuas.length}`;
+    }
+    function nextSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx + 1) % saeyDuas.length; renderSaeyDua(); }
+    function prevSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx - 1 + saeyDuas.length) % saeyDuas.length; renderSaeyDua(); }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      
+      const v = document.getElementById(`view-${tabId}`);
+      const t = document.getElementById(`tab-${tabId}`);
+      if (v) v.classList.add('active');
+      if (t) t.classList.add('active');
+
+      if (tabId === 'map' && mapInstance) {
+        setTimeout(() => { mapInstance.invalidateSize(); }, 200);
+      }
+    }
+
+    function toggleAcc(btn) {
+      const body = btn.nextElementSibling;
+      const arrow = btn.querySelector('span:last-child');
+      body.classList.toggle('active');
+      arrow.innerText = body.classList.contains('active') ? '▲' : '▼';
+    }
+
+    function renderLessons(filter = 'all') {
+      const container = document.getElementById('lessons-list');
+      if (!container) return;
+      const filtered = filter === 'all' ? lessonsData : lessonsData.filter(l => l.category === filter);
+      container.innerHTML = filtered.map(l => `
+        <div class="item-card">
+          <div class="item-header">
+            <span class="badge ${l.badge}">${l.category}</span>
+            <span class="tag-time">${l.time}</span>
+          </div>
+          <div class="item-title">${l.title}</div>
+          <div class="item-content">${l.content}</div>
+        </div>
+      `).join('');
+    }
+
+    function filterLessons(cat) { renderLessons(cat); }
+
+    function renderPlaces(filter = 'all') {
+      const container = document.getElementById('places-list');
+      if (!container) return;
+      const filtered = filter === 'all' ? ziyaratData : ziyaratData.filter(p => p.city === filter);
+      container.innerHTML = filtered.map(p => `
+        <div class="item-card">
+          <div class="item-header">
+            <span class="badge ${p.city === 'مكة' ? 'badge-amber' : 'badge-green'}">${p.city === 'مكة' ? 'مكة المكرمة والمشاعر' : 'المدينة المنورة'}</span>
+            <span class="tag-time">⏱ وقت الإلقاء: دقيقة ونصف إلى دقيقتين ونصف</span>
+          </div>
+          <div class="item-title">📍 ${p.title}</div>
+          <div class="item-content">${p.story}</div>
+        </div>
+      `).join('');
+    }
+
+    function filterPlaces(city) {
+      ['all', 'makkah', 'madinah'].forEach(c => {
+        const el = document.getElementById(`flt-p-${c}`);
+        if(el) el.classList.remove('active');
+      });
+      if(city === 'all') document.getElementById('flt-p-all').classList.add('active');
+      if(city === 'مكة') document.getElementById('flt-p-makkah').classList.add('active');
+      if(city === 'المدينة') document.getElementById('flt-p-madinah').classList.add('active');
+      renderPlaces(city);
+    }
+
+    applyRoleUI();
+    updateTawafUI();
+    renderSaeyDua();
+    renderLessons('all');
+    renderPlaces('all');
+  </script>
+</body>
+</html>
