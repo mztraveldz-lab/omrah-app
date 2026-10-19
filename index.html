@@ -6,57 +6,7 @@
   <title>نظام إدارة المعتمرين والمرشد</title>
   
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-    function getLessonsList() {
-      const saved = localStorage.getItem('omrah_lessons');
-      if (saved) {
-        try { return JSON.parse(saved); } catch(e){}
-      }
-      return (typeof lessons !== 'undefined') ? lessons : [];
-    }
-
-    function saveCustomLesson() {
-      const idx = parseInt(document.getElementById('edit-lesson-idx').value);
-      const title = document.getElementById('new-lesson-title').value.trim();
-      const body = document.getElementById('new-lesson-body').value.trim().replace(/
-/g, '<br>');
-
-      let list = getLessonsList();
-      const item = { title: title, content: body, category: 'أخلاق', time: '⏱ وقت الإلقاء: حسب الحاجة' };
-      if (idx >= 0 && idx < list.length) {
-        list[idx] = item;
-      } else {
-        list.unshift(item);
-      }
-      localStorage.setItem('omrah_lessons', JSON.stringify(list));
-      cancelLessonEdit();
-      renderLessons('all');
-      alert('تم نشر الدرس بنجاح!');
-    }
-
-    function cancelLessonEdit() {
-      document.getElementById('edit-lesson-idx').value = '-1';
-      document.getElementById('new-lesson-title').value = '';
-      document.getElementById('new-lesson-body').value = '';
-    }
-
-    function deleteLessonItem(i) {
-      let list = getLessonsList();
-      list.splice(i, 1);
-      localStorage.setItem('omrah_lessons', JSON.stringify(list));
-      renderLessons('all');
-    }
-
-    function editLessonItem(i) {
-      const list = getLessonsList();
-      document.getElementById('edit-lesson-idx').value = i;
-      document.getElementById('new-lesson-title').value = list[i].title;
-      document.getElementById('new-lesson-body').value = (list[i].content || '').replace(/<br\s*[\/]?>/gi, '
-');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-</script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -241,16 +191,7 @@
             <option value="مكة">فندق مكة</option>
             <option value="المدينة">فندق المدينة</option>
           </select>
-          <input type="text" id="guide-hotel-name"
-          <div style="margin: 8px 0;">
-            <button type="button" onclick="enableHotelMapPicker()" id="btn-pick-hotel" class="btn" style="background: #0284c7; color: #fff; width: 100%; padding: 8px; font-weight: bold;">
-              📍 انقر هنا لتحديد موقع الفندق على الخريطة
-            </button>
-            <div id="picker-status" style="font-size: 0.8rem; color: #38bdf8; margin-top: 4px; display: none;">
-              👆 الخريطة جاهزة: المس أو انقر على موقع الفندق في الخريطة الآن
-            </div>
-          </div>
- class="auth-input" style="margin: 0; padding: 6px; flex: 1;" placeholder="اسم الفندق (مثال: فندق أبراج الكسوة)">
+          <input type="text" id="guide-hotel-name" class="auth-input" style="margin: 0; padding: 6px; flex: 1;" placeholder="اسم الفندق (مثال: فندق أبراج الكسوة)">
         </div>
         <div style="display: flex; gap: 6px;">
           <button onclick="saveCurrentLocationAsHotel()" class="btn-sub" style="flex: 1; background: #0369a1; color: white;">📍 جعل موقعي الحالي هو الفندق</button>
@@ -417,6 +358,8 @@
     <div id="places-list"></div>
   </main>
 
+  <script src="duas.js"></script>
+  <script src="content.js"></script>
   <script>
     const DEFAULT_AGENCY_PHONE = "213795353719";
     const GUIDE_SECRET_PIN = "7788";
@@ -918,30 +861,7 @@
     ];
 
     function renderLessons(filter = 'all') {
-      const source = getLessonsList();
-      container.innerHTML = '';
-      source.forEach((l, idx) => {
-        if (filter !== 'all' && l.category !== filter) return;
-        const card = document.createElement('div');
-        card.className = 'card lesson-card';
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span class="badge ${l.badge || 'badge-purple'}">${l.category || 'عام'}</span>
-            <span style="font-size:0.75rem; color:#94a3b8;">${l.time || ''}</span>
-          </div>
-          <h3 style="font-size:1.1rem; color:#f8fafc; margin-bottom:10px;">${l.title}</h3>
-          <div style="background:rgba(15,23,42,0.6); border-right:3px solid #10b981; padding:10px; border-radius:4px; font-size:0.9rem; line-height:1.6; color:#cbd5e1;">
-            ${l.content || l.story || ''}
-          </div>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button onclick="editLessonItem(${idx})" style="padding:4px 8px; font-size:0.75rem; background:#0284c7; color:#fff; border:none; border-radius:4px;">تعديل ✏️</button>
-            <button onclick="deleteLessonItem(${idx})" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:#fff; border:none; border-radius:4px;">حذف 🗑️</button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-      return;
-
+      const source = (typeof lessonsData !== 'undefined') ? lessonsData : lessons;
       const c = document.getElementById('lessons-list');
       if (!c) return;
       const list = filter === 'all' ? lessonsData : lessonsData.filter(l => l.category === filter);
@@ -974,6 +894,7 @@
     ];
 
     function renderPlaces(filter = 'all') {
+      const source = (typeof ziyaratData !== 'undefined') ? ziyaratData : places;
       const c = document.getElementById('places-list');
       if (!c) return;
       const list = filter === 'all' ? ziyaratData : ziyaratData.filter(p => p.city === filter);
@@ -999,56 +920,6 @@
     renderSaeyDua();
     renderLessons('all');
     renderPlaces('all');
-  
-    function getLessonsList() {
-      const saved = localStorage.getItem('omrah_lessons');
-      if (saved) {
-        try { return JSON.parse(saved); } catch(e){}
-      }
-      return (typeof lessons !== 'undefined') ? lessons : [];
-    }
-
-    function saveCustomLesson() {
-      const idx = parseInt(document.getElementById('edit-lesson-idx').value);
-      const title = document.getElementById('new-lesson-title').value.trim();
-      const body = document.getElementById('new-lesson-body').value.trim().replace(/
-/g, '<br>');
-
-      let list = getLessonsList();
-      const item = { title: title, content: body, category: 'أخلاق', time: '⏱ وقت الإلقاء: حسب الحاجة' };
-      if (idx >= 0 && idx < list.length) {
-        list[idx] = item;
-      } else {
-        list.unshift(item);
-      }
-      localStorage.setItem('omrah_lessons', JSON.stringify(list));
-      cancelLessonEdit();
-      renderLessons('all');
-      alert('تم نشر الدرس بنجاح!');
-    }
-
-    function cancelLessonEdit() {
-      document.getElementById('edit-lesson-idx').value = '-1';
-      document.getElementById('new-lesson-title').value = '';
-      document.getElementById('new-lesson-body').value = '';
-    }
-
-    function deleteLessonItem(i) {
-      let list = getLessonsList();
-      list.splice(i, 1);
-      localStorage.setItem('omrah_lessons', JSON.stringify(list));
-      renderLessons('all');
-    }
-
-    function editLessonItem(i) {
-      const list = getLessonsList();
-      document.getElementById('edit-lesson-idx').value = i;
-      document.getElementById('new-lesson-title').value = list[i].title;
-      document.getElementById('new-lesson-body').value = (list[i].content || '').replace(/<br\s*[\/]?>/gi, '
-');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-</script>
+  </script>
 </body>
 </html>
