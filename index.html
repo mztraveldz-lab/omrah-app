@@ -1222,5 +1222,88 @@
     renderLessons('all');
     renderPlaces('all');
   </script>
+  <script>
+// مزامنة تلقائية مع سيرفر VPS
+const VPS_API = "http://169.58.26.43:3000";
+
+// دالة لإرسال موقع وبيانات المعتمر إلى السيرفر
+function syncPilgrimToVPS() {
+    try {
+        const storedName = localStorage.getItem('omrah_pilgrim_name') || localStorage.getItem('pilgrim_name');
+        const storedGroup = localStorage.getItem('omrah_pilgrim_group') || 'الفوج 1 (الرئيسي)';
+        
+        if (storedName && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                fetch(`${VPS_API}/api/pilgrims/sync`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: storedName,
+                        name: storedName,
+                        group: storedGroup,
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude
+                    })
+                }).catch(e => console.log('VPS sync error', e));
+            }, (err) => {
+                // إرسال الاسم حتى بدون GPS في حال تعذر الموقع
+                fetch(`${VPS_API}/api/pilgrims/sync`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: storedName,
+                        name: storedName,
+                        group: storedGroup,
+                        lat: 21.4225, // موقع افتراضي عند الكعبة
+                        lng: 39.8262
+                    })
+                }).catch(e => console.log('VPS sync error', e));
+            }, { enableHighAccuracy: true });
+        }
+    } catch(e) {}
+}
+
+// دالة للمرشد: جلب المعتمرين من السيرفر وعرضهم في القائمة والخريطة
+function fetchPilgrimsFromVPS() {
+    fetch(`${VPS_API}/api/pilgrims`)
+        .then(r => r.json())
+        .then(list => {
+            if (Array.isArray(list) && list.length > 0) {
+                // دمج القائمة القادمة من السيرفر مع الذاكرة المحلية
+                localStorage.setItem('all_pilgrims_data', JSON.stringify(list));
+                
+                // تحديث العداد المعروض في الشاشة
+                const countElem = document.querySelector('[class*="المعتمرون"], #pilgrims-count');
+                if (countElem) {
+                    countElem.innerText = `المعتمرون المعروضون: ${list.length}`;
+                }
+                
+                // رسم النقاط على الخريطة إذا كانت مهيأة
+                if (window.map && window.L) {
+                    list.forEach(p => {
+                        if (p.lat && p.lng) {
+                            window.L.marker([p.lat, p.lng])
+                                .addTo(window.map)
+                                .bindPopup(`<b>${p.name}</b><br>${p.group}`);
+                        }
+                    });
+                }
+            }
+        })
+        .catch(e => console.log('Fetch error', e));
+}
+
+// تشغيل المزامنة دورياً كل 15 ثانية
+setInterval(() => {
+    syncPilgrimToVPS();
+    fetchPilgrimsFromVPS();
+}, 15000);
+
+// تشغيل فوري عند فتح التطبيق
+window.addEventListener('load', () => {
+    syncPilgrimToVPS();
+    fetchPilgrimsFromVPS();
+});
+</script>
 </body>
 </html>
