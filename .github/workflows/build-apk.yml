@@ -31,32 +31,22 @@ jobs:
         cp index.html www/
         cp -r duas.js app.js www/ 2>/dev/null || true
         npx cap init "رفيق المعتمر" "com.mztravel.omrah" --web-dir "www"
+        
+        # السماح بالاتصالات المختلطة في إعدادات Capacitor
+        node -e '
+          const fs = require("fs");
+          const cfg = JSON.parse(fs.readFileSync("capacitor.config.json", "utf8"));
+          cfg.server = { "cleartext": true, "androidScheme": "http" };
+          fs.writeFileSync("capacitor.config.json", JSON.stringify(cfg, null, 2));
+        '
+        
         npm install @capacitor/android@latest
         npx cap add android
 
-    - name: Configure Android Network Security and Permissions
+    - name: Set Android Permissions and Cleartext Traffic
       run: |
-        # 1. إنشاء ملف أمان الشبكة للسماح بـ HTTP لجميع السيرفرات وعنوان الـ VPS
-        mkdir -p android/app/src/main/res/xml
-        cat << 'EOF' > android/app/src/main/res/xml/network_security_config.xml
-        <?xml version="1.0" encoding="utf-8"?>
-        <network-security-config>
-            <base-config cleartextTrafficPermitted="true">
-                <trust-anchors>
-                    <certificates src="system" />
-                </trust-anchors>
-            </base-config>
-            <domain-config cleartextTrafficPermitted="true">
-                <domain includeSubdomains="true">169.58.26.43</domain>
-            </domain-config>
-        </network-security-config>
-        EOF
-
-        # 2. ربط ملف الأمان وتفعيل cleartextTraffic في ملف AndroidManifest.xml
-        sed -i 's/<application /<application android:usesCleartextTraffic="true" android:networkSecurityConfig="@xml\/network_security_config" /g' android/app/src/main/AndroidManifest.xml
-
-        # 3. إضافة أذونات الإنترنت وتحديد الموقع
         sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />' android/app/src/main/AndroidManifest.xml
+        sed -i 's/<application /<application android:usesCleartextTraffic="true" /g' android/app/src/main/AndroidManifest.xml
 
     - name: Build APK with Gradle
       run: |
