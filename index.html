@@ -6,7 +6,57 @@
   <title>نظام إدارة المعتمرين والمرشد</title>
   
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    function getLessonsList() {
+      const saved = localStorage.getItem('omrah_lessons');
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e){}
+      }
+      return (typeof lessons !== 'undefined') ? lessons : [];
+    }
+
+    function saveCustomLesson() {
+      const idx = parseInt(document.getElementById('edit-lesson-idx').value);
+      const title = document.getElementById('new-lesson-title').value.trim();
+      const body = document.getElementById('new-lesson-body').value.trim().replace(/
+/g, '<br>');
+
+      let list = getLessonsList();
+      const item = { title: title, content: body, category: 'أخلاق', time: '⏱ وقت الإلقاء: حسب الحاجة' };
+      if (idx >= 0 && idx < list.length) {
+        list[idx] = item;
+      } else {
+        list.unshift(item);
+      }
+      localStorage.setItem('omrah_lessons', JSON.stringify(list));
+      cancelLessonEdit();
+      renderLessons('all');
+      alert('تم نشر الدرس بنجاح!');
+    }
+
+    function cancelLessonEdit() {
+      document.getElementById('edit-lesson-idx').value = '-1';
+      document.getElementById('new-lesson-title').value = '';
+      document.getElementById('new-lesson-body').value = '';
+    }
+
+    function deleteLessonItem(i) {
+      let list = getLessonsList();
+      list.splice(i, 1);
+      localStorage.setItem('omrah_lessons', JSON.stringify(list));
+      renderLessons('all');
+    }
+
+    function editLessonItem(i) {
+      const list = getLessonsList();
+      document.getElementById('edit-lesson-idx').value = i;
+      document.getElementById('new-lesson-title').value = list[i].title;
+      document.getElementById('new-lesson-body').value = (list[i].content || '').replace(/<br\s*[\/]?>/gi, '
+');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+</script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -859,6 +909,30 @@
     ];
 
     function renderLessons(filter = 'all') {
+      const source = getLessonsList();
+      container.innerHTML = '';
+      source.forEach((l, idx) => {
+        if (filter !== 'all' && l.category !== filter) return;
+        const card = document.createElement('div');
+        card.className = 'card lesson-card';
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span class="badge ${l.badge || 'badge-purple'}">${l.category || 'عام'}</span>
+            <span style="font-size:0.75rem; color:#94a3b8;">${l.time || ''}</span>
+          </div>
+          <h3 style="font-size:1.1rem; color:#f8fafc; margin-bottom:10px;">${l.title}</h3>
+          <div style="background:rgba(15,23,42,0.6); border-right:3px solid #10b981; padding:10px; border-radius:4px; font-size:0.9rem; line-height:1.6; color:#cbd5e1;">
+            ${l.content || l.story || ''}
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button onclick="editLessonItem(${idx})" style="padding:4px 8px; font-size:0.75rem; background:#0284c7; color:#fff; border:none; border-radius:4px;">تعديل ✏️</button>
+            <button onclick="deleteLessonItem(${idx})" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:#fff; border:none; border-radius:4px;">حذف 🗑️</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+      return;
+
       const c = document.getElementById('lessons-list');
       if (!c) return;
       const list = filter === 'all' ? lessonsData : lessonsData.filter(l => l.category === filter);
@@ -916,6 +990,56 @@
     renderSaeyDua();
     renderLessons('all');
     renderPlaces('all');
-  </script>
+  
+    function getLessonsList() {
+      const saved = localStorage.getItem('omrah_lessons');
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e){}
+      }
+      return (typeof lessons !== 'undefined') ? lessons : [];
+    }
+
+    function saveCustomLesson() {
+      const idx = parseInt(document.getElementById('edit-lesson-idx').value);
+      const title = document.getElementById('new-lesson-title').value.trim();
+      const body = document.getElementById('new-lesson-body').value.trim().replace(/
+/g, '<br>');
+
+      let list = getLessonsList();
+      const item = { title: title, content: body, category: 'أخلاق', time: '⏱ وقت الإلقاء: حسب الحاجة' };
+      if (idx >= 0 && idx < list.length) {
+        list[idx] = item;
+      } else {
+        list.unshift(item);
+      }
+      localStorage.setItem('omrah_lessons', JSON.stringify(list));
+      cancelLessonEdit();
+      renderLessons('all');
+      alert('تم نشر الدرس بنجاح!');
+    }
+
+    function cancelLessonEdit() {
+      document.getElementById('edit-lesson-idx').value = '-1';
+      document.getElementById('new-lesson-title').value = '';
+      document.getElementById('new-lesson-body').value = '';
+    }
+
+    function deleteLessonItem(i) {
+      let list = getLessonsList();
+      list.splice(i, 1);
+      localStorage.setItem('omrah_lessons', JSON.stringify(list));
+      renderLessons('all');
+    }
+
+    function editLessonItem(i) {
+      const list = getLessonsList();
+      document.getElementById('edit-lesson-idx').value = i;
+      document.getElementById('new-lesson-title').value = list[i].title;
+      document.getElementById('new-lesson-body').value = (list[i].content || '').replace(/<br\s*[\/]?>/gi, '
+');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+</script>
 </body>
 </html>
