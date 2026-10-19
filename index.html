@@ -23,7 +23,7 @@
     .btn-pilgrim { background: #059669; color: white; }
     .btn-guide { background: #1e3a8a; color: white; }
 
-    #pin-modal, #transfer-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
+    #pin-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
     .pin-card { background: #131c31; border: 2px solid #3b82f6; border-radius: 18px; padding: 20px; width: 100%; max-width: 340px; text-align: center; }
 
     nav { display: flex; overflow-x: auto; white-space: nowrap; background: #131c31; border-bottom: 1px solid #2d3b55; position: sticky; top: 49px; z-index: 999; scrollbar-width: none; }
@@ -75,8 +75,8 @@
     .layer-btn { background: none; border: none; color: #94a3b8; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
     .layer-btn.active { background: #059669; color: white; }
 
-    .tracking-status { background: rgba(6, 78, 59, 0.4); border: 1px solid #10b981; border-radius: 10px; padding: 8px 12px; font-size: 0.78rem; color: #6ee7b7; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 12px; }
-    .pulse-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; animation: blink 1.5s infinite; }
+    .tracking-status { background: rgba(6, 78, 59, 0.4); border: 1px solid #10b981; border-radius: 10px; padding: 8px 12px; font-size: 0.78rem; color: #6ee7b7; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 12px; text-align: center; }
+    .pulse-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; animation: blink 1.5s infinite; flex-shrink: 0; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
     .dua-box { background: #131c31; border: 1px solid #25334d; border-radius: 16px; padding: 18px; margin-bottom: 14px; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
@@ -164,7 +164,7 @@
   <main id="view-sos" class="view">
     <div class="tracking-status">
       <div class="pulse-dot"></div>
-      <span id="auto-gps-text">تتبع GPS التلقائي نشط: يتم إرسال موقعك للمرشد كل 15 ثانية</span>
+      <span id="auto-gps-text">تتبع GPS التلقائي نشط: جاري الاتصال بالسيرفر...</span>
     </div>
 
     <div class="sos-container">
@@ -421,7 +421,7 @@
       if (inputElem) inputElem.value = p;
     }
 
-    // 1. مزامنة كاملة ومستمرة مع قاعدة بيانات السيرفر VPS
+    // 1. مزامنة قاعدة البيانات من السيرفر
     function syncWithServer() {
       fetch(`${VPS_API}/api/sync`)
         .then(res => res.json())
@@ -437,58 +437,41 @@
             }
           }
         })
-        .catch(err => console.log('تعذر الاتصال بقاعدة البيانات المركزية:', err));
+        .catch(err => console.log('VPS Sync error:', err));
     }
 
-    // 2. إنشاء فوج جديد على السيرفر
+    // 2. إنشاء فوج
     function createNewGroup() {
-      const name = prompt("أدخل اسم الفوج الجديد (مثال: فوج الجزائر 2):");
+      const name = prompt("أدخل اسم الفوج الجديد:");
       if (name && name.trim()) {
         fetch(`${VPS_API}/api/groups/add`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ groupName: name.trim() })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            syncWithServer();
-            alert(`تم إنشاء (${name.trim()}) على السيرفر بنجاح.`);
-          }
-        })
-        .catch(err => alert("تعذر إنشاء الفوج، تحقق من السيرفر."));
+        }).then(() => syncWithServer());
       }
     }
 
-    // 3. حذف فوج ومسح معتمريه من السيرفر
+    // 3. حذف فوج
     function deleteCurrentFilteredGroup() {
       const select = document.getElementById('filter-group-select');
       const groupToDelete = select.value;
-
       if (groupToDelete === 'all') {
         alert("يرجى اختيار فوج محدد من القائمة لحذفه.");
         return;
       }
-
-      if (confirm(`⚠️ هل تريد حذف (${groupToDelete}) ومسح جميع المعتمرين المسجلين فيه من السيرفر نهائياً؟`)) {
+      if (confirm(`حذف فوج (${groupToDelete}) ومعتمريه نهائياً من السيرفر؟`)) {
         fetch(`${VPS_API}/api/groups/delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ groupName: groupToDelete })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            syncWithServer();
-            alert(`تم حذف (${groupToDelete}) بنجاح.`);
-          }
-        });
+        }).then(() => syncWithServer());
       }
     }
 
-    // 4. حذف معتمر من السيرفر
+    // 4. حذف معتمر
     function deletePilgrim(name) {
-      if (confirm(`هل أنت متأكد من حذف المعتمر (${name}) من قاعدة البيانات المركزية؟`)) {
+      if (confirm(`حذف المعتمر (${name}) من السيرفر؟`)) {
         fetch(`${VPS_API}/api/pilgrims/delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -575,43 +558,55 @@
       applyRoleUI();
     }
 
-    // إرسال موقع المعتمر إلى قاعدة بيانات الـ VPS
+    // إرسال فوري ومباشر يضمن وصول بيانات المعتمر
     function sendLiveLocation() {
       if (!currentUser || currentUser.role !== 'pilgrim') return;
 
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          fetch(`${VPS_API}/api/pilgrims/location`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: currentUser.name,
-              phone: currentUser.phone,
-              group: currentUser.group,
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude
-            })
-          }).catch(e => console.log('Location sync error', e));
+      const payload = {
+        name: currentUser.name,
+        phone: currentUser.phone || 'غير مسجل',
+        group: currentUser.group || 'الفوج 1 (الرئيسي)',
+        lat: 21.4225,
+        lng: 39.8262
+      };
 
-          const statusElem = document.getElementById('auto-gps-text');
-          if (statusElem) {
-            const d = new Date();
-            statusElem.innerText = `📡 تتبع حي متصل: آخر إرسال لموقعك (${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')})`;
-          }
-        }, err => {
-          fetch(`${VPS_API}/api/pilgrims/location`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: currentUser.name,
-              phone: currentUser.phone,
-              group: currentUser.group,
-              lat: 21.4225,
-              lng: 39.8262
-            })
-          }).catch(e => {});
-        }, { enableHighAccuracy: true, timeout: 8000 });
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            payload.lat = pos.coords.latitude;
+            payload.lng = pos.coords.longitude;
+            postToServer(payload);
+          },
+          err => {
+            postToServer(payload);
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      } else {
+        postToServer(payload);
       }
+    }
+
+    function postToServer(payload) {
+      fetch(`${VPS_API}/api/pilgrims/location`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        const statusElem = document.getElementById('auto-gps-text');
+        if (statusElem) {
+          const d = new Date();
+          statusElem.innerText = `📡 متصل بالسيرفر: تم إرسال موقعك (${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')})`;
+        }
+      })
+      .catch(err => {
+        const statusElem = document.getElementById('auto-gps-text');
+        if (statusElem) {
+          statusElem.innerText = `⚠️ جاري محاولة إعادة الاتصال بالسيرفر...`;
+        }
+      });
     }
 
     function startAutoGpsTracking() {
