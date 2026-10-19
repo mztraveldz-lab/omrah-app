@@ -920,6 +920,75 @@
     renderSaeyDua();
     renderLessons('all');
     renderPlaces('all');
-  </script>
+  
+    // تحميل الدروس من الذاكرة المحلية أو من الملف الافتراضي
+    function getStoredLessons() {
+      const saved = localStorage.getItem('custom_lessons');
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e){}
+      }
+      return (typeof lessonsData !== 'undefined') ? lessonsData : (typeof lessons !== 'undefined' ? lessons : []);
+    }
+
+    function saveLessonFromGuide() {
+      const idx = parseInt(document.getElementById('edit-lesson-index').value);
+      const cat = document.getElementById('lesson-cat-input').value;
+      const time = document.getElementById('lesson-time-input').value.trim() || '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق';
+      const title = document.getElementById('lesson-title-input').value.trim();
+      const content = document.getElementById('lesson-content-input').value.trim().replace(/
+/g, '<br>');
+
+        alert('يرجى ملء عنوان الدرس ومحتواه!');
+        return;
+      }
+
+      let list = getStoredLessons();
+      const item = {
+        category: cat,
+        badge: cat === 'أخلاق' ? 'badge-purple' : (cat === 'تنظيم' ? 'badge-amber' : 'badge-rose'),
+        time: time.startsWith('⏱') ? time : '⏱ وقت الإلقاء: ' + time,
+        title: title,
+        content: content
+      };
+
+      if (idx >= 0 && idx < list.length) {
+        list[idx] = item;
+      } else {
+        list.unshift(item);
+      }
+
+      localStorage.setItem('custom_lessons', JSON.stringify(list));
+      resetLessonForm();
+      if (typeof renderLessons === 'function') renderLessons('all');
+      alert('تم حفظ الدرس بنجاح!');
+    }
+
+    function editLesson(idx) {
+      const list = getStoredLessons();
+      const l = list[idx];
+      document.getElementById('edit-lesson-index').value = idx;
+      document.getElementById('lesson-cat-input').value = l.category;
+      document.getElementById('lesson-time-input').value = l.time.replace('⏱ وقت الإلقاء: ', '');
+      document.getElementById('lesson-title-input').value = l.title;
+      document.getElementById('lesson-content-input').value = l.content.replace(/<br\s*[\/]?>/gi, '
+');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteLesson(idx) {
+      let list = getStoredLessons();
+      list.splice(idx, 1);
+      localStorage.setItem('custom_lessons', JSON.stringify(list));
+      if (typeof renderLessons === 'function') renderLessons('all');
+    }
+
+    function resetLessonForm() {
+      document.getElementById('edit-lesson-index').value = '-1';
+      document.getElementById('lesson-title-input').value = '';
+      document.getElementById('lesson-time-input').value = '';
+      document.getElementById('lesson-content-input').value = '';
+    }
+
+</script>
 </body>
 </html>
