@@ -60,7 +60,6 @@
     .btn-main { flex: 1; background: #059669; color: white; border: none; padding: 13px; border-radius: 12px; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
     .btn-main:active { transform: scale(0.98); background: #10b981; }
     .btn-sub { background: #25334d; color: #cbd5e1; border: none; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; }
-    .btn-transfer-sm { background: #1e3a8a; color: #bfdbfe; border: 1px solid #3b82f6; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
     .btn-danger-sm { background: #7f1d1d; color: #fca5a5; border: 1px solid #b91c1c; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
 
     .sos-container { background: #1c1322; border: 2px solid #ef4444; border-radius: 20px; padding: 20px 16px; text-align: center; margin-bottom: 16px; }
@@ -127,24 +126,6 @@
     </div>
   </div>
 
-  <div id="transfer-modal">
-    <div class="pin-card" style="border-color: #10b981;">
-      <div style="font-size: 2rem; margin-bottom: 6px;">⇄</div>
-      <h3 style="color: white; margin-bottom: 6px;">نقل المعتمر إلى فوج آخر</h3>
-      <p id="transfer-pilgrim-name" style="font-size: 0.85rem; color: #34d399; margin-bottom: 14px; font-weight: bold;"></p>
-      
-      <div style="text-align: right; margin-bottom: 14px;">
-        <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px;">اختر الفوج الجديد:</label>
-        <select id="transfer-group-select" class="auth-input" style="padding: 10px;"></select>
-      </div>
-      
-      <div style="display: flex; gap: 8px;">
-        <button onclick="confirmTransferPilgrim()" class="btn-main">حفظ النقل</button>
-        <button onclick="closeTransferModal()" class="btn-sub">إلغاء</button>
-      </div>
-    </div>
-  </div>
-
   <div id="auth-screen">
     <div class="auth-card">
       <div style="font-size: 2.2rem; margin-bottom: 8px;">🕋</div>
@@ -183,7 +164,7 @@
   <main id="view-sos" class="view">
     <div class="tracking-status">
       <div class="pulse-dot"></div>
-      <span id="auto-gps-text">تتبع GPS التلقائي نشط: يتم إرسال موقعك للمرشد كل 20 ثانية</span>
+      <span id="auto-gps-text">تتبع GPS التلقائي نشط: يتم إرسال موقعك للمرشد كل 15 ثانية</span>
     </div>
 
     <div class="sos-container">
@@ -245,20 +226,16 @@
         </div>
 
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-          <select id="filter-group-select" class="auth-input" style="padding: 6px; margin: 0; flex: 1;" onchange="changeActiveGroupFilter()">
+          <select id="filter-group-select" class="auth-input" style="padding: 6px; margin: 0; flex: 1;" onchange="renderPilgrimMarkers()">
             <option value="all">كل الأفواج (عرض شامل)</option>
           </select>
           <button onclick="deleteCurrentFilteredGroup()" class="btn-danger-sm" style="padding: 6px 10px;" title="حذف هذا الفوج بالكامل">🗑️ مسح الفوج المحدد</button>
-        </div>
-
-        <div style="font-size: 0.72rem; color: #94a3b8;">
-          الفوج الافتراضي لتسجيل الجدد: <strong id="active-group-label" style="color: #34d399;">الفوج 1</strong>
         </div>
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <div style="font-size: 0.85rem; color: #94a3b8;">المعتمرون المعروضون: <span id="pilgrim-count" style="color: #34d399; font-weight: bold;">0</span></div>
-        <button onclick="fetchPilgrimsFromVPS()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem;">🔄 تحديث المواقع</button>
+        <button onclick="syncWithServer()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem;">🔄 تحديث المواقع</button>
       </div>
 
       <div id="pilgrims-list"></div>
@@ -411,12 +388,13 @@
     let currentUser = null;
     let mapInstance = null;
     let mapMarkers = [];
-    let transferringPilgrimId = null;
+    let serverGroups = ["الفوج 1 (الرئيسي)", "فوج 14 نوفمبر"];
+    let serverPilgrims = [];
 
     let currentMapLayer = 'streets';
     let streetsLayer, satelliteLayer;
     let autoTrackingInterval = null;
-    let mapRefreshInterval = null;
+    let syncInterval = null;
 
     function getAgencyPhone() {
       const stored = localStorage.getItem('omrah_agency_phone');
@@ -443,31 +421,46 @@
       if (inputElem) inputElem.value = p;
     }
 
-    function getStoredGroups() {
-      const stored = localStorage.getItem('omrah_groups');
-      if (stored !== null) return JSON.parse(stored);
-      const defaultGroups = ["الفوج 1 (الرئيسي)", "فوج 14 نوفمبر"];
-      localStorage.setItem('omrah_groups', JSON.stringify(defaultGroups));
-      return defaultGroups;
+    // 1. مزامنة كاملة ومستمرة مع قاعدة بيانات السيرفر VPS
+    function syncWithServer() {
+      fetch(`${VPS_API}/api/sync`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.groups && Array.isArray(data.groups)) {
+            serverGroups = data.groups;
+            updateGroupsDropdowns();
+          }
+          if (data.pilgrims && Array.isArray(data.pilgrims)) {
+            serverPilgrims = data.pilgrims.filter(p => p.name !== 'مرشد الفوج');
+            if (currentUser && currentUser.role === 'guide') {
+              renderPilgrimMarkers();
+            }
+          }
+        })
+        .catch(err => console.log('تعذر الاتصال بقاعدة البيانات المركزية:', err));
     }
 
-    function saveGroups(groups) {
-      localStorage.setItem('omrah_groups', JSON.stringify(groups));
-    }
-
+    // 2. إنشاء فوج جديد على السيرفر
     function createNewGroup() {
-      const name = prompt("أدخل اسم الفوج الجديد (مثال: فوج الوادي 3):");
+      const name = prompt("أدخل اسم الفوج الجديد (مثال: فوج الجزائر 2):");
       if (name && name.trim()) {
-        let groups = getStoredGroups();
-        if (!groups.includes(name.trim())) {
-          groups.push(name.trim());
-          saveGroups(groups);
-          updateGroupsDropdowns();
-          alert(`تم إنشاء (${name.trim()}) بنجاح.`);
-        }
+        fetch(`${VPS_API}/api/groups/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ groupName: name.trim() })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            syncWithServer();
+            alert(`تم إنشاء (${name.trim()}) على السيرفر بنجاح.`);
+          }
+        })
+        .catch(err => alert("تعذر إنشاء الفوج، تحقق من السيرفر."));
       }
     }
 
+    // 3. حذف فوج ومسح معتمريه من السيرفر
     function deleteCurrentFilteredGroup() {
       const select = document.getElementById('filter-group-select');
       const groupToDelete = select.value;
@@ -477,114 +470,45 @@
         return;
       }
 
-      if (confirm(`⚠️ هل تريد حذف (${groupToDelete}) ومسح جميع المعتمرين المسجلين فيه بالكامل؟`)) {
-        let pilgrims = getStoredPilgrims();
-        pilgrims = pilgrims.filter(p => p.group !== groupToDelete);
-        savePilgrims(pilgrims);
+      if (confirm(`⚠️ هل تريد حذف (${groupToDelete}) ومسح جميع المعتمرين المسجلين فيه من السيرفر نهائياً؟`)) {
+        fetch(`${VPS_API}/api/groups/delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ groupName: groupToDelete })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            syncWithServer();
+            alert(`تم حذف (${groupToDelete}) بنجاح.`);
+          }
+        });
+      }
+    }
 
-        let groups = getStoredGroups();
-        groups = groups.filter(g => g !== groupToDelete);
-        saveGroups(groups);
-
-        updateGroupsDropdowns();
-        renderPilgrimMarkers();
-        alert(`تم حذف (${groupToDelete}) وتفريغ معتمريه بنجاح.`);
+    // 4. حذف معتمر من السيرفر
+    function deletePilgrim(name) {
+      if (confirm(`هل أنت متأكد من حذف المعتمر (${name}) من قاعدة البيانات المركزية؟`)) {
+        fetch(`${VPS_API}/api/pilgrims/delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name })
+        }).then(() => syncWithServer());
       }
     }
 
     function updateGroupsDropdowns() {
-      const groups = getStoredGroups();
-      
       const regSelect = document.getElementById('user-group-select');
       if (regSelect) {
-        regSelect.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
+        regSelect.innerHTML = serverGroups.map(g => `<option value="${g}">${g}</option>`).join('');
       }
 
       const filterSelect = document.getElementById('filter-group-select');
       if (filterSelect) {
         const curVal = filterSelect.value || 'all';
         filterSelect.innerHTML = `<option value="all">كل الأفواج (عرض شامل)</option>` +
-          groups.map(g => `<option value="${g}">${g}</option>`).join('');
+          serverGroups.map(g => `<option value="${g}">${g}</option>`).join('');
         filterSelect.value = curVal;
-      }
-
-      const transferSelect = document.getElementById('transfer-group-select');
-      if (transferSelect) {
-        transferSelect.innerHTML = groups.map(g => `<option value="${g}">${g}</option>`).join('');
-      }
-
-      const activeLabel = document.getElementById('active-group-label');
-      if (activeLabel && groups.length > 0) {
-        activeLabel.innerText = groups[0];
-      }
-    }
-
-    function changeActiveGroupFilter() {
-      renderPilgrimMarkers();
-    }
-
-    function getStoredPilgrims() {
-      const stored = localStorage.getItem('omrah_pilgrims');
-      if (stored !== null) return JSON.parse(stored);
-      return [];
-    }
-
-    function savePilgrims(list) {
-      localStorage.setItem('omrah_pilgrims', JSON.stringify(list));
-    }
-
-    function openTransferModal(id, name, currentGroup) {
-      transferringPilgrimId = id;
-      document.getElementById('transfer-pilgrim-name').innerText = `المعتمر: ${name} (حالياً في: ${currentGroup || 'فوج 1'})`;
-      
-      const select = document.getElementById('transfer-group-select');
-      updateGroupsDropdowns();
-      if (currentGroup && select) {
-        select.value = currentGroup;
-      }
-
-      document.getElementById('transfer-modal').style.display = 'flex';
-    }
-
-    function closeTransferModal() {
-      document.getElementById('transfer-modal').style.display = 'none';
-      transferringPilgrimId = null;
-    }
-
-    function confirmTransferPilgrim() {
-      if (!transferringPilgrimId) return;
-
-      const newGroup = document.getElementById('transfer-group-select').value;
-      let list = getStoredPilgrims();
-      
-      list = list.map(p => {
-        if (p.id === transferringPilgrimId) {
-          return { ...p, group: newGroup };
-        }
-        return p;
-      });
-
-      savePilgrims(list);
-
-      if (currentUser) {
-        const target = list.find(p => p.id === transferringPilgrimId);
-        if (target && (target.phone === currentUser.phone || target.name === currentUser.name)) {
-          currentUser.group = newGroup;
-          localStorage.setItem('omrah_user', JSON.stringify(currentUser));
-        }
-      }
-
-      closeTransferModal();
-      renderPilgrimMarkers();
-      alert(`تم نقل المعتمر بنجاح إلى (${newGroup}).`);
-    }
-
-    function deletePilgrim(id, name) {
-      if (confirm(`هل أنت متأكد من حذف المعتمر (${name}) من هذا الفوج؟`)) {
-        let list = getStoredPilgrims();
-        list = list.filter(p => p.id !== id);
-        savePilgrims(list);
-        renderPilgrimMarkers();
       }
     }
 
@@ -617,7 +541,6 @@
       }
     }
 
-    // تبديل الدور مع طلب الرمز السري دائماً عند الدخول للمرشد
     function toggleUserRole() {
       if (!currentUser) return;
 
@@ -627,7 +550,7 @@
           name: name,
           phone: '',
           role: 'pilgrim',
-          group: 'الفوج 1 (الرئيسي)'
+          group: serverGroups[0] || 'الفوج 1 (الرئيسي)'
         };
         localStorage.setItem('omrah_user', JSON.stringify(currentUser));
         applyRoleUI();
@@ -640,151 +563,68 @@
       const name = document.getElementById('user-name').value.trim() || (role === 'guide' ? 'مرشد الفوج' : 'معتمر');
       const phone = document.getElementById('user-phone').value.trim() || 'غير مسجل';
       const groupSelect = document.getElementById('user-group-select');
-      const group = (groupSelect && groupSelect.value) ? groupSelect.value : 'الفوج 1 (الرئيسي)';
+      const group = (groupSelect && groupSelect.value) ? groupSelect.value : (serverGroups[0] || 'الفوج 1 (الرئيسي)');
 
       currentUser = { name, phone, role, group };
       localStorage.setItem('omrah_user', JSON.stringify(currentUser));
 
       if (role === 'pilgrim') {
-        registerOrUpdatePilgrim(name, phone, group);
+        sendLiveLocation();
       }
 
       applyRoleUI();
     }
 
-    function registerOrUpdatePilgrim(name, phone, group) {
-      let list = getStoredPilgrims();
+    // إرسال موقع المعتمر إلى قاعدة بيانات الـ VPS
+    function sendLiveLocation() {
+      if (!currentUser || currentUser.role !== 'pilgrim') return;
 
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(pos => {
-          updatePilgrimLocationInList(list, name, phone, group, pos.coords.latitude, pos.coords.longitude);
+          fetch(`${VPS_API}/api/pilgrims/location`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: currentUser.name,
+              phone: currentUser.phone,
+              group: currentUser.group,
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            })
+          }).catch(e => console.log('Location sync error', e));
+
+          const statusElem = document.getElementById('auto-gps-text');
+          if (statusElem) {
+            const d = new Date();
+            statusElem.innerText = `📡 تتبع حي متصل: آخر إرسال لموقعك (${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')})`;
+          }
         }, err => {
-          updatePilgrimLocationInList(list, name, phone, group, 21.4225, 39.8262);
-        }, { enableHighAccuracy: true, timeout: 5000 });
-      } else {
-        updatePilgrimLocationInList(list, name, phone, group, 21.4225, 39.8262);
-      }
-    }
-
-    function updatePilgrimLocationInList(list, name, phone, group, lat, lng) {
-      // إذا كان المستخدم هو المرشد، لا يرسل نفسه كمعتمر
-      if (name === 'مرشد الفوج') return;
-
-      const now = new Date();
-      const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-      
-      const filtered = list.filter(p => p.phone !== phone && p.name !== name);
-      filtered.unshift({
-        id: Date.now(),
-        name: name,
-        phone: phone,
-        group: group,
-        lat: lat,
-        lng: lng,
-        time: timeStr
-      });
-      savePilgrims(filtered);
-
-      // إرسال مباشر وفوري لسيرفر الـ VPS
-      fetch(`${VPS_API}/api/pilgrims/location`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: (phone && phone !== 'غير مسجل') ? phone : name,
-          name: name,
-          phone: phone,
-          group: group,
-          lat: lat,
-          lng: lng
-        })
-      }).catch(err => console.log('VPS Sync error:', err));
-
-      if (currentUser && currentUser.role === 'guide') {
-        renderPilgrimMarkers();
+          fetch(`${VPS_API}/api/pilgrims/location`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: currentUser.name,
+              phone: currentUser.phone,
+              group: currentUser.group,
+              lat: 21.4225,
+              lng: 39.8262
+            })
+          }).catch(e => {});
+        }, { enableHighAccuracy: true, timeout: 8000 });
       }
     }
 
     function startAutoGpsTracking() {
       if (autoTrackingInterval) clearInterval(autoTrackingInterval);
-
-      const updateLocation = () => {
-        if (!currentUser || currentUser.role !== 'pilgrim') return;
-        if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(pos => {
-            let list = getStoredPilgrims();
-            updatePilgrimLocationInList(list, currentUser.name, currentUser.phone, currentUser.group, pos.coords.latitude, pos.coords.longitude);
-            const statusElem = document.getElementById('auto-gps-text');
-            if (statusElem) {
-              const d = new Date();
-              statusElem.innerText = `📡 تتبع حي متصل: آخر إرسال لموقعك للمرشد (${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')})`;
-            }
-          }, err => {
-            let list = getStoredPilgrims();
-            updatePilgrimLocationInList(list, currentUser.name, currentUser.phone, currentUser.group, 21.4225, 39.8262);
-          }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 20000 });
-        }
-      };
-
-      updateLocation();
-      autoTrackingInterval = setInterval(updateLocation, 20000);
-    }
-
-    // جلب جميع المعتمرين من سيرفر VPS وإضافتهم تلقائياً لكل الأفواج
-    function fetchPilgrimsFromVPS() {
-      fetch(`${VPS_API}/api/pilgrims`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            let localList = getStoredPilgrims();
-            let storedGroups = getStoredGroups();
-
-            data.forEach(srvP => {
-              if (srvP.name === 'مرشد الفوج') return;
-
-              // التأكد من تسجيل فوج المعتمر في قائمة الأفواج إن لم يكن موجوداً
-              const pGroup = srvP.group || 'الفوج 1 (الرئيسي)';
-              if (!storedGroups.includes(pGroup)) {
-                storedGroups.push(pGroup);
-                saveGroups(storedGroups);
-                updateGroupsDropdowns();
-              }
-
-              const now = new Date();
-              const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-              
-              const idx = localList.findIndex(lp => lp.name === srvP.name);
-              const formattedP = {
-                id: srvP.id || Date.now(),
-                name: srvP.name,
-                phone: srvP.phone || 'غير مسجل',
-                group: pGroup,
-                lat: srvP.lat || 21.4225,
-                lng: srvP.lng || 39.8262,
-                time: timeStr
-              };
-
-              if (idx !== -1) {
-                localList[idx] = formattedP;
-              } else {
-                localList.push(formattedP);
-              }
-            });
-
-            // حذف "مرشد الفوج" من قائمة المعتمرين في حال وجوده
-            localList = localList.filter(p => p.name !== 'مرشد الفوج');
-
-            savePilgrims(localList);
-            renderPilgrimMarkers();
-          }
-        })
-        .catch(e => console.log('VPS Fetch error:', e));
+      sendLiveLocation();
+      autoTrackingInterval = setInterval(sendLiveLocation, 15000);
     }
 
     function applyRoleUI() {
       const saved = localStorage.getItem('omrah_user');
       if (!saved) {
         document.getElementById('auth-screen').style.display = 'flex';
-        updateGroupsDropdowns();
+        syncWithServer();
         updateDisplayPhone();
         return;
       }
@@ -794,13 +634,9 @@
         startAutoGpsTracking();
       } else {
         if (autoTrackingInterval) clearInterval(autoTrackingInterval);
-        fetchPilgrimsFromVPS();
-        if (!mapRefreshInterval) {
-          mapRefreshInterval = setInterval(() => {
-            if (currentUser && currentUser.role === 'guide') {
-              fetchPilgrimsFromVPS();
-            }
-          }, 8000);
+        syncWithServer();
+        if (!syncInterval) {
+          syncInterval = setInterval(syncWithServer, 5000);
         }
       }
 
@@ -897,17 +733,14 @@
       if (!listContainer) return;
       listContainer.innerHTML = '';
 
-      let localPilgrims = getStoredPilgrims();
-      // استثناء المرشد دائماً من القائمة
-      localPilgrims = localPilgrims.filter(p => p.name !== 'مرشد الفوج');
-
+      let list = serverPilgrims;
       if (selectedGroup !== 'all') {
-        localPilgrims = localPilgrims.filter(p => p.group === selectedGroup);
+        list = list.filter(p => p.group === selectedGroup);
       }
 
-      if (countElem) countElem.innerText = localPilgrims.length;
+      if (countElem) countElem.innerText = list.length;
 
-      if (localPilgrims.length === 0) {
+      if (list.length === 0) {
         listContainer.innerHTML = `
           <div style="text-align:center; padding: 20px; color: #94a3b8; font-size: 0.85rem;">
             لا يوجد معتمرون مسجلون في هذا الفوج حالياً.
@@ -916,7 +749,7 @@
         return;
       }
 
-      localPilgrims.forEach(p => {
+      list.forEach(p => {
         const marker = L.marker([p.lat, p.lng]).addTo(mapInstance)
           .bindPopup(`<b>${p.name}</b><br>الفوج: ${p.group || 'غير محدد'}<br>هاتف: ${p.phone}<br>آخر تحديث: ${p.time}`);
         mapMarkers.push(marker);
@@ -932,8 +765,7 @@
             </div>
             <div style="display: flex; gap: 6px; align-items: center;">
               <button onclick="focusOnMap(${p.lat}, ${p.lng})" class="btn-sub" style="font-size: 0.75rem; padding: 6px 10px;">📍 تحديد</button>
-              <button onclick="openTransferModal(${p.id}, '${p.name}', '${p.group || ''}')" class="btn-transfer-sm" title="نقل إلى فوج آخر">⇄ نقل</button>
-              <button onclick="deletePilgrim(${p.id}, '${p.name}')" class="btn-danger-sm" title="حذف من الفوج">🗑️</button>
+              <button onclick="deletePilgrim('${p.name}')" class="btn-danger-sm" title="حذف من السيرفر">🗑️</button>
             </div>
           </div>
         `;
