@@ -21,29 +21,30 @@ jobs:
     - name: Setup Java JDK
       uses: actions/setup-java@v4
       with:
-        distribution: 'zulu'
+        distribution: 'temurin'
         java-version: '17'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
-    - name: Install Capacitor & Generate Android Project
+    - name: Build Capacitor Android App
       run: |
-        npm install @capacitor/core @capacitor/cli @capacitor/android
-        npx cap init "رفيق المعتمر" "com.mztravel.omrah" --web-dir "."
+        npm install @capacitor/core@latest @capacitor/cli@latest
+        mkdir -p www
+        cp index.html www/
+        cp -r duas.js app.js www/ 2>/dev/null || true
+        npx cap init "رفيق المعتمر" "com.mztravel.omrah" --web-dir "www"
+        npm install @capacitor/android@latest
         npx cap add android
 
-    - name: Add Permissions to AndroidManifest
+    - name: Set Android Permissions
       run: |
         sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />' android/app/src/main/AndroidManifest.xml
 
-    - name: Build APK via Gradle
+    - name: Build APK with Gradle
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --stacktrace
 
-    - name: Upload APK Artifact
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: Omrah-App-Debug
