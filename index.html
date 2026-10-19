@@ -1030,6 +1030,40 @@
       document.getElementById('ziyarat-story-input').value = '';
     }
 
+
+    // المرحلة 2: حساب المسافة، التنبيهات، ومراقبة البطارية
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // نصف قطر الأرض بالكيلومتر
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const d = R * c;
+      if (d < 1) {
+        return Math.round(d * 1000) + ' متر';
+      }
+      return d.toFixed(2) + ' كم';
+    }
+
+    async function sendEmergencyAlert() {
+      const msg = document.getElementById('emergency-alert-msg').value.trim();
+      try {
+        const res = await fetch(`${SERVER_URL}/api/broadcast`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg, timestamp: Date.now() })
+        });
+        if (res.ok) {
+          alert('تم إرسال نداء التجمع لجميع المعتمرين بنجاح!');
+          document.getElementById('emergency-alert-msg').value = '';
+        }
+      } catch (err) {
+        console.error('Alert Error:', err);
+      }
+    }
+
 </script>
 </body>
 </html>
