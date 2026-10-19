@@ -183,7 +183,7 @@
   <main id="view-sos" class="view">
     <div class="tracking-status">
       <div class="pulse-dot"></div>
-      <span id="auto-gps-text">تتبع GPS التلقائي نشط: يتم إرسال موقعك للمرشد كل 30 ثانية</span>
+      <span id="auto-gps-text">تتبع GPS التلقائي نشط: يتم إرسال موقعك للمرشد كل 20 ثانية</span>
     </div>
 
     <div class="sos-container">
@@ -604,27 +604,35 @@
       const errBox = document.getElementById('pin-error');
       if (enteredPin === GUIDE_SECRET_PIN) {
         closePinModal();
-        if (currentUser) {
-          currentUser.role = 'guide';
-          localStorage.setItem('omrah_user', JSON.stringify(currentUser));
-          applyRoleUI();
-        } else {
-          setupProfile('guide');
-        }
+        currentUser = {
+          name: 'مرشد الفوج',
+          phone: '',
+          role: 'guide',
+          group: 'إدارة الأفواج'
+        };
+        localStorage.setItem('omrah_user', JSON.stringify(currentUser));
+        applyRoleUI();
       } else {
         errBox.innerText = "❌ الرمز السري غير صحيح! يرجى إعادة المحاولة.";
       }
     }
 
+    // تبديل الدور مع طلب الرمز السري دائماً عند الدخول للمرشد
     function toggleUserRole() {
       if (!currentUser) return;
 
-      if (currentUser.role === 'pilgrim') {
-        promptGuidePin();
-      } else {
-        currentUser.role = 'pilgrim';
+      if (currentUser.role === 'guide') {
+        const name = prompt("أدخل اسم المعتمر للتحويل إلى وضع المعتمر:") || "معتمر";
+        currentUser = {
+          name: name,
+          phone: '',
+          role: 'pilgrim',
+          group: 'الفوج 1 (الرئيسي)'
+        };
         localStorage.setItem('omrah_user', JSON.stringify(currentUser));
         applyRoleUI();
+      } else {
+        promptGuidePin();
       }
     }
 
@@ -652,13 +660,16 @@
           updatePilgrimLocationInList(list, name, phone, group, pos.coords.latitude, pos.coords.longitude);
         }, err => {
           updatePilgrimLocationInList(list, name, phone, group, 21.4225, 39.8262);
-        }, { enableHighAccuracy: false, timeout: 5000 });
+        }, { enableHighAccuracy: true, timeout: 5000 });
       } else {
         updatePilgrimLocationInList(list, name, phone, group, 21.4225, 39.8262);
       }
     }
 
     function updatePilgrimLocationInList(list, name, phone, group, lat, lng) {
+      // إذا كان المستخدم هو المرشد، لا يرسل نفسه كمعتمر
+      if (name === 'مرشد الفوج') return;
+
       const now = new Date();
       const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
       
@@ -674,19 +685,19 @@
       });
       savePilgrims(filtered);
 
-      // إرسال مباشر إلى سيرفر الـ VPS
+      // إرسال مباشر وفوري لسيرفر الـ VPS
       fetch(`${VPS_API}/api/pilgrims/location`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: phone !== 'غير مسجل' ? phone : name,
+          id: (phone && phone !== 'غير مسجل') ? phone : name,
           name: name,
           phone: phone,
           group: group,
           lat: lat,
           lng: lng
         })
-      }).catch(err => console.log('VPS sync err', err));
+      }).catch(err => console.log('VPS Sync error:', err));
 
       if (currentUser && currentUser.role === 'guide') {
         renderPilgrimMarkers();
@@ -710,7 +721,7 @@
           }, err => {
             let list = getStoredPilgrims();
             updatePilgrimLocationInList(list, currentUser.name, currentUser.phone, currentUser.group, 21.4225, 39.8262);
-          }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 });
+          }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 20000 });
         }
       };
 
@@ -718,37 +729,55 @@
       autoTrackingInterval = setInterval(updateLocation, 20000);
     }
 
-    // دالة جلب المعتمرين من سيرفر الـ VPS وعرضهم مباشرة
+    // جلب جميع المعتمرين من سيرفر VPS وإضافتهم تلقائياً لكل الأفواج
     function fetchPilgrimsFromVPS() {
       fetch(`${VPS_API}/api/pilgrims`)
         .then(res => res.json())
         .then(data => {
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             let localList = getStoredPilgrims();
+            let storedGroups = getStoredGroups();
+
             data.forEach(srvP => {
-              const idx = localList.findIndex(lp => lp.name === srvP.name || (lp.phone && lp.phone === srvP.phone));
+              if (srvP.name === 'مرشد الفوج') return;
+
+              // التأكد من تسجيل فوج المعتمر في قائمة الأفواج إن لم يكن موجوداً
+              const pGroup = srvP.group || 'الفوج 1 (الرئيسي)';
+              if (!storedGroups.includes(pGroup)) {
+                storedGroups.push(pGroup);
+                saveGroups(storedGroups);
+                updateGroupsDropdowns();
+              }
+
               const now = new Date();
               const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+              
+              const idx = localList.findIndex(lp => lp.name === srvP.name);
               const formattedP = {
                 id: srvP.id || Date.now(),
                 name: srvP.name,
                 phone: srvP.phone || 'غير مسجل',
-                group: srvP.group || 'الفوج 1 (الرئيسي)',
+                group: pGroup,
                 lat: srvP.lat || 21.4225,
                 lng: srvP.lng || 39.8262,
                 time: timeStr
               };
+
               if (idx !== -1) {
                 localList[idx] = formattedP;
               } else {
                 localList.push(formattedP);
               }
             });
+
+            // حذف "مرشد الفوج" من قائمة المعتمرين في حال وجوده
+            localList = localList.filter(p => p.name !== 'مرشد الفوج');
+
             savePilgrims(localList);
             renderPilgrimMarkers();
           }
         })
-        .catch(e => console.log('Fetch error', e));
+        .catch(e => console.log('VPS Fetch error:', e));
     }
 
     function applyRoleUI() {
@@ -771,7 +800,7 @@
             if (currentUser && currentUser.role === 'guide') {
               fetchPilgrimsFromVPS();
             }
-          }, 10000);
+          }, 8000);
         }
       }
 
@@ -869,6 +898,9 @@
       listContainer.innerHTML = '';
 
       let localPilgrims = getStoredPilgrims();
+      // استثناء المرشد دائماً من القائمة
+      localPilgrims = localPilgrims.filter(p => p.name !== 'مرشد الفوج');
+
       if (selectedGroup !== 'all') {
         localPilgrims = localPilgrims.filter(p => p.group === selectedGroup);
       }
@@ -982,7 +1014,7 @@
         badge: "badge-purple",
         time: "⏱ وقت الإلقاء: دقيقتان",
         title: "درس اللحمة وجعل الفوج عائلة واحدة (أخلاق الرفقة في السفر)",
-        content: "بسم الله الرحمن الرحيم. أيها الإخوة والأخوات، يا ضيوف الرحمن.. أنتم الآن لستم مجرد ركاب تجمعهم حافلة واحدة، بل اختاركم الله لتكونوا 'عائلة واحدة' في هذه الرحلة المباركة التي تتنزل فيها الرحمات.<br><br>يقول الحبيب المصطفى ﷺ: 'مَثَلُ الْمُؤْمِنِينَ فِي تَوَادِّهِمْ وَتَرَاحُمِهِمْ وَتَعَاطُفِهِمْ مَثَلُ الْجَسَدِ الْوَاحِدِ إِذَا اشْتَكَى مِنْهُ عُضْوٌ تَدَاعَى لَهُ سَائِرُ الْجَسَدِ بِالسَّهَرِ وَالْحُمَّى'. في رحلتنا هذه سيكون بيننا الشيخ الكبير الذي يحتاج من يمسك بيده، والمريض الذي يحتاج صبراً، والضعيف الذي يمشي ببطء.<br><br><strong>وصيتي لكم ثلاث وصايا من ذهب احفظوها:</strong><br>• <strong>أولاً: الإيثار والتنازل:</strong> قدّم أخاك وأختك في الصعود للركوب، في أسبقية المصعد، وعند استلام الوجبات، فوالله إن الإيثار في الحرم له طعم يفتح أبواب الإجابة.<br>• <strong>ثانياً: التغافل والابتسامة:</strong> السفر فيه تعب ومشقة، فاجعل شعارك المسامحة، والتغافل عن الهفوات وبادر رفيقك بالابتسامة.<br>• <strong>ث ثالثاً: تفقد الغائب:</strong> إذا رأيتم أحداً تخلف عن الصلاة أو الطعام فاسألوا عنه وتفقدوه، فكم من تائه أغاثته لفتة أخوية.<br>كونوا كالبنيان المرصوص يشد بعضه بعضاً، حتى يرجع الجميع برحمة ومغفرة وأخوة تدوم في الله."
+        content: "بسم الله الرحمن الرحيم. أيها الإخوة والأخوات، يا ضيوف الرحمن.. أنتم الآن لستم مجرد ركاب تجمعهم حافلة واحدة، بل اختاركم الله لتكونوا 'عائلة واحدة' في هذه الرحلة المباركة التي تتنزل فيها الرحمات.<br><br>يقول الحبيب المصطفى ﷺ: 'مَثَلُ الْمُؤْمِنِينَ فِي تَوَادِّهِمْ وَتَرَاحُمِهِمْ وَتَعَاطُفِهِمْ مَثَلُ الْجَسَدِ الْوَاحِدِ إِذَا اشْتَكَى مِنْهُ عُضْوٌ تَدَاعَى لَهُ سَائِرُ الْجَسَدِ بِالسَّهَرِ وَالْحُمَّى'. في رحلتنا هذه سيكون بيننا الشيخ الكبير الذي يحتاج من يمسك بيده، والمريض الذي يحتاج صبراً، والضعيف الذي يمشي ببطء.<br><br><strong>وصيتي لكم ثلاث وصايا من ذهب احفظوها:</strong><br>• <strong>أولاً: الإيثار والتنازل:</strong> قدّم أخاك وأختك في الصعود للركوب، في أسبقية المصعد، وعند استلام الوجبات، فوالله إن الإيثار في الحرم له طعم يفتح أبواب الإجابة.<br>• <strong>ثانياً: التغافل والابتسامة:</strong> السفر فيه تعب ومشقة، فاجعل شعارك المسامحة، والتغافل عن الهفوات وبادر رفيقك بالابتسامة.<br>• <strong>ثالثاً: تفقد الغائب:</strong> إذا رأيتم أحداً تخلف عن الصلاة أو الطعام فاسألوا عنه وتفقدوه، فكم من تائه أغاثته لفتة أخوية.<br>كونوا كالبنيان المرصوص يشد بعضه بعضاً، حتى يرجع الجميع برحمة ومغفرة وأخوة تدوم في الله."
       },
       {
         category: "أخلاق",
