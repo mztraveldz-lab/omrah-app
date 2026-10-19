@@ -32,7 +32,6 @@ jobs:
         cp -r duas.js app.js www/ 2>/dev/null || true
         npx cap init "رفيق المعتمر" "com.mztravel.omrah" --web-dir "www"
         
-        # السماح بالاتصالات المختلطة في إعدادات Capacitor
         node -e '
           const fs = require("fs");
           const cfg = JSON.parse(fs.readFileSync("capacitor.config.json", "utf8"));
@@ -43,10 +42,11 @@ jobs:
         npm install @capacitor/android@latest
         npx cap add android
 
-    - name: Set Android Permissions and Cleartext Traffic
+    - name: Configure Android Permissions for Background Tracking
       run: |
-        sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />' android/app/src/main/AndroidManifest.xml
+        # إضافة صلاحيات العمل في الخلفية وحماية اتصال الشبكة
         sed -i 's/<application /<application android:usesCleartextTraffic="true" /g' android/app/src/main/AndroidManifest.xml
+        sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.WAKE_LOCK" />' android/app/src/main/AndroidManifest.xml
 
     - name: Build APK with Gradle
       run: |
