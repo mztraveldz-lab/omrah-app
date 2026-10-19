@@ -358,6 +358,8 @@
     <div id="places-list"></div>
   </main>
 
+  <script src="duas.js"></script>
+  <script src="content.js"></script>
   <script>
     const DEFAULT_AGENCY_PHONE = "213795353719";
     const GUIDE_SECRET_PIN = "7788";
@@ -859,6 +861,7 @@
     ];
 
     function renderLessons(filter = 'all') {
+      const source = (typeof lessonsData !== 'undefined') ? lessonsData : lessons;
       const c = document.getElementById('lessons-list');
       if (!c) return;
       const list = filter === 'all' ? lessonsData : lessonsData.filter(l => l.category === filter);
@@ -891,6 +894,7 @@
     ];
 
     function renderPlaces(filter = 'all') {
+      const source = (typeof ziyaratData !== 'undefined') ? ziyaratData : places;
       const c = document.getElementById('places-list');
       if (!c) return;
       const list = filter === 'all' ? ziyaratData : ziyaratData.filter(p => p.city === filter);
