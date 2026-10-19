@@ -437,10 +437,12 @@
             }
           }
         })
-        .catch(err => console.log('VPS Sync error:', err));
+        .catch(err => {
+          console.log('VPS Sync error:', err);
+        });
     }
 
-    // 2. إنشاء فوج
+    // 2. إنشاء فوج جديد على السيرفر
     function createNewGroup() {
       const name = prompt("أدخل اسم الفوج الجديد:");
       if (name && name.trim()) {
@@ -448,11 +450,17 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ groupName: name.trim() })
-        }).then(() => syncWithServer());
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert(`تم إنشاء (${name.trim()}) في السيرفر بنجاح`);
+          syncWithServer();
+        })
+        .catch(err => alert("خطأ في الاتصال بالسيرفر: " + err.message));
       }
     }
 
-    // 3. حذف فوج
+    // 3. حذف فوج ومسح معتمريه من السيرفر مع تنبيه بالنتيجة
     function deleteCurrentFilteredGroup() {
       const select = document.getElementById('filter-group-select');
       const groupToDelete = select.value;
@@ -465,18 +473,32 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ groupName: groupToDelete })
-        }).then(() => syncWithServer());
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert(`تم حذف الفوج (${groupToDelete}) من السيرفر بنجاح.`);
+          select.value = 'all';
+          syncWithServer();
+        })
+        .catch(err => {
+          alert("خطأ: تعذر الوصول إلى السيرفر لحذف الفوج: " + err.message);
+        });
       }
     }
 
-    // 4. حذف معتمر
+    // 4. حذف معتمر من السيرفر
     function deletePilgrim(name) {
       if (confirm(`حذف المعتمر (${name}) من السيرفر؟`)) {
         fetch(`${VPS_API}/api/pilgrims/delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: name })
-        }).then(() => syncWithServer());
+        })
+        .then(() => {
+          alert(`تم مسح المعتمر (${name}) من قاعدة البيانات.`);
+          syncWithServer();
+        })
+        .catch(err => alert("تعذر الحذف من السيرفر: " + err.message));
       }
     }
 
@@ -558,7 +580,7 @@
       applyRoleUI();
     }
 
-    // إرسال فوري ومباشر يضمن وصول بيانات المعتمر
+    // إرسال فوري ومباشر يضمن وصول بيانات المعتمر للسيرفر
     function sendLiveLocation() {
       if (!currentUser || currentUser.role !== 'pilgrim') return;
 
@@ -604,7 +626,7 @@
       .catch(err => {
         const statusElem = document.getElementById('auto-gps-text');
         if (statusElem) {
-          statusElem.innerText = `⚠️ جاري محاولة إعادة الاتصال بالسيرفر...`;
+          statusElem.innerText = `⚠️ فشل الاتصال بالسيرفر (${VPS_API}): تأكد من تشغيله`;
         }
       });
     }
