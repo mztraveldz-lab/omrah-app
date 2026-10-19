@@ -151,7 +151,7 @@
       <h2 style="color: white; margin-bottom: 6px;">مرحباً بكم في رحاب الحرمين</h2>
       <p id="auth-msg" style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 18px;">سجل بياناتك للبدء ومزامنة موقعك مع الفوج</p>
 
-      <input type="text" id="user-name" class="auth-input" placeholder="الاسم الكامل (مثال: بدر الدين)">
+      <input type="text" id="user-name" class="auth-input" placeholder="الاسم الكامل (مثال: حمزة)">
       <input type="tel" id="user-phone" class="auth-input" placeholder="رقم الهاتف">
 
       <div style="text-align: right; margin-bottom: 14px;">
@@ -258,7 +258,7 @@
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <div style="font-size: 0.85rem; color: #94a3b8;">المعتمرون المعروضون: <span id="pilgrim-count" style="color: #34d399; font-weight: bold;">0</span></div>
-        <button onclick="refreshMap()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem;">🔄 تحديث المواقع</button>
+        <button onclick="fetchPilgrimsFromVPS()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem;">🔄 تحديث المواقع</button>
       </div>
 
       <div id="pilgrims-list"></div>
@@ -406,6 +406,7 @@
   <script>
     const DEFAULT_AGENCY_PHONE = "213795353719";
     const GUIDE_SECRET_PIN = "7788";
+    const VPS_API = "http://169.58.26.43:3000";
 
     let currentUser = null;
     let mapInstance = null;
@@ -621,18 +622,7 @@
       if (currentUser.role === 'pilgrim') {
         promptGuidePin();
       } else {
-        const list = getStoredPilgrims();
-        const livePilgrim = list.find(p => p.phone === currentUser.phone || p.name === currentUser.name);
-
-        if (!livePilgrim) {
-          alert("تنبيه: لقد تم حذف هذا المعتمر من الفوج بواسطة المرشد، يرجى التسجيل من جديد.");
-          localStorage.removeItem('omrah_user');
-          location.reload();
-          return;
-        }
-
         currentUser.role = 'pilgrim';
-        currentUser.group = livePilgrim.group;
         localStorage.setItem('omrah_user', JSON.stringify(currentUser));
         applyRoleUI();
       }
@@ -683,6 +673,21 @@
         time: timeStr
       });
       savePilgrims(filtered);
+
+      // إرسال مباشر إلى سيرفر الـ VPS
+      fetch(`${VPS_API}/api/pilgrims/location`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: phone !== 'غير مسجل' ? phone : name,
+          name: name,
+          phone: phone,
+          group: group,
+          lat: lat,
+          lng: lng
+        })
+      }).catch(err => console.log('VPS sync err', err));
+
       if (currentUser && currentUser.role === 'guide') {
         renderPilgrimMarkers();
       }
@@ -702,12 +707,48 @@
               const d = new Date();
               statusElem.innerText = `📡 تتبع حي متصل: آخر إرسال لموقعك للمرشد (${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')})`;
             }
-          }, err => {}, { enableHighAccuracy: false, timeout: 8000, maximumAge: 30000 });
+          }, err => {
+            let list = getStoredPilgrims();
+            updatePilgrimLocationInList(list, currentUser.name, currentUser.phone, currentUser.group, 21.4225, 39.8262);
+          }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 });
         }
       };
 
       updateLocation();
-      autoTrackingInterval = setInterval(updateLocation, 30000);
+      autoTrackingInterval = setInterval(updateLocation, 20000);
+    }
+
+    // دالة جلب المعتمرين من سيرفر الـ VPS وعرضهم مباشرة
+    function fetchPilgrimsFromVPS() {
+      fetch(`${VPS_API}/api/pilgrims`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            let localList = getStoredPilgrims();
+            data.forEach(srvP => {
+              const idx = localList.findIndex(lp => lp.name === srvP.name || (lp.phone && lp.phone === srvP.phone));
+              const now = new Date();
+              const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+              const formattedP = {
+                id: srvP.id || Date.now(),
+                name: srvP.name,
+                phone: srvP.phone || 'غير مسجل',
+                group: srvP.group || 'الفوج 1 (الرئيسي)',
+                lat: srvP.lat || 21.4225,
+                lng: srvP.lng || 39.8262,
+                time: timeStr
+              };
+              if (idx !== -1) {
+                localList[idx] = formattedP;
+              } else {
+                localList.push(formattedP);
+              }
+            });
+            savePilgrims(localList);
+            renderPilgrimMarkers();
+          }
+        })
+        .catch(e => console.log('Fetch error', e));
     }
 
     function applyRoleUI() {
@@ -721,30 +762,16 @@
       currentUser = JSON.parse(saved);
 
       if (currentUser.role === 'pilgrim') {
-        const list = getStoredPilgrims();
-        const liveRecord = list.find(p => p.phone === currentUser.phone || p.name === currentUser.name);
-        
-        if (!liveRecord) {
-          localStorage.removeItem('omrah_user');
-          document.getElementById('auth-msg').innerText = "⚠️ تم إخراجك من الفوج السابق، يرجى التسجيل للانضمام للفوج الحالي.";
-          document.getElementById('auth-msg').style.color = "#f87171";
-          document.getElementById('auth-screen').style.display = 'flex';
-          updateGroupsDropdowns();
-          updateDisplayPhone();
-          return;
-        }
-
-        currentUser.group = liveRecord.group;
-        localStorage.setItem('omrah_user', JSON.stringify(currentUser));
         startAutoGpsTracking();
       } else {
         if (autoTrackingInterval) clearInterval(autoTrackingInterval);
+        fetchPilgrimsFromVPS();
         if (!mapRefreshInterval) {
           mapRefreshInterval = setInterval(() => {
             if (currentUser && currentUser.role === 'guide') {
-              renderPilgrimMarkers();
+              fetchPilgrimsFromVPS();
             }
-          }, 15000);
+          }, 10000);
         }
       }
 
@@ -838,6 +865,7 @@
       const filterSelect = document.getElementById('filter-group-select');
       const selectedGroup = filterSelect ? filterSelect.value : 'all';
 
+      if (!listContainer) return;
       listContainer.innerHTML = '';
 
       let localPilgrims = getStoredPilgrims();
@@ -845,7 +873,7 @@
         localPilgrims = localPilgrims.filter(p => p.group === selectedGroup);
       }
 
-      countElem.innerText = localPilgrims.length;
+      if (countElem) countElem.innerText = localPilgrims.length;
 
       if (localPilgrims.length === 0) {
         listContainer.innerHTML = `
@@ -882,10 +910,6 @@
 
     function focusOnMap(lat, lng) {
       if (mapInstance) mapInstance.setView([lat, lng], 18);
-    }
-
-    function refreshMap() {
-      renderPilgrimMarkers();
     }
 
     function sendSOS() {
@@ -958,7 +982,7 @@
         badge: "badge-purple",
         time: "⏱ وقت الإلقاء: دقيقتان",
         title: "درس اللحمة وجعل الفوج عائلة واحدة (أخلاق الرفقة في السفر)",
-        content: "بسم الله الرحمن الرحيم. أيها الإخوة والأخوات، يا ضيوف الرحمن.. أنتم الآن لستم مجرد ركاب تجمعهم حافلة واحدة، بل اختاركم الله لتكونوا 'عائلة واحدة' في هذه الرحلة المباركة التي تتنزل فيها الرحمات.<br><br>يقول الحبيب المصطفى ﷺ: 'مَثَلُ الْمُؤْمِنِينَ فِي تَوَادِّهِمْ وَتَرَاحُمِهِمْ وَتَعَاطُفِهِمْ مَثَلُ الْجَسَدِ الْوَاحِدِ إِذَا اشْتَكَى مِنْهُ عُضْوٌ تَدَاعَى لَهُ سَائِرُ الْجَسَدِ بِالسَّهَرِ وَالْحُمَّى'. في رحلتنا هذه سيكون بيننا الشيخ الكبير الذي يحتاج من يمسك بيده، والمريض الذي يحتاج صبراً، والضعيف الذي يمشي ببطء.<br><br><strong>وصيتي لكم ثلاث وصايا من ذهب احفظوها:</strong><br>• <strong>أولاً: الإيثار والتنازل:</strong> قدّم أخاك وأختك في الصعود للركوب، في أسبقية المصعد، وعند استلام الوجبات، فوالله إن الإيثار في الحرم له طعم يفتح أبواب الإجابة.<br>• <strong>ثانياً: التغافل والابتسامة:</strong> السفر فيه تعب ومشقة، فاجعل شعارك المسامحة، والتغافل عن الهفوات وبادر رفيقك بالابتسامة.<br>• <strong>ثالثاً: تفقد الغائب:</strong> إذا رأيتم أحداً تخلف عن الصلاة أو الطعام فاسألوا عنه وتفقدوه، فكم من تائه أغاثته لفتة أخوية.<br>كونوا كالبنيان المرصوص يشد بعضه بعضاً، حتى يرجع الجميع برحمة ومغفرة وأخوة تدوم في الله."
+        content: "بسم الله الرحمن الرحيم. أيها الإخوة والأخوات، يا ضيوف الرحمن.. أنتم الآن لستم مجرد ركاب تجمعهم حافلة واحدة، بل اختاركم الله لتكونوا 'عائلة واحدة' في هذه الرحلة المباركة التي تتنزل فيها الرحمات.<br><br>يقول الحبيب المصطفى ﷺ: 'مَثَلُ الْمُؤْمِنِينَ فِي تَوَادِّهِمْ وَتَرَاحُمِهِمْ وَتَعَاطُفِهِمْ مَثَلُ الْجَسَدِ الْوَاحِدِ إِذَا اشْتَكَى مِنْهُ عُضْوٌ تَدَاعَى لَهُ سَائِرُ الْجَسَدِ بِالسَّهَرِ وَالْحُمَّى'. في رحلتنا هذه سيكون بيننا الشيخ الكبير الذي يحتاج من يمسك بيده، والمريض الذي يحتاج صبراً، والضعيف الذي يمشي ببطء.<br><br><strong>وصيتي لكم ثلاث وصايا من ذهب احفظوها:</strong><br>• <strong>أولاً: الإيثار والتنازل:</strong> قدّم أخاك وأختك في الصعود للركوب، في أسبقية المصعد، وعند استلام الوجبات، فوالله إن الإيثار في الحرم له طعم يفتح أبواب الإجابة.<br>• <strong>ثانياً: التغافل والابتسامة:</strong> السفر فيه تعب ومشقة، فاجعل شعارك المسامحة، والتغافل عن الهفوات وبادر رفيقك بالابتسامة.<br>• <strong>ث ثالثاً: تفقد الغائب:</strong> إذا رأيتم أحداً تخلف عن الصلاة أو الطعام فاسألوا عنه وتفقدوه، فكم من تائه أغاثته لفتة أخوية.<br>كونوا كالبنيان المرصوص يشد بعضه بعضاً، حتى يرجع الجميع برحمة ومغفرة وأخوة تدوم في الله."
       },
       {
         category: "أخلاق",
@@ -983,9 +1007,7 @@
       }
     ];
 
-    // موسوعة المزارات الكبرى المفصلة (1 إلى 2.5 دقيقة لكل قصة)
     const ziyaratData = [
-      // 🕋 مزارات مكة المكرمة والمشاعر
       {
         city: "مكة",
         title: "غار حراء (جبل النور) - مهبط الوحي وفجر الرسالة",
@@ -998,41 +1020,9 @@
       },
       {
         city: "مكة",
-        title: "مسجد الجن (حي الحجون) - إيمان الغيب وسماع القرآن",
-        story: "في هذا الموضع بحي الحجون شمال المسجد الحرام، وقع حدث إيماني فريد يثبت شمول رسالة النبي ﷺ للثقلين. خرج النبي ﷺ في ظلمة الليل ومعه الصحابي عبد الله بن مسعود، فخط له خطاً في الأرض وقال له: 'لا تبرح مكانك حتى آتيك'.<br><br>وتقدم النبي ﷺ بمفرده فاجتمعت عليه وفود الجن كالسحاب يستمعون القرآن. تلا عليهم سورة الرحمن، فكان كلما قرأ: ﴿فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ﴾، قالوا بأدب: 'ولا بشيء من نِعَمِكَ ربنا نُكذب، فلك الحمد'. فآمنوا ورجعوا إلى قومهم منذرين، ونزلت في هذا المكان سورة الجن تخليداً لهذا اللقاء العظيم."
-      },
-      {
-        city: "مكة",
-        title: "مسجد الراية - موضع فتح مكة الأعظم ودخول النصر",
-        story: "نقف هنا بأعلى مكة عند موضع تاريخي مجيد يُعرف بمسجد الراية. في هذا المكان في شهر رمضان من العام الثامن للهجرة، دخل رسول الله ﷺ مكة فاتحاً ومعه عشرة آلاف صحابي، بعد سنوات طويلة من الاضطهاد والتهجير.<br><br>لكنه لم يدخل متكبراً، بل دخل وهو يطأطئ رأسه الشريف تواضعاً لله حتى كادت لحيته تلامس رحله شكراً لله. وفي هذه البقعة ركّز النبي ﷺ رايته وصلى ركعات الفتح، ثم انطلق إلى الكعبة ليطهرها من الأصنام وهو يصدع بالحق: ﴿وَقُلْ جَاءَ الْحَقُّ وَزَهَقَ الْبَاطِلُ ۚ إِنَّ الْبَاطِلَ كَانَ زَهُوقًا﴾."
-      },
-      {
-        city: "مكة",
-        title: "مسجد الشجرة - معجزة التثبيت الإلهي لقلب النبي ﷺ",
-        story: "هذا المسجد الصغير المقابل لمقبرة المعلاة يروي معجزة حسية ناطقة بصدق نبوة محمد ﷺ. في بدايات الدعوة، لما اشتد أذى قريش وطغيانهم وتجرأوا على النبي ﷺ حتى أصابه الحزن الشديد، نزل جبريل عليه السلام ليواسيه ويثبت فؤاده.<br><br>قال جبريل: 'يا رسول الله، أتحب أن أريك آية تطمئن بها نفسك؟' قال: 'نعم'. فأشار إلى شجرة كانت قائمة في هذا الموضع وقال: 'ادعُ تلك الشجرة'. فناداها النبي ﷺ، فانشقت الأرض وخرجت الشجرة من عروقها تسعى حتى وقفت بين يديه وسلمت عليه، ثم أمرها فعادت مكانها كما كانت. فقال ﷺ بسكينة: 'حسبي.. حسبي'."
-      },
-      {
-        city: "مكة",
         title: "مشعر عرفات وجبل الرحمة - موطن إتمام الدين ومباهاة الملائكة",
         story: "هذا الصعيد الطاهر هو قلب عرفات، وهذه الأكمة الصخرية هي جبل الرحمة (جبل إيلال). هنا وقف النبي ﷺ في حجة الوداع على ناقته القصواء بين جموع الصحابة في يوم الجمعة المبارك، خاشعاً باسطاً يديه يدعو ربه حتى غابت الشمس.<br><br>وفي هذا الموضع نزل قول الله تعالى: ﴿الْيَوْمَ أَكْمَلْتُ لَكُمْ دِينَكُمْ وَأَتْمَمْتُ عَلَيْكُمْ نِعْمَتِي وَرَضِيتُ لَكُمُ الْإِسْلَامَ دِينًا﴾. وسُمي جبل الرحمة لفيوض المغفرة التي تتنزل على أهل الموقف؛ حيث يباهي الله بعباده ملائكة السماء ويقول: 'انظروا إلى عبادي أتوني شعثاً غبراً، أشهدكم أني قد غفرت لهم'، وما رُئي الشيطان أصغر ولا أدحر منه في يوم عرفة."
       },
-      {
-        city: "مكة",
-        title: "مسجد نَمِرَة (عرفات) - موضع خطبة الوداع الخالدة",
-        story: "هذا المسجد الشامخ يقع جزء من مقدمته في وادي عُرنة (خارج حدود عرفات) ومؤخرته في صعيد عرفات. في هذا الموضع ضُربت للنبي ﷺ قبة بنَمِرة في حجة الوداع، فلما زالت الشمس ركب ناقته وألقى خطبة الوداع التاريخية العظيمة التي أرسى فيها حقوق الإنسان، وحرمة الدماء والأموال والأعراض، ووصى بالنساء خيراً، وأبطل مآثر الجاهلية ورباها.<br><br>ثم أذن بلال وصلى النبي ﷺ بالمسلمين الظهر والعصر جمعاً وقصراً بأذان واحد وإقامتين، ثم توجه إلى موقفه عند جبل الرحمة. وبُني هذا المسجد الجامع تخليداً لموقف خطبته وصلاته ﷺ."
-      },
-      {
-        city: "مكة",
-        title: "مشعر مزدلفة والمشعر الحرام - موطن السكينة والجمع",
-        story: "هذا الصعيد المبارك يقع بين عرفات ومنى، ويُسمى 'مزدلفة' لازدلاف الناس إليه واجتماعهم فيه بعد الإفاضة، ويسمى أيضاً 'جَمْعاً'. لما أفاض النبي ﷺ من عرفات غابت الشمس ووصل إلى مزدلفة، فأمر الناس بالسكينة والوقار قائلاً: 'أيها الناس، السكينة السكينة! فإن البر ليس بالإيضاع (الإسراع)'.<br><br>صلى ﷺ هنا المغرب والعشاء جمعاً وقصراً بأذان وإقامتين، ثم بات حتى طلع الفجر، وصلى الفجر ثم ركب حتى أتى المشعر الحرام، فاستقبل القبلة ودعا الله وكبره وهلله حتى أسفر الصباح جداً، وأخذ من هنا الحصيات لجمرة العقبة."
-      },
-      {
-        city: "مكة",
-        title: "مشعر منى ومسجد الخَيْف - مصلّى الأنبياء ومبيت الحجيج",
-        story: "منى هو وادي تحفه الجبال، وهو وادي الذكريات الإبراهيمية حيث افتدى الله إسماعيل بذبح عظيم، وموضع رجم الجمار والتحلل. وفي قلب منى يقع هذا المسجد العظيم؛ مسجد الخَيْف (والخيف هو ما انحدر عن غلظ الجبل وارتفع عن بطن المسيل).<br><br>لهذا المسجد قدسية وتاريخ ممتد في عمق الرسالات؛ قال عنه النبي ﷺ: 'صلى في مسجد الخيف سبعون نبياً'. وفي هذا الموضع نزل النبي ﷺ وصلى بالمسلمين في حجة الوداع، وخطب خطبة بليغة حث فيها على نقاء القلوب ولزوم جماعة المسلمين."
-      },
-
-      // 🕌 مزارات المدينة المنورة
       {
         city: "المدينة",
         title: "المسجد النبوي الشريف والروضة - قلب المدينة ومهوى الأفئدة",
@@ -1041,27 +1031,12 @@
       {
         city: "المدينة",
         title: "مسجد قباء ودرب السنّة - أول لبنة أُسست على التقوى",
-        story: "أول مسجد أُسس على التقوى في تاريخ الإسلام، خطه النبي ﷺ بيده وشارك في حمل حجارته حتى غبّر التراب صدره الشريف. أثنى الله على أهله فقال: ﴿فِيهِ رِجَالٌ يُحِبُّونَ أَن يَتَطَهَّرُوا ۚ وَاللَّهُ يُحِبُّ الْمُطَّهِّرِينَ﴾.<br><br>وجعل الله للصلاة فيه فضلاً استثنائياً: 'من تطهر في بيته ثم أتى مسجد قباء فصلى فيه صلاة، كان له كأجر عمرة'. وكان ﷺ يحبه حباً جماً ويزوره في كل يوم سبت راكباً وماشياً عبر الطريق التاريخي الرابط بالمسجد النبوي والمعروف بـ 'درب السنّة'."
+        story: "أول مسجد أُسس على التقوى في تاريخ الإسلام، خطه النبي ﷺ بيده وشارك في حمل حجارته حتى غبّر التراب صدره الشريف. أثنى الله على أهله فقال: ﴿فِيهِ رِجَالٌ يُحِبُّونَ أَن يَتَطَّهَّرُوا ۚ وَاللَّهُ يُحِبُّ الْمُطَّهِّرِينَ﴾.<br><br>وجعل الله للصلاة فيه فضلاً استثنائياً: 'من تطهر في بيته ثم أتى مسجد قباء فصلى فيه صلاة، كان له كأجر عمرة'. وكان ﷺ يحبه حباً جماً ويزوره في كل يوم سبت راكباً وماشياً عبر الطريق التاريخي الرابط بالمسجد النبوي والمعروف بـ 'درب السنّة'."
       },
       {
         city: "المدينة",
         title: "جبل أُحُد ومقبرة الشهداء وملحمة الغزوة - مدرسة الفداء والامتثال",
         story: "هذا الجبل الشامخ الذي أمامنا قال عنه الحبيب ﷺ: 'أُحد جبل يحبنا ونحبه'. دارت عند سفحه غزوة أحد في السنة الثالثة للهجرة. وضع النبي ﷺ خمسين رامياً على جبل الرماة وقال مؤكداً: 'إن رأيتمونا تخطفنا الطير فلا تبرحوا مكانكم'.<br><br>فلما لاحت تباشير النصر وظن الرماة نهاية المعركة نزل أغلبهم لجمع الغنائم، فاستغل خالد بن الوليد الثغرة وطوق الجيش، فانقلبت الموازين وشُج وجه النبي ﷺ وشاع أنه قُتل. ثبتت معه ثلة صادقة تحميه بصدورها، واستشهد سبعون من خيار الصحابة يرقدون في هذه المقبرة الشريفة، يتقدمهم أسد الله حمزة بن عبد المطلب، ومصعب بن عمير، وأنس بن النضر."
-      },
-      {
-        city: "المدينة",
-        title: "مسجد القبلتين - الاستجابة والامتثال الفوري لأمر الله",
-        story: "نحن هنا في ديار بني سَلِمة، أمام مسجد القبلتين الذي شهد حادثة تشريعية فاصلة غيرت وجه التاريخ. صلى المسلمون نحو بيت المقدس ستة عشر أو سبعة عشر شهراً بعد الهجرة، وكان قلب النبي ﷺ يهفو ويتطلع إلى قبلة أبيه إبراهيم نحو الكعبة المشرفة بمكة.<br><br>وبينما كان ﷺ يصلي بأصحابه صلاة الظهر في هذا الموضع، وفي الركعة الثانية تحديداً، نزل الوحي: ﴿قَدْ نَرَىٰ تَقَلُّبَ وَجْهِكَ فِي السَّمَاءِ ۖ فَلَنُوَلِّيَنَّكَ قِبْلَةً تَرْضَاهَا ۚ فَوَلِّ وَجْهَكَ شَطْرَ الْمَسْجِدِ الْحَرَامِ﴾. وبمنتهى الطاعة، استدار النبي ﷺ واستدار المصلون في نفس الصلاة بزاوية 180 درجة نحو الكعبة، فكان مسجداً فريداً صُليت فيه صلاة واحدة إلى قبلتين."
-      },
-      {
-        city: "المدينة",
-        title: "مسجد الجمعة - أول خطبة واجتماع في المدينة المنورة",
-        story: "في هذا الموضع بوادي الرانوناء بين قباء والمسجد النبوي، أدركت النبي ﷺ صلاة الجمعة ضحى وهو في طريقه إلى قلب المدينة بعد مكوثه في قباء. فنزل النبي ﷺ واجتمع حوله المهاجرون والأنصار، فخطب فيهم أول خطبة جمعة في تاريخ المدينة وصلى بهم أول صلاة جمعة جمعت الأمة في صف واحد.<br><br>شهد هذا المكان صدوع الآيات الكريمة من سورة الجمعة: ﴿يَا أَيُّهَا الَّذِينَ آمَنُوا إِذَا نُودِيَ لِلصَّلَاةِ مِن يَوْمِ الْجُمُعَةِ فَاسْعَوْا إِلَىٰ ذِكْرِ اللَّهِ وَذَرُوا الْبَيْعَ﴾، فكان تأسيس المسجد هنا تخليداً لأول جمعة صلى فيها إمام الأنبياء ﷺ."
-      },
-      {
-        city: "المدينة",
-        title: "مسجد الغمامة ومنطقة المُصلّى - بركات الاستسقاء وصلاة العيد",
-        story: "نحن هنا بالقرب من باب السلام بالمسجد النبوي، أمام مسجد الغمامة الذي عُرف قديماً بـ 'المُصلّى'. كانت هذه الساحة هي المكان الذي يخرج إليه النبي ﷺ ليصلي بالناس صلوات الأعياد والاستسقاء، حيث قال عنه: 'هذا مجمعنا ومستمطرنا ومدعانا لعيدنا وفطرنا وأضحانا'.<br><br>وسمي بالغمامة لأن أهل المدينة لما أصابهم الجدب، خرج بهم النبي ﷺ فصلى وتضرع ورفع يديه يدعو الله حتى استسقى، فما فرغ من دعائه حتى أظلت السماء غمامة بيضاء ورعدت وأمطرت بغزارة وسقى الله به العباد والبلاد وظللته الغمامة من حر الشمس. وفي هذا المسجد أيضاً صلى النبي ﷺ آخر صلاة عيد في حياته الشريفة وصلى صلاة الغائب على النجاشي ملك الحبشة."
       }
     ];
 
@@ -1222,88 +1197,5 @@
     renderLessons('all');
     renderPlaces('all');
   </script>
-  <script>
-// مزامنة تلقائية مع سيرفر VPS
-const VPS_API = "http://169.58.26.43:3000";
-
-// دالة لإرسال موقع وبيانات المعتمر إلى السيرفر
-function syncPilgrimToVPS() {
-    try {
-        const storedName = localStorage.getItem('omrah_pilgrim_name') || localStorage.getItem('pilgrim_name');
-        const storedGroup = localStorage.getItem('omrah_pilgrim_group') || 'الفوج 1 (الرئيسي)';
-        
-        if (storedName && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                fetch(`${VPS_API}/api/pilgrims/sync`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: storedName,
-                        name: storedName,
-                        group: storedGroup,
-                        lat: pos.coords.latitude,
-                        lng: pos.coords.longitude
-                    })
-                }).catch(e => console.log('VPS sync error', e));
-            }, (err) => {
-                // إرسال الاسم حتى بدون GPS في حال تعذر الموقع
-                fetch(`${VPS_API}/api/pilgrims/sync`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: storedName,
-                        name: storedName,
-                        group: storedGroup,
-                        lat: 21.4225, // موقع افتراضي عند الكعبة
-                        lng: 39.8262
-                    })
-                }).catch(e => console.log('VPS sync error', e));
-            }, { enableHighAccuracy: true });
-        }
-    } catch(e) {}
-}
-
-// دالة للمرشد: جلب المعتمرين من السيرفر وعرضهم في القائمة والخريطة
-function fetchPilgrimsFromVPS() {
-    fetch(`${VPS_API}/api/pilgrims`)
-        .then(r => r.json())
-        .then(list => {
-            if (Array.isArray(list) && list.length > 0) {
-                // دمج القائمة القادمة من السيرفر مع الذاكرة المحلية
-                localStorage.setItem('all_pilgrims_data', JSON.stringify(list));
-                
-                // تحديث العداد المعروض في الشاشة
-                const countElem = document.querySelector('[class*="المعتمرون"], #pilgrims-count');
-                if (countElem) {
-                    countElem.innerText = `المعتمرون المعروضون: ${list.length}`;
-                }
-                
-                // رسم النقاط على الخريطة إذا كانت مهيأة
-                if (window.map && window.L) {
-                    list.forEach(p => {
-                        if (p.lat && p.lng) {
-                            window.L.marker([p.lat, p.lng])
-                                .addTo(window.map)
-                                .bindPopup(`<b>${p.name}</b><br>${p.group}`);
-                        }
-                    });
-                }
-            }
-        })
-        .catch(e => console.log('Fetch error', e));
-}
-
-// تشغيل المزامنة دورياً كل 15 ثانية
-setInterval(() => {
-    syncPilgrimToVPS();
-    fetchPilgrimsFromVPS();
-}, 15000);
-
-// تشغيل فوري عند فتح التطبيق
-window.addEventListener('load', () => {
-    syncPilgrimToVPS();
-    fetchPilgrimsFromVPS();
-});
-</script>
 </body>
 </html>
