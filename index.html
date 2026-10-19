@@ -989,6 +989,47 @@
       document.getElementById('lesson-content-input').value = '';
     }
 
+
+    function getStoredZiyarat() {
+      const saved = localStorage.getItem('custom_ziyarat');
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e){}
+      }
+      return (typeof ziyaratData !== 'undefined') ? ziyaratData : (typeof places !== 'undefined' ? places : []);
+    }
+
+    function saveZiyaratFromGuide() {
+      const idx = parseInt(document.getElementById('edit-ziyarat-index').value);
+      const city = document.getElementById('ziyarat-city-input').value;
+      const title = document.getElementById('ziyarat-title-input').value.trim();
+      const story = document.getElementById('ziyarat-story-input').value.trim().replace(/
+/g, '<br>');
+
+        alert('يرجى ملء اسم المزار والشرح!');
+        return;
+      }
+
+      let list = getStoredZiyarat();
+      const item = { city, title, story };
+
+      if (idx >= 0 && idx < list.length) {
+        list[idx] = item;
+      } else {
+        list.unshift(item);
+      }
+
+      localStorage.setItem('custom_ziyarat', JSON.stringify(list));
+      resetZiyaratForm();
+      if (typeof renderPlaces === 'function') renderPlaces('all');
+      alert('تم حفظ المزار بنجاح!');
+    }
+
+    function resetZiyaratForm() {
+      document.getElementById('edit-ziyarat-index').value = '-1';
+      document.getElementById('ziyarat-title-input').value = '';
+      document.getElementById('ziyarat-story-input').value = '';
+    }
+
 </script>
 </body>
 </html>
