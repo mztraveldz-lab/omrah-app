@@ -241,7 +241,16 @@
             <option value="مكة">فندق مكة</option>
             <option value="المدينة">فندق المدينة</option>
           </select>
-          <input type="text" id="guide-hotel-name" class="auth-input" style="margin: 0; padding: 6px; flex: 1;" placeholder="اسم الفندق (مثال: فندق أبراج الكسوة)">
+          <input type="text" id="guide-hotel-name"
+          <div style="margin: 8px 0;">
+            <button type="button" onclick="enableHotelMapPicker()" id="btn-pick-hotel" class="btn" style="background: #0284c7; color: #fff; width: 100%; padding: 8px; font-weight: bold;">
+              📍 انقر هنا لتحديد موقع الفندق على الخريطة
+            </button>
+            <div id="picker-status" style="font-size: 0.8rem; color: #38bdf8; margin-top: 4px; display: none;">
+              👆 الخريطة جاهزة: المس أو انقر على موقع الفندق في الخريطة الآن
+            </div>
+          </div>
+ class="auth-input" style="margin: 0; padding: 6px; flex: 1;" placeholder="اسم الفندق (مثال: فندق أبراج الكسوة)">
         </div>
         <div style="display: flex; gap: 6px;">
           <button onclick="saveCurrentLocationAsHotel()" class="btn-sub" style="flex: 1; background: #0369a1; color: white;">📍 جعل موقعي الحالي هو الفندق</button>
