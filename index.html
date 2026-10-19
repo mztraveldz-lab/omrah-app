@@ -101,27 +101,7 @@
 <body>
 
   <!-- شريط التعميمات والتنبيهات العاجلة -->
-  
-        <div class="card" style="background: linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95)); border: 1px solid #38bdf8; border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <span style="font-weight: bold; color: #38bdf8;">🕋 متابع مناسك العمرة</span>
-            <div style="display: flex; gap: 4px;">
-              <button id="mode-tawaf-btn" onclick="setRitualMode('tawaf')" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; background: #0284c7; color: #fff; border: none; cursor: pointer;">الطواف</button>
-              <button id="mode-sai-btn" onclick="setRitualMode('sai')" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; background: #334155; color: #94a3b8; border: none; cursor: pointer;">السعي</button>
-            </div>
-          </div>
-          
-          <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;" id="ritual-title-label">الشوط الحالي في الطواف حول الكعبة</div>
-          <div id="shawt-counter-disp" style="font-size: 3.2rem; font-weight: 800; color: #38bdf8; margin: 6px 0; font-family: monospace;">1 / 7</div>
-          <div id="shawt-dua-guide" style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 14px; min-height: 38px; line-height: 1.4;">بسم الله والله أكبر - بين الركن اليماني والحجر الأسود: ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار</div>
-
-          <div style="display: flex; gap: 8px; justify-content: center;">
-            <button onclick="incrementShawt()" class="btn btn-primary" style="flex: 2; padding: 12px; font-size: 1rem; font-weight: bold; background: #0284c7; box-shadow: 0 4px 12px rgba(2,132,199,0.3);">إتمام الشوط ＋</button>
-            <button onclick="resetShawt()" class="btn" style="flex: 1; padding: 12px; font-size: 0.85rem; background: #334155; color: #cbd5e1;">إعادة البدء ↺</button>
-          </div>
-        </div>
-
-        <div id="broadcast-banner">
+  <div id="broadcast-banner">
     📢 <span id="broadcast-text"></span>
   </div>
 
@@ -378,8 +358,6 @@
     <div id="places-list"></div>
   </main>
 
-  <script src="duas.js"></script>
-  <script src="content.js"></script>
   <script>
     const DEFAULT_AGENCY_PHONE = "213795353719";
     const GUIDE_SECRET_PIN = "7788";
@@ -881,7 +859,6 @@
     ];
 
     function renderLessons(filter = 'all') {
-      const source = (typeof lessonsData !== 'undefined') ? lessonsData : lessons;
       const c = document.getElementById('lessons-list');
       if (!c) return;
       const list = filter === 'all' ? lessonsData : lessonsData.filter(l => l.category === filter);
@@ -914,7 +891,6 @@
     ];
 
     function renderPlaces(filter = 'all') {
-      const source = (typeof ziyaratData !== 'undefined') ? ziyaratData : places;
       const c = document.getElementById('places-list');
       if (!c) return;
       const list = filter === 'all' ? ziyaratData : ziyaratData.filter(p => p.city === filter);
@@ -940,150 +916,6 @@
     renderSaeyDua();
     renderLessons('all');
     renderPlaces('all');
-  
-    // تحميل الدروس من الذاكرة المحلية أو من الملف الافتراضي
-    function getStoredLessons() {
-      const saved = localStorage.getItem('custom_lessons');
-      if (saved) {
-        try { return JSON.parse(saved); } catch(e){}
-      }
-      return (typeof lessonsData !== 'undefined') ? lessonsData : (typeof lessons !== 'undefined' ? lessons : []);
-    }
-
-    function saveLessonFromGuide() {
-      const idx = parseInt(document.getElementById('edit-lesson-index').value);
-      const cat = document.getElementById('lesson-cat-input').value;
-      const time = document.getElementById('lesson-time-input').value.trim() || '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق';
-      const title = document.getElementById('lesson-title-input').value.trim();
-      const content = document.getElementById('lesson-content-input').value.trim().replace(/
-/g, '<br>');
-
-        alert('يرجى ملء عنوان الدرس ومحتواه!');
-        return;
-      }
-
-      let list = getStoredLessons();
-      const item = {
-        category: cat,
-        badge: cat === 'أخلاق' ? 'badge-purple' : (cat === 'تنظيم' ? 'badge-amber' : 'badge-rose'),
-        time: time.startsWith('⏱') ? time : '⏱ وقت الإلقاء: ' + time,
-        title: title,
-        content: content
-      };
-
-      if (idx >= 0 && idx < list.length) {
-        list[idx] = item;
-      } else {
-        list.unshift(item);
-      }
-
-      localStorage.setItem('custom_lessons', JSON.stringify(list));
-      resetLessonForm();
-      if (typeof renderLessons === 'function') renderLessons('all');
-      alert('تم حفظ الدرس بنجاح!');
-    }
-
-    function editLesson(idx) {
-      const list = getStoredLessons();
-      const l = list[idx];
-      document.getElementById('edit-lesson-index').value = idx;
-      document.getElementById('lesson-cat-input').value = l.category;
-      document.getElementById('lesson-time-input').value = l.time.replace('⏱ وقت الإلقاء: ', '');
-      document.getElementById('lesson-title-input').value = l.title;
-      document.getElementById('lesson-content-input').value = l.content.replace(/<br\s*[\/]?>/gi, '
-');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function deleteLesson(idx) {
-      let list = getStoredLessons();
-      list.splice(idx, 1);
-      localStorage.setItem('custom_lessons', JSON.stringify(list));
-      if (typeof renderLessons === 'function') renderLessons('all');
-    }
-
-    function resetLessonForm() {
-      document.getElementById('edit-lesson-index').value = '-1';
-      document.getElementById('lesson-title-input').value = '';
-      document.getElementById('lesson-time-input').value = '';
-      document.getElementById('lesson-content-input').value = '';
-    }
-
-
-    function getStoredZiyarat() {
-      const saved = localStorage.getItem('custom_ziyarat');
-      if (saved) {
-        try { return JSON.parse(saved); } catch(e){}
-      }
-      return (typeof ziyaratData !== 'undefined') ? ziyaratData : (typeof places !== 'undefined' ? places : []);
-    }
-
-    function saveZiyaratFromGuide() {
-      const idx = parseInt(document.getElementById('edit-ziyarat-index').value);
-      const city = document.getElementById('ziyarat-city-input').value;
-      const title = document.getElementById('ziyarat-title-input').value.trim();
-      const story = document.getElementById('ziyarat-story-input').value.trim().replace(/
-/g, '<br>');
-
-        alert('يرجى ملء اسم المزار والشرح!');
-        return;
-      }
-
-      let list = getStoredZiyarat();
-      const item = { city, title, story };
-
-      if (idx >= 0 && idx < list.length) {
-        list[idx] = item;
-      } else {
-        list.unshift(item);
-      }
-
-      localStorage.setItem('custom_ziyarat', JSON.stringify(list));
-      resetZiyaratForm();
-      if (typeof renderPlaces === 'function') renderPlaces('all');
-      alert('تم حفظ المزار بنجاح!');
-    }
-
-    function resetZiyaratForm() {
-      document.getElementById('edit-ziyarat-index').value = '-1';
-      document.getElementById('ziyarat-title-input').value = '';
-      document.getElementById('ziyarat-story-input').value = '';
-    }
-
-
-    // المرحلة 2: حساب المسافة، التنبيهات، ومراقبة البطارية
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371; // نصف قطر الأرض بالكيلومتر
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      const d = R * c;
-      if (d < 1) {
-        return Math.round(d * 1000) + ' متر';
-      }
-      return d.toFixed(2) + ' كم';
-    }
-
-    async function sendEmergencyAlert() {
-      const msg = document.getElementById('emergency-alert-msg').value.trim();
-      try {
-        const res = await fetch(`${SERVER_URL}/api/broadcast`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: msg, timestamp: Date.now() })
-        });
-        if (res.ok) {
-          alert('تم إرسال نداء التجمع لجميع المعتمرين بنجاح!');
-          document.getElementById('emergency-alert-msg').value = '';
-        }
-      } catch (err) {
-        console.error('Alert Error:', err);
-      }
-    }
-
-</script>
+  </script>
 </body>
 </html>
