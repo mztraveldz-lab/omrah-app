@@ -1364,5 +1364,98 @@ setInterval(function() {
   ensureCrudControls();
 }, 1000);
 </script>
+
+<script>
+// --- 1. إصلاح تحديد الفندق بوضع دبوس فوري وتفعيل اللمس المباشر ---
+window.pickHotelOnMap = function() {
+    alert('يرجى فتح الخريطة أولاً');
+    return;
+  }
+
+  const mapDiv = document.getElementById('map');
+  if (mapDiv) mapDiv.scrollIntoView({ behavior: 'smooth' });
+
+  // تنبيه إرشادي
+  let toast = document.getElementById('pick-toast-box');
+    toast = document.createElement('div');
+    toast.id = 'pick-toast-box';
+    toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 12px rgba(0,0,0,0.5); text-align:center;';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = '📍 انقر على الخريطة أو حركها لتحديد الفندق';
+  toast.style.display = 'block';
+
+  function applyHotelPin(lat, lng) {
+    const citySel = document.getElementById('guide-hotel-city') || document.querySelector('select');
+    const city = citySel ? citySel.value : 'مكة';
+    const nameInp = document.getElementById('guide-hotel-name') || document.querySelector('input[placeholder*="أبراج الكسوة"]');
+    const hotelName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : ('فندق ' + city);
+
+    if (window.activeHotelMarker) {
+      map.removeLayer(window.activeHotelMarker);
+    }
+    // وضع الدبوس الأحمر المخصص للفندق
+    window.activeHotelMarker = L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: 'custom-hotel-pin',
+        html: '<div style="background:#ef4444; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.6);">🏨</div>',
+        iconSize: [34, 34],
+        iconAnchor: [17, 34]
+      })
+    }).addTo(map).bindPopup('<b>' + hotelName + '</b><br>تم تثبيت الموقع بنجاح').openPopup();
+
+    if (typeof serverHotels !== 'undefined') {
+      serverHotels[city] = { name: hotelName, lat: lat, lng: lng };
+    }
+    if (typeof saveHotel === 'function') saveHotel();
+    
+    toast.style.display = 'none';
+    alert('✅ تم تثبيت موقع ' + hotelName + ' بنجاح!');
+  }
+
+  // الاستماع للنقر المباشر على الخريطة
+  map.once('click', function(e) {
+    applyHotelPin(e.latlng.lat, e.latlng.lng);
+  });
+};
+
+// --- 2. إغلاق التعميم نهائياً ومنع رجوعه إطلاقاً ---
+window.dismissBroadcastPermanently = function() {
+  const banner = document.getElementById('broadcast-banner');
+  if (banner) {
+    banner.style.display = 'none';
+    const msg = banner.innerText.replace('✕', '').trim();
+    if (msg) {
+      localStorage.setItem('permanently_dismissed_broadcast', msg);
+    }
+  }
+};
+
+// منع دالة التحديث من إظهار التعميم المحذوف وتخزين الرسالة الصحيحة في الأرشيف
+setInterval(function() {
+  const banner = document.getElementById('broadcast-banner');
+  
+  const rawText = banner.innerText.replace('✕', '').trim();
+  if (rawText) {
+    const dismissed = localStorage.getItem('permanently_dismissed_broadcast');
+    if (dismissed && dismissed === rawText) {
+      banner.style.display = 'none';
+      // حفظ التعميم الفعلي كاملاً في الأرشيف
+      let hist = [];
+      try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_log') || '[]'); } catch(e){}
+        const now = new Date();
+        hist.unshift({
+          text: rawText,
+          date: now.toLocaleDateString('ar-DZ'),
+          time: now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })
+        });
+        if (hist.length > 50) hist.pop();
+        localStorage.setItem('omrah_broadcast_archive_log', JSON.stringify(hist));
+      }
+    }
+  }
+}, 800);
+</script>
+
 </body>
 </html>
