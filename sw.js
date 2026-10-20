@@ -1,4 +1,4 @@
-const CACHE_NAME = 'omrah-v1';
+const CACHE_NAME = 'omrah-v1792471574';
 const ASSETS = [
   './',
   './index.html',
