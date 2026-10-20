@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) caches.delete(name);
+        });
+      }
+    </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>نظام إدارة المعتمرين والمرشد</title>
@@ -921,6 +937,6 @@
     renderLessons('all');
     renderPlaces('all');
   </script>
-<script src="omrah_features.js"></script>
+<script src="omrah_features.js?v=1792472068"></script>
 </body>
 </html>
