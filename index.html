@@ -71,6 +71,122 @@
       }
     }
 
+
+    // نظام إدارة الدروس والمزارات للمرشد
+    function checkGuideRoleForPanels() {
+      const isGuide = (typeof currentRole !== 'undefined' && currentRole === 'guide') || localStorage.getItem('omrah_role') === 'guide';
+      const lp = document.getElementById('guide-lessons-panel');
+      const pp = document.getElementById('guide-places-panel');
+      if (lp) lp.style.display = isGuide ? 'block' : 'none';
+      if (pp) pp.style.display = isGuide ? 'block' : 'none';
+    }
+
+    // الدروس
+    function getAllLessons() {
+      try {
+        const saved = localStorage.getItem('omrah_custom_lessons');
+        if (saved) return JSON.parse(saved);
+      } catch(e){}
+      return (typeof lessons !== 'undefined') ? lessons : [];
+    }
+
+    function saveLessonItem() {
+      const idx = parseInt(document.getElementById('edit-lesson-id').value);
+      const cat = document.getElementById('custom-lesson-cat').value;
+      const title = document.getElementById('custom-lesson-title').value.trim();
+      const body = document.getElementById('custom-lesson-body').value.trim().replace(/
+/g, '<br>');
+
+      let list = getAllLessons();
+      const item = {
+        title, 
+        content: body, 
+        category: cat,
+        badge: cat.includes('أخلاق') ? 'badge-purple' : (cat.includes('صلاة') ? 'badge-rose' : 'badge-amber'),
+        time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق'
+      };
+
+      if (idx >= 0 && idx < list.length) list[idx] = item;
+      else list.unshift(item);
+
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(list));
+      resetLessonForm();
+      renderLessons('all');
+      alert('تم حفظ ونشر الدرس بنجاح!');
+    }
+
+    function editLesson(idx) {
+      const list = getAllLessons();
+      document.getElementById('edit-lesson-id').value = idx;
+      document.getElementById('custom-lesson-title').value = list[idx].title;
+      document.getElementById('custom-lesson-body').value = (list[idx].content || list[idx].story || '').replace(/<br\s*[\/]?>/gi, '
+');
+      document.getElementById('guide-lessons-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deleteLesson(idx) {
+      let list = getAllLessons();
+      list.splice(idx, 1);
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(list));
+      renderLessons('all');
+    }
+
+    function resetLessonForm() {
+      document.getElementById('edit-lesson-id').value = '-1';
+      document.getElementById('custom-lesson-title').value = '';
+      document.getElementById('custom-lesson-body').value = '';
+    }
+
+    // المزارات والقصص
+    function getAllPlaces() {
+      try {
+        const saved = localStorage.getItem('omrah_custom_places');
+        if (saved) return JSON.parse(saved);
+      } catch(e){}
+      return (typeof places !== 'undefined') ? places : [];
+    }
+
+    function savePlaceItem() {
+      const idx = parseInt(document.getElementById('edit-place-id').value);
+      const city = document.getElementById('custom-place-city').value;
+      const title = document.getElementById('custom-place-title').value.trim();
+      const story = document.getElementById('custom-place-story').value.trim().replace(/
+/g, '<br>');
+
+      let list = getAllPlaces();
+      const item = { city, title, story };
+
+      if (idx >= 0 && idx < list.length) list[idx] = item;
+      else list.unshift(item);
+
+      localStorage.setItem('omrah_custom_places', JSON.stringify(list));
+      resetPlaceForm();
+      renderPlaces('all');
+      alert('تم حفظ وتحديث المزار بنجاح!');
+    }
+
+    function editPlace(idx) {
+      const list = getAllPlaces();
+      document.getElementById('edit-place-id').value = idx;
+      document.getElementById('custom-place-title').value = list[idx].title;
+      document.getElementById('custom-place-story').value = (list[idx].story || list[idx].content || '').replace(/<br\s*[\/]?>/gi, '
+');
+      document.getElementById('guide-places-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deletePlace(idx) {
+      let list = getAllPlaces();
+      list.splice(idx, 1);
+      localStorage.setItem('omrah_custom_places', JSON.stringify(list));
+      renderPlaces('all');
+    }
+
+    function resetPlaceForm() {
+      document.getElementById('edit-place-id').value = '-1';
+      document.getElementById('custom-place-title').value = '';
+      document.getElementById('custom-place-story').value = '';
+    }
+
 </script>
 
   <style>
@@ -491,6 +607,122 @@
       }
     }
 
+
+    // نظام إدارة الدروس والمزارات للمرشد
+    function checkGuideRoleForPanels() {
+      const isGuide = (typeof currentRole !== 'undefined' && currentRole === 'guide') || localStorage.getItem('omrah_role') === 'guide';
+      const lp = document.getElementById('guide-lessons-panel');
+      const pp = document.getElementById('guide-places-panel');
+      if (lp) lp.style.display = isGuide ? 'block' : 'none';
+      if (pp) pp.style.display = isGuide ? 'block' : 'none';
+    }
+
+    // الدروس
+    function getAllLessons() {
+      try {
+        const saved = localStorage.getItem('omrah_custom_lessons');
+        if (saved) return JSON.parse(saved);
+      } catch(e){}
+      return (typeof lessons !== 'undefined') ? lessons : [];
+    }
+
+    function saveLessonItem() {
+      const idx = parseInt(document.getElementById('edit-lesson-id').value);
+      const cat = document.getElementById('custom-lesson-cat').value;
+      const title = document.getElementById('custom-lesson-title').value.trim();
+      const body = document.getElementById('custom-lesson-body').value.trim().replace(/
+/g, '<br>');
+
+      let list = getAllLessons();
+      const item = {
+        title, 
+        content: body, 
+        category: cat,
+        badge: cat.includes('أخلاق') ? 'badge-purple' : (cat.includes('صلاة') ? 'badge-rose' : 'badge-amber'),
+        time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق'
+      };
+
+      if (idx >= 0 && idx < list.length) list[idx] = item;
+      else list.unshift(item);
+
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(list));
+      resetLessonForm();
+      renderLessons('all');
+      alert('تم حفظ ونشر الدرس بنجاح!');
+    }
+
+    function editLesson(idx) {
+      const list = getAllLessons();
+      document.getElementById('edit-lesson-id').value = idx;
+      document.getElementById('custom-lesson-title').value = list[idx].title;
+      document.getElementById('custom-lesson-body').value = (list[idx].content || list[idx].story || '').replace(/<br\s*[\/]?>/gi, '
+');
+      document.getElementById('guide-lessons-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deleteLesson(idx) {
+      let list = getAllLessons();
+      list.splice(idx, 1);
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(list));
+      renderLessons('all');
+    }
+
+    function resetLessonForm() {
+      document.getElementById('edit-lesson-id').value = '-1';
+      document.getElementById('custom-lesson-title').value = '';
+      document.getElementById('custom-lesson-body').value = '';
+    }
+
+    // المزارات والقصص
+    function getAllPlaces() {
+      try {
+        const saved = localStorage.getItem('omrah_custom_places');
+        if (saved) return JSON.parse(saved);
+      } catch(e){}
+      return (typeof places !== 'undefined') ? places : [];
+    }
+
+    function savePlaceItem() {
+      const idx = parseInt(document.getElementById('edit-place-id').value);
+      const city = document.getElementById('custom-place-city').value;
+      const title = document.getElementById('custom-place-title').value.trim();
+      const story = document.getElementById('custom-place-story').value.trim().replace(/
+/g, '<br>');
+
+      let list = getAllPlaces();
+      const item = { city, title, story };
+
+      if (idx >= 0 && idx < list.length) list[idx] = item;
+      else list.unshift(item);
+
+      localStorage.setItem('omrah_custom_places', JSON.stringify(list));
+      resetPlaceForm();
+      renderPlaces('all');
+      alert('تم حفظ وتحديث المزار بنجاح!');
+    }
+
+    function editPlace(idx) {
+      const list = getAllPlaces();
+      document.getElementById('edit-place-id').value = idx;
+      document.getElementById('custom-place-title').value = list[idx].title;
+      document.getElementById('custom-place-story').value = (list[idx].story || list[idx].content || '').replace(/<br\s*[\/]?>/gi, '
+');
+      document.getElementById('guide-places-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deletePlace(idx) {
+      let list = getAllPlaces();
+      list.splice(idx, 1);
+      localStorage.setItem('omrah_custom_places', JSON.stringify(list));
+      renderPlaces('all');
+    }
+
+    function resetPlaceForm() {
+      document.getElementById('edit-place-id').value = '-1';
+      document.getElementById('custom-place-title').value = '';
+      document.getElementById('custom-place-story').value = '';
+    }
+
 </script>
   <script src="content.js">
     // نظام التعميمات الذكي مع الإغلاق والأرشيف بالتاريخ والوقت
@@ -555,6 +787,122 @@
         textElem.innerText = '📢 ' + msg + (timeStr ? ' (' + timeStr + ')' : '');
         banner.style.display = 'block';
       }
+    }
+
+
+    // نظام إدارة الدروس والمزارات للمرشد
+    function checkGuideRoleForPanels() {
+      const isGuide = (typeof currentRole !== 'undefined' && currentRole === 'guide') || localStorage.getItem('omrah_role') === 'guide';
+      const lp = document.getElementById('guide-lessons-panel');
+      const pp = document.getElementById('guide-places-panel');
+      if (lp) lp.style.display = isGuide ? 'block' : 'none';
+      if (pp) pp.style.display = isGuide ? 'block' : 'none';
+    }
+
+    // الدروس
+    function getAllLessons() {
+      try {
+        const saved = localStorage.getItem('omrah_custom_lessons');
+        if (saved) return JSON.parse(saved);
+      } catch(e){}
+      return (typeof lessons !== 'undefined') ? lessons : [];
+    }
+
+    function saveLessonItem() {
+      const idx = parseInt(document.getElementById('edit-lesson-id').value);
+      const cat = document.getElementById('custom-lesson-cat').value;
+      const title = document.getElementById('custom-lesson-title').value.trim();
+      const body = document.getElementById('custom-lesson-body').value.trim().replace(/
+/g, '<br>');
+
+      let list = getAllLessons();
+      const item = {
+        title, 
+        content: body, 
+        category: cat,
+        badge: cat.includes('أخلاق') ? 'badge-purple' : (cat.includes('صلاة') ? 'badge-rose' : 'badge-amber'),
+        time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق'
+      };
+
+      if (idx >= 0 && idx < list.length) list[idx] = item;
+      else list.unshift(item);
+
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(list));
+      resetLessonForm();
+      renderLessons('all');
+      alert('تم حفظ ونشر الدرس بنجاح!');
+    }
+
+    function editLesson(idx) {
+      const list = getAllLessons();
+      document.getElementById('edit-lesson-id').value = idx;
+      document.getElementById('custom-lesson-title').value = list[idx].title;
+      document.getElementById('custom-lesson-body').value = (list[idx].content || list[idx].story || '').replace(/<br\s*[\/]?>/gi, '
+');
+      document.getElementById('guide-lessons-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deleteLesson(idx) {
+      let list = getAllLessons();
+      list.splice(idx, 1);
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(list));
+      renderLessons('all');
+    }
+
+    function resetLessonForm() {
+      document.getElementById('edit-lesson-id').value = '-1';
+      document.getElementById('custom-lesson-title').value = '';
+      document.getElementById('custom-lesson-body').value = '';
+    }
+
+    // المزارات والقصص
+    function getAllPlaces() {
+      try {
+        const saved = localStorage.getItem('omrah_custom_places');
+        if (saved) return JSON.parse(saved);
+      } catch(e){}
+      return (typeof places !== 'undefined') ? places : [];
+    }
+
+    function savePlaceItem() {
+      const idx = parseInt(document.getElementById('edit-place-id').value);
+      const city = document.getElementById('custom-place-city').value;
+      const title = document.getElementById('custom-place-title').value.trim();
+      const story = document.getElementById('custom-place-story').value.trim().replace(/
+/g, '<br>');
+
+      let list = getAllPlaces();
+      const item = { city, title, story };
+
+      if (idx >= 0 && idx < list.length) list[idx] = item;
+      else list.unshift(item);
+
+      localStorage.setItem('omrah_custom_places', JSON.stringify(list));
+      resetPlaceForm();
+      renderPlaces('all');
+      alert('تم حفظ وتحديث المزار بنجاح!');
+    }
+
+    function editPlace(idx) {
+      const list = getAllPlaces();
+      document.getElementById('edit-place-id').value = idx;
+      document.getElementById('custom-place-title').value = list[idx].title;
+      document.getElementById('custom-place-story').value = (list[idx].story || list[idx].content || '').replace(/<br\s*[\/]?>/gi, '
+');
+      document.getElementById('guide-places-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deletePlace(idx) {
+      let list = getAllPlaces();
+      list.splice(idx, 1);
+      localStorage.setItem('omrah_custom_places', JSON.stringify(list));
+      renderPlaces('all');
+    }
+
+    function resetPlaceForm() {
+      document.getElementById('edit-place-id').value = '-1';
+      document.getElementById('custom-place-title').value = '';
+      document.getElementById('custom-place-story').value = '';
     }
 
 </script>
@@ -1059,6 +1407,34 @@
     ];
 
     function renderLessons(filter = 'all') {
+      checkGuideRoleForPanels();
+      const isGuide = (typeof currentRole !== 'undefined' && currentRole === 'guide') || localStorage.getItem('omrah_role') === 'guide';
+      const container = document.getElementById('lessons-container');
+      const list = getAllLessons();
+      container.innerHTML = '';
+      list.forEach((l, idx) => {
+        if (filter !== 'all' && l.category !== filter) return;
+        const card = document.createElement('div');
+        card.className = 'card lesson-card';
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span class="badge ${l.badge || 'badge-purple'}">${l.category || 'عام'}</span>
+            <span style="font-size:0.75rem; color:#94a3b8;">${l.time || ''}</span>
+          </div>
+          <h3 style="font-size:1.1rem; color:#f8fafc; margin-bottom:8px;">${l.title}</h3>
+          <div style="background:rgba(15,23,42,0.6); border-right:3px solid #10b981; padding:10px; border-radius:6px; font-size:0.9rem; line-height:1.6; color:#cbd5e1;">
+            ${l.content || l.story || ''}
+          </div>
+          ${isGuide ? `
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button onclick="editLesson(${idx})" style="padding:4px 8px; font-size:0.75rem; background:#0284c7; color:#fff; border:none; border-radius:4px; cursor:pointer;">تعديل ✏️</button>
+              <button onclick="deleteLesson(${idx})" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:#fff; border:none; border-radius:4px; cursor:pointer;">حذف 🗑️</button>
+            </div>
+          ` : ''}
+        `;
+        container.appendChild(card);
+      });
+      return;
       const source = (typeof lessonsData !== 'undefined') ? lessonsData : lessons;
       const c = document.getElementById('lessons-list');
       if (!c) return;
@@ -1092,6 +1468,33 @@
     ];
 
     function renderPlaces(filter = 'all') {
+      checkGuideRoleForPanels();
+      const isGuide = (typeof currentRole !== 'undefined' && currentRole === 'guide') || localStorage.getItem('omrah_role') === 'guide';
+      const container = document.getElementById('places-container');
+      const list = getAllPlaces();
+      container.innerHTML = '';
+      list.forEach((p, idx) => {
+        if (filter !== 'all' && p.city !== filter) return;
+        const card = document.createElement('div');
+        card.className = 'card place-card';
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span class="badge badge-amber">${p.city || 'معلم'}</span>
+          </div>
+          <h3 style="font-size:1.1rem; color:#f8fafc; margin-bottom:8px;">${p.title}</h3>
+          <div style="background:rgba(15,23,42,0.6); border-right:3px solid #0284c7; padding:10px; border-radius:6px; font-size:0.9rem; line-height:1.6; color:#cbd5e1;">
+            ${p.story || p.content || ''}
+          </div>
+          ${isGuide ? `
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button onclick="editPlace(${idx})" style="padding:4px 8px; font-size:0.75rem; background:#0284c7; color:#fff; border:none; border-radius:4px; cursor:pointer;">تعديل ✏️</button>
+              <button onclick="deletePlace(${idx})" style="padding:4px 8px; font-size:0.75rem; background:#ef4444; color:#fff; border:none; border-radius:4px; cursor:pointer;">حذف 🗑️</button>
+            </div>
+          ` : ''}
+        `;
+        container.appendChild(card);
+      });
+      return;
       const source = (typeof ziyaratData !== 'undefined') ? ziyaratData : places;
       const c = document.getElementById('places-list');
       if (!c) return;
@@ -1183,6 +1586,122 @@
       }
     }
 
+
+    // نظام إدارة الدروس والمزارات للمرشد
+    function checkGuideRoleForPanels() {
+      const isGuide = (typeof currentRole !== 'undefined' && currentRole === 'guide') || localStorage.getItem('omrah_role') === 'guide';
+      const lp = document.getElementById('guide-lessons-panel');
+      const pp = document.getElementById('guide-places-panel');
+      if (lp) lp.style.display = isGuide ? 'block' : 'none';
+      if (pp) pp.style.display = isGuide ? 'block' : 'none';
+    }
+
+    // الدروس
+    function getAllLessons() {
+      try {
+        const saved = localStorage.getItem('omrah_custom_lessons');
+        if (saved) return JSON.parse(saved);
+      } catch(e){}
+      return (typeof lessons !== 'undefined') ? lessons : [];
+    }
+
+    function saveLessonItem() {
+      const idx = parseInt(document.getElementById('edit-lesson-id').value);
+      const cat = document.getElementById('custom-lesson-cat').value;
+      const title = document.getElementById('custom-lesson-title').value.trim();
+      const body = document.getElementById('custom-lesson-body').value.trim().replace(/
+/g, '<br>');
+
+      let list = getAllLessons();
+      const item = {
+        title, 
+        content: body, 
+        category: cat,
+        badge: cat.includes('أخلاق') ? 'badge-purple' : (cat.includes('صلاة') ? 'badge-rose' : 'badge-amber'),
+        time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق'
+      };
+
+      if (idx >= 0 && idx < list.length) list[idx] = item;
+      else list.unshift(item);
+
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(list));
+      resetLessonForm();
+      renderLessons('all');
+      alert('تم حفظ ونشر الدرس بنجاح!');
+    }
+
+    function editLesson(idx) {
+      const list = getAllLessons();
+      document.getElementById('edit-lesson-id').value = idx;
+      document.getElementById('custom-lesson-title').value = list[idx].title;
+      document.getElementById('custom-lesson-body').value = (list[idx].content || list[idx].story || '').replace(/<br\s*[\/]?>/gi, '
+');
+      document.getElementById('guide-lessons-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deleteLesson(idx) {
+      let list = getAllLessons();
+      list.splice(idx, 1);
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(list));
+      renderLessons('all');
+    }
+
+    function resetLessonForm() {
+      document.getElementById('edit-lesson-id').value = '-1';
+      document.getElementById('custom-lesson-title').value = '';
+      document.getElementById('custom-lesson-body').value = '';
+    }
+
+    // المزارات والقصص
+    function getAllPlaces() {
+      try {
+        const saved = localStorage.getItem('omrah_custom_places');
+        if (saved) return JSON.parse(saved);
+      } catch(e){}
+      return (typeof places !== 'undefined') ? places : [];
+    }
+
+    function savePlaceItem() {
+      const idx = parseInt(document.getElementById('edit-place-id').value);
+      const city = document.getElementById('custom-place-city').value;
+      const title = document.getElementById('custom-place-title').value.trim();
+      const story = document.getElementById('custom-place-story').value.trim().replace(/
+/g, '<br>');
+
+      let list = getAllPlaces();
+      const item = { city, title, story };
+
+      if (idx >= 0 && idx < list.length) list[idx] = item;
+      else list.unshift(item);
+
+      localStorage.setItem('omrah_custom_places', JSON.stringify(list));
+      resetPlaceForm();
+      renderPlaces('all');
+      alert('تم حفظ وتحديث المزار بنجاح!');
+    }
+
+    function editPlace(idx) {
+      const list = getAllPlaces();
+      document.getElementById('edit-place-id').value = idx;
+      document.getElementById('custom-place-title').value = list[idx].title;
+      document.getElementById('custom-place-story').value = (list[idx].story || list[idx].content || '').replace(/<br\s*[\/]?>/gi, '
+');
+      document.getElementById('guide-places-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deletePlace(idx) {
+      let list = getAllPlaces();
+      list.splice(idx, 1);
+      localStorage.setItem('omrah_custom_places', JSON.stringify(list));
+      renderPlaces('all');
+    }
+
+    function resetPlaceForm() {
+      document.getElementById('edit-place-id').value = '-1';
+      document.getElementById('custom-place-title').value = '';
+      document.getElementById('custom-place-story').value = '';
+    }
+
 </script>
 <script src="features.js">
     // نظام التعميمات الذكي مع الإغلاق والأرشيف بالتاريخ والوقت
@@ -1247,6 +1766,122 @@
         textElem.innerText = '📢 ' + msg + (timeStr ? ' (' + timeStr + ')' : '');
         banner.style.display = 'block';
       }
+    }
+
+
+    // نظام إدارة الدروس والمزارات للمرشد
+    function checkGuideRoleForPanels() {
+      const isGuide = (typeof currentRole !== 'undefined' && currentRole === 'guide') || localStorage.getItem('omrah_role') === 'guide';
+      const lp = document.getElementById('guide-lessons-panel');
+      const pp = document.getElementById('guide-places-panel');
+      if (lp) lp.style.display = isGuide ? 'block' : 'none';
+      if (pp) pp.style.display = isGuide ? 'block' : 'none';
+    }
+
+    // الدروس
+    function getAllLessons() {
+      try {
+        const saved = localStorage.getItem('omrah_custom_lessons');
+        if (saved) return JSON.parse(saved);
+      } catch(e){}
+      return (typeof lessons !== 'undefined') ? lessons : [];
+    }
+
+    function saveLessonItem() {
+      const idx = parseInt(document.getElementById('edit-lesson-id').value);
+      const cat = document.getElementById('custom-lesson-cat').value;
+      const title = document.getElementById('custom-lesson-title').value.trim();
+      const body = document.getElementById('custom-lesson-body').value.trim().replace(/
+/g, '<br>');
+
+      let list = getAllLessons();
+      const item = {
+        title, 
+        content: body, 
+        category: cat,
+        badge: cat.includes('أخلاق') ? 'badge-purple' : (cat.includes('صلاة') ? 'badge-rose' : 'badge-amber'),
+        time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق'
+      };
+
+      if (idx >= 0 && idx < list.length) list[idx] = item;
+      else list.unshift(item);
+
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(list));
+      resetLessonForm();
+      renderLessons('all');
+      alert('تم حفظ ونشر الدرس بنجاح!');
+    }
+
+    function editLesson(idx) {
+      const list = getAllLessons();
+      document.getElementById('edit-lesson-id').value = idx;
+      document.getElementById('custom-lesson-title').value = list[idx].title;
+      document.getElementById('custom-lesson-body').value = (list[idx].content || list[idx].story || '').replace(/<br\s*[\/]?>/gi, '
+');
+      document.getElementById('guide-lessons-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deleteLesson(idx) {
+      let list = getAllLessons();
+      list.splice(idx, 1);
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(list));
+      renderLessons('all');
+    }
+
+    function resetLessonForm() {
+      document.getElementById('edit-lesson-id').value = '-1';
+      document.getElementById('custom-lesson-title').value = '';
+      document.getElementById('custom-lesson-body').value = '';
+    }
+
+    // المزارات والقصص
+    function getAllPlaces() {
+      try {
+        const saved = localStorage.getItem('omrah_custom_places');
+        if (saved) return JSON.parse(saved);
+      } catch(e){}
+      return (typeof places !== 'undefined') ? places : [];
+    }
+
+    function savePlaceItem() {
+      const idx = parseInt(document.getElementById('edit-place-id').value);
+      const city = document.getElementById('custom-place-city').value;
+      const title = document.getElementById('custom-place-title').value.trim();
+      const story = document.getElementById('custom-place-story').value.trim().replace(/
+/g, '<br>');
+
+      let list = getAllPlaces();
+      const item = { city, title, story };
+
+      if (idx >= 0 && idx < list.length) list[idx] = item;
+      else list.unshift(item);
+
+      localStorage.setItem('omrah_custom_places', JSON.stringify(list));
+      resetPlaceForm();
+      renderPlaces('all');
+      alert('تم حفظ وتحديث المزار بنجاح!');
+    }
+
+    function editPlace(idx) {
+      const list = getAllPlaces();
+      document.getElementById('edit-place-id').value = idx;
+      document.getElementById('custom-place-title').value = list[idx].title;
+      document.getElementById('custom-place-story').value = (list[idx].story || list[idx].content || '').replace(/<br\s*[\/]?>/gi, '
+');
+      document.getElementById('guide-places-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deletePlace(idx) {
+      let list = getAllPlaces();
+      list.splice(idx, 1);
+      localStorage.setItem('omrah_custom_places', JSON.stringify(list));
+      renderPlaces('all');
+    }
+
+    function resetPlaceForm() {
+      document.getElementById('edit-place-id').value = '-1';
+      document.getElementById('custom-place-title').value = '';
+      document.getElementById('custom-place-story').value = '';
     }
 
 </script>
