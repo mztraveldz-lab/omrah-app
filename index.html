@@ -1141,5 +1141,228 @@ setInterval(function() {
 }, 1000);
 
 </script>
+<script>
+// 1. تحديد الفندق بالنقر على الخريطة مباشرة
+window.pickHotelOnMap = function() {
+  const mapEl = document.getElementById('map');
+  if (!mapEl || typeof map === 'undefined' || !map) {
+    alert('يرجى فتح الخريطة أولاً');
+    return;
+  }
+  mapEl.scrollIntoView({ behavior: 'smooth' });
+
+  let toast = document.getElementById('pick-toast-box');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'pick-toast-box';
+    toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:10px 18px; border-radius:25px; font-weight:bold; font-size:13px; z-index:9999999; box-shadow:0 4px 12px rgba(0,0,0,0.5); text-align:center; border:2px solid #fff;';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = '👆 المس الآن موقع الفندق على الخريطة';
+  toast.style.display = 'block';
+
+  map.once('click', function(e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    const citySel = document.getElementById('guide-hotel-city') || document.querySelector('select');
+    const city = citySel ? citySel.value : 'مكة';
+    const nameInp = document.getElementById('guide-hotel-name') || document.querySelector('input[placeholder*="أبراج الكسوة"]');
+    const hotelName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : ('فندق ' + city);
+
+    if (window.activeHotelMarker) map.removeLayer(window.activeHotelMarker);
+    window.activeHotelMarker = L.marker([lat, lng]).addTo(map).bindPopup('🏨 ' + hotelName).openPopup();
+
+    if (typeof serverHotels !== 'undefined') {
+      serverHotels[city] = { name: hotelName, lat: lat, lng: lng };
+    }
+    if (typeof saveHotel === 'function') saveHotel();
+    toast.style.display = 'none';
+    alert('✅ تم تثبيت موقع ' + hotelName + ' بنجاح!');
+  });
+};
+
+// 2. إغلاق التعميم نهائياً وأرشيف التعميمات
+window.dismissBroadcastPermanently = function() {
+  const b = document.getElementById('broadcast-banner');
+  const t = document.getElementById('broadcast-text');
+  if (b) {
+    b.style.display = 'none';
+    const msg = t ? t.innerText.trim() : '';
+    if (msg) localStorage.setItem('omrah_dismissed_msg', msg);
+  }
+};
+
+setInterval(function() {
+  const b = document.getElementById('broadcast-banner');
+  const t = document.getElementById('broadcast-text');
+  if (b && t) {
+    const currentMsg = t.innerText.trim();
+    if (currentMsg) {
+      if (localStorage.getItem('omrah_dismissed_msg') === currentMsg) {
+        b.style.display = 'none';
+      }
+      let hist = [];
+      try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_log') || '[]'); } catch(e){}
+      if (!hist.some(item => item.text === currentMsg)) {
+        const now = new Date();
+        hist.unshift({
+          text: currentMsg,
+          date: now.toLocaleDateString('ar-DZ'),
+          time: now.toLocaleTimeString('ar-DZ', {hour:'2-digit', minute:'2-digit'})
+        });
+        if (hist.length > 50) hist.pop();
+        localStorage.setItem('omrah_broadcast_archive_log', JSON.stringify(hist));
+      }
+    }
+  }
+}, 1000);
+
+// 3. زر عائم لسجل التعميمات
+function ensureBroadcastArchiveBtn() {
+  if (document.getElementById('floating-archive-btn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'floating-archive-btn';
+  btn.innerHTML = '📜 سجل التعميمات';
+  btn.style.cssText = 'position:fixed; bottom:15px; left:15px; z-index:999999; background:#0284c7; color:#fff; border:none; padding:8px 14px; border-radius:20px; font-weight:bold; font-size:12px; box-shadow:0 3px 10px rgba(0,0,0,0.5); cursor:pointer;';
+  btn.onclick = function() {
+    let old = document.getElementById('archive-modal-dialog');
+    if (old) old.remove();
+
+    let hist = [];
+    try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_log') || '[]'); } catch(e){}
+    let items = '<div style="color:#94a3b8; text-align:center; padding:15px;">لا توجد تعميمات مسجلة بعد</div>';
+    if (hist.length > 0) {
+      items = hist.map(h => `
+        <div style="background:#0f172a; border-right:3px solid #ef4444; padding:8px 10px; border-radius:6px; margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-bottom:4px;">
+            <span>📅 ${h.date}</span>
+            <span>⏱ ${h.time}</span>
+          </div>
+          <div style="color:#fff; font-size:13px; line-height:1.4;">${h.text}</div>
+        </div>
+      `).join('');
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'archive-modal-dialog';
+    modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:16px;';
+    modal.innerHTML = `
+      <div style="background:#1e293b; border-radius:10px; width:100%; max-width:460px; max-height:80vh; display:flex; flex-direction:column; border:1px solid #475569;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid #334155;">
+          <h4 style="color:#fff; margin:0; font-size:14px;">📢 أرشيف تعميمات المرشد</h4>
+          <button onclick="document.getElementById('archive-modal-dialog').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:4px; padding:3px 8px; cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:12px; overflow-y:auto; flex:1;">${items}</div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  };
+  document.body.appendChild(btn);
+}
+
+// 4. نماذج وأزرار إضافة وحذف الدروس والمزارات
+function ensureCrudControls() {
+  const lCont = document.getElementById('lessons-container');
+  if (lCont && !document.getElementById('box-add-lesson-bar')) {
+    const box = document.createElement('div');
+    box.id = 'box-add-lesson-bar';
+    box.style.cssText = 'background:#1e293b; border:1px solid #38bdf8; border-radius:8px; padding:10px; margin-bottom:12px;';
+    box.innerHTML = `
+      <div style="color:#38bdf8; font-weight:bold; font-size:13px; margin-bottom:6px;">➕ إضافة درس جديد للحافلة</div>
+      <input type="text" id="custom-l-title" placeholder="عنوان الدرس..." style="width:100%; box-sizing:border-box; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; margin-bottom:6px; font-size:12px;">
+      <textarea id="custom-l-body" rows="3" placeholder="نص الدرس كاملاً..." style="width:100%; box-sizing:border-box; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; margin-bottom:6px; font-size:12px;"></textarea>
+      <button id="btn-save-custom-l" class="btn btn-primary" style="width:100%; padding:6px; font-size:12px;">حفظ ونشر الدرس 📢</button>
+    `;
+    lCont.parentNode.insertBefore(box, lCont);
+
+    document.getElementById('btn-save-custom-l').onclick = function() {
+      const t = document.getElementById('custom-l-title').value.trim();
+      const b = document.getElementById('custom-l-body').value.trim().replace(/\n/g, '<br>');
+      if (!t || !b) return alert('يرجى ملء العنوان والمحتوى');
+      if (typeof lessons !== 'undefined') {
+        lessons.unshift({ title: t, content: b, category: 'أخلاق', badge: 'badge-purple', time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق' });
+        if (typeof renderLessons === 'function') renderLessons('all');
+      }
+      document.getElementById('custom-l-title').value = '';
+      document.getElementById('custom-l-body').value = '';
+      alert('تمت إضافة الدرس بنجاح!');
+    };
+  }
+
+  const pCont = document.getElementById('places-container');
+  if (pCont && !document.getElementById('box-add-place-bar')) {
+    const box = document.createElement('div');
+    box.id = 'box-add-place-bar';
+    box.style.cssText = 'background:#1e293b; border:1px solid #10b981; border-radius:8px; padding:10px; margin-bottom:12px;';
+    box.innerHTML = `
+      <div style="color:#10b981; font-weight:bold; font-size:13px; margin-bottom:6px;">➕ إضافة مزار أو قصة جديدة</div>
+      <div style="display:flex; gap:6px; margin-bottom:6px;">
+        <select id="custom-p-city" style="padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; font-size:12px;">
+          <option value="مكة المكرمة والمشاعر">مكة المكرمة</option>
+          <option value="المدينة المنورة">المدينة المنورة</option>
+        </select>
+        <input type="text" id="custom-p-title" placeholder="اسم المزار..." style="flex:1; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; font-size:12px;">
+      </div>
+      <textarea id="custom-p-story" rows="3" placeholder="سرد القصة والمكان بالتفصيل..." style="width:100%; box-sizing:border-box; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; margin-bottom:6px; font-size:12px;"></textarea>
+      <button id="btn-save-custom-p" class="btn btn-primary" style="width:100%; padding:6px; font-size:12px; background:#059669;">حفظ المزار 📍</button>
+    `;
+    pCont.parentNode.insertBefore(box, pCont);
+
+    document.getElementById('btn-save-custom-p').onclick = function() {
+      const c = document.getElementById('custom-p-city').value;
+      const t = document.getElementById('custom-p-title').value.trim();
+      const s = document.getElementById('custom-p-story').value.trim().replace(/\n/g, '<br>');
+      if (!t || !s) return alert('يرجى ملء اسم المزار والشرح');
+      if (typeof places !== 'undefined') {
+        places.unshift({ city: c, title: t, story: s });
+        if (typeof renderPlaces === 'function') renderPlaces('all');
+      }
+      document.getElementById('custom-p-title').value = '';
+      document.getElementById('custom-p-story').value = '';
+      alert('تم حفظ المزار بنجاح!');
+    };
+  }
+
+  // أزرار الحذف في الكروت
+  document.querySelectorAll('#lessons-container .card').forEach((card, idx) => {
+    if (!card.querySelector('.btn-dyn-del-l')) {
+      const b = document.createElement('button');
+      b.className = 'btn-dyn-del-l';
+      b.innerText = 'حذف الدرس 🗑️';
+      b.style.cssText = 'margin-top:8px; padding:3px 8px; font-size:11px; background:#ef4444; color:#fff; border:none; border-radius:4px; cursor:pointer;';
+      b.onclick = function() {
+        if (!confirm('حذف هذا الدرس؟')) return;
+        if (typeof lessons !== 'undefined') {
+          lessons.splice(idx, 1);
+          if (typeof renderLessons === 'function') renderLessons('all');
+        }
+      };
+      card.appendChild(b);
+    }
+  });
+
+  document.querySelectorAll('#places-container .card').forEach((card, idx) => {
+    if (!card.querySelector('.btn-dyn-del-p')) {
+      const b = document.createElement('button');
+      b.className = 'btn-dyn-del-p';
+      b.innerText = 'حذف المزار 🗑️';
+      b.style.cssText = 'margin-top:8px; padding:3px 8px; font-size:11px; background:#ef4444; color:#fff; border:none; border-radius:4px; cursor:pointer;';
+      b.onclick = function() {
+        if (!confirm('حذف هذا المزار؟')) return;
+        if (typeof places !== 'undefined') {
+          places.splice(idx, 1);
+          if (typeof renderPlaces === 'function') renderPlaces('all');
+        }
+      };
+      card.appendChild(b);
+    }
+  });
+}
+
+setInterval(function() {
+  ensureBroadcastArchiveBtn();
+  ensureCrudControls();
+}, 1000);
+</script>
 </body>
 </html>
