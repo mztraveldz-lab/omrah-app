@@ -418,8 +418,22 @@
           if (data.broadcasts && data.broadcasts.length > 0) {
             const b = data.broadcasts[0];
             const banner = document.getElementById('broadcast-banner');
-            document.getElementById('broadcast-text').innerText = `${b.text} (${b.time})`;
-            banner.style.display = 'block';
+            const msgFull = `${b.text} (${b.time})`;
+            document.getElementById('broadcast-text').innerText = msgFull;
+            if (localStorage.getItem('omrah_dismissed_broadcast_val') === msgFull) {
+                banner.style.display = 'none';
+            } else {
+                banner.style.display = 'block';
+            }
+            // حفظ تلقائي في أرشيف التعميمات
+            let hist = [];
+            try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]'); } catch(e){}
+            if (!hist.some(x => x.text === b.text && x.time === b.time)) {
+                const now = new Date();
+                hist.unshift({ text: b.text, time: b.time, date: now.toLocaleDateString('ar-DZ') });
+                if (hist.length > 50) hist.pop();
+                localStorage.setItem('omrah_broadcast_archive_data', JSON.stringify(hist));
+            }
           }
         })
         .catch(err => console.log('VPS Sync error:', err));
@@ -434,11 +448,25 @@
     }
 
     function navigateHotel() {
-      const citySelect = document.getElementById('user-hotel-city');
-      const city = citySelect ? citySelect.value : 'مكة';
-      const hotel = serverHotels[city] || serverHotels['مكة'];
-      if (hotel && hotel.lat && hotel.lng) {
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${hotel.lat},${hotel.lng}&travelmode=walking`);
+    const citySelect = document.getElementById('user-hotel-city');
+    const city = citySelect ? citySelect.value : 'مكة';
+    const hotel = (typeof serverHotels !== 'undefined' && serverHotels) ? (serverHotels[city] || serverHotels['مكة']) : null;
+    
+    if (hotel && hotel.lat && hotel.lng) {
+        // إذا كانت الخريطة موجودة، نركز عليها
+        if (typeof mapInstance !== 'undefined' && mapInstance) {
+            const mapEl = document.getElementById('map');
+            if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+            mapInstance.setView([hotel.lat, hotel.lng], 18);
+            if (window.userHotelMarker) mapInstance.removeLayer(window.userHotelMarker);
+            window.userHotelMarker = L.marker([hotel.lat, hotel.lng]).addTo(mapInstance).bindPopup(`<b>${hotel.name || 'فندق الإقامة'}</b>`).openPopup();
+        }
+        // فتح مسار الملاحة مباشرة في Google Maps
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${hotel.lat},${hotel.lng}`, '_system');
+    } else {
+        alert("لم يقم المرشد بضبط موقع الفندق بعد");
+    }
+}&travelmode=walking`);
       }
     }
 
@@ -1190,6 +1218,110 @@ function renderCRUD() {
 }
 
 setInterval(renderCRUD, 1200);
+
+
+
+window.pickHotelOnMap = function() {
+  if (!mapInstance) {
+    alert('يرجى الانتقال لتبويب الخريطة أولاً');
+    return;
+  }
+  const mapEl = document.getElementById('map');
+  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+
+  let toast = document.getElementById('hotel-pick-toast');
+  if (toast) toast.remove();
+  toast = document.createElement('div');
+  toast.id = 'hotel-pick-toast';
+  toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.5); pointer-events:none;';
+  toast.innerHTML = '👆 المس الآن موقع الفندق على الخريطة لتثبيته';
+  document.body.appendChild(toast);
+  setTimeout(() => { if (toast) toast.remove(); }, 5000);
+
+  mapInstance.once('click', function(e) {
+    if (toast) toast.remove();
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    const citySel = document.getElementById('guide-hotel-city') || document.querySelector('select');
+    const city = citySel ? citySel.value : 'مكة';
+    const nameInp = document.getElementById('guide-hotel-name') || document.querySelector('input[placeholder*="أبراج الكسوة"]');
+    
+    const finalName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : ('فندق الإقامة - ' + city);
+    if (nameInp) nameInp.value = finalName;
+
+    if (window.guideHotelMarker) mapInstance.removeLayer(window.guideHotelMarker);
+    window.guideHotelMarker = L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: 'hotel-pin',
+        html: '<div style="background:#ef4444; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.6);">🏨</div>',
+        iconSize: [34, 34],
+        iconAnchor: [17, 34]
+      })
+    }).addTo(mapInstance).bindPopup(`<b>${finalName}</b><br>تم تثبيت الموقع`).openPopup();
+
+    if (typeof serverHotels !== 'undefined') {
+      serverHotels[city] = { name: finalName, lat: lat, lng: lng };
+    }
+    
+    // إرسال الإحداثيات للسيرفر مباشرة لكي تظهر فوراً لجميع المعتمرين
+    fetch(`${VPS_API}/api/hotel/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ city: city, name: finalName, lat: lat, lng: lng })
+    }).catch(e => console.log('Local save active'));
+
+    alert(`✅ تم تثبيت وترسيم موقع ${finalName} بنجاح لجميع المعتمرين!`);
+  });
+};
+
+
+window.openOmrahArchiveModal = function() {
+  let old = document.getElementById('archive-modal-view');
+  if (old) old.remove();
+
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]'); } catch(e){}
+  let items = '<div style="color:#94a3b8; text-align:center; padding:15px;">لا توجد تعميمات مسجلة بعد</div>';
+  if (hist.length > 0) {
+    items = hist.map(h => `
+      <div style="background:#0f172a; border-right:3px solid #ef4444; padding:8px 10px; border-radius:6px; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-bottom:4px;">
+          <span>📅 ${h.date || ''}</span>
+          <span>⏱ ${h.time || ''}</span>
+        </div>
+        <div style="color:#fff; font-size:13px; font-weight:bold; line-height:1.4;">${h.text}</div>
+      </div>
+    `).join('');
+  }
+
+  const modal = document.createElement('div');
+  modal.id = 'archive-modal-view';
+  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:16px;';
+  modal.innerHTML = `
+    <div style="background:#1e293b; border-radius:10px; width:100%; max-width:460px; max-height:80vh; display:flex; flex-direction:column; border:1px solid #475569;">
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid #334155;">
+        <h4 style="color:#fff; margin:0; font-size:14px;">📢 أرشيف تعميمات المرشد</h4>
+        <button onclick="document.getElementById('archive-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:4px; padding:3px 8px; cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:12px; overflow-y:auto; flex:1;">${items}</div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+};
+
+// وضع زر الأرشيف داخل لوحة تحكم المرشد فقط وتجنب شاشات الدخول
+setInterval(function() {
+  const roleBadge = document.getElementById('roleBadge');
+  if (roleBadge && !document.getElementById('btn-archive-header-fixed')) {
+    const b = document.createElement('button');
+    b.id = 'btn-archive-header-fixed';
+    b.type = 'button';
+    b.innerHTML = '📜 أرشيف التعميمات';
+    b.style.cssText = 'background:#0284c7; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; margin-right:8px; cursor:pointer; vertical-align:middle;';
+    b.onclick = window.openOmrahArchiveModal;
+    roleBadge.parentNode.insertBefore(b, roleBadge.nextSibling);
+  }
+}, 1000);
 
 </script>
 </body>
