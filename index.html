@@ -6,7 +6,72 @@
   <title>نظام إدارة المعتمرين والمرشد</title>
   
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    // نظام التعميمات الذكي مع الإغلاق والأرشيف بالتاريخ والوقت
+    let lastBroadcastId = null;
+
+    function dismissBroadcast() {
+      const banner = document.getElementById('broadcast-banner');
+      if (banner) banner.style.display = 'none';
+      if (lastBroadcastId) {
+        localStorage.setItem('dismissed_broadcast_' + lastBroadcastId, 'true');
+      }
+    }
+
+    function toggleBroadcastArchive(show) {
+      const modal = document.getElementById('broadcasts-modal');
+      modal.style.display = show ? 'block' : 'none';
+      if (show) renderBroadcastsHistory();
+    }
+
+    function storeBroadcastHistory(msg, timeStr) {
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('omrah_broadcast_history') || '[]'); } catch(e){}
+      // تجنب التكرار
+        history.unshift({ msg, time: timeStr, date: new Date().toLocaleDateString('ar-DZ') });
+        if (history.length > 30) history.pop();
+        localStorage.setItem('omrah_broadcast_history', JSON.stringify(history));
+      }
+    }
+
+    function renderBroadcastsHistory() {
+      const list = document.getElementById('broadcasts-history-list');
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('omrah_broadcast_history') || '[]'); } catch(e){}
+      if (history.length === 0) {
+        list.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:15px; font-size:0.85rem;">لا توجد تعميمات مسجلة حتى الآن</div>';
+        return;
+      }
+      list.innerHTML = history.map(h => `
+        <div style="background:#0f172a; border-right:3px solid #ef4444; padding:10px; border-radius:6px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">
+            <span>📅 ${h.date || ''}</span>
+            <span>⏱ ${h.time || ''}</span>
+          </div>
+          <div style="color:#f8fafc; font-size:0.9rem; line-height:1.4;">${h.msg}</div>
+        </div>
+      `).join('');
+    }
+
+    // تحديث شريط التعميم عند وصول تعميم جديد
+    function handleNewBroadcast(msg, timeStr, bId) {
+      storeBroadcastHistory(msg, timeStr);
+      lastBroadcastId = bId || (msg + '_' + timeStr);
+      
+      // إذا كان المستخدم قد أغلق هذا التعميم من قبل لا نظهره مجدداً في الشريط
+      if (localStorage.getItem('dismissed_broadcast_' + lastBroadcastId) === 'true') {
+        return;
+      }
+
+      const banner = document.getElementById('broadcast-banner');
+      const textElem = document.getElementById('broadcast-msg-text');
+      if (banner && textElem) {
+        textElem.innerText = '📢 ' + msg + (timeStr ? ' (' + timeStr + ')' : '');
+        banner.style.display = 'block';
+      }
+    }
+
+</script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -101,9 +166,10 @@
 <body>
 
   <!-- شريط التعميمات والتنبيهات العاجلة -->
-  <div id="broadcast-banner">
-    📢 <span id="broadcast-text"></span>
-  </div>
+  <div id="broadcast-banner" style="display:none; position:relative; background:#dc2626; color:#fff; padding:10px 35px 10px 12px; font-weight:bold; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+      <span id="broadcast-msg-text"></span>
+      <button onclick="dismissBroadcast()" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.25); border:none; color:#fff; border-radius:50%; width:24px; height:24px; cursor:pointer; font-weight:bold; font-size:12px; line-height:22px;">✕</button>
+    </div>
 
   <div id="pin-modal">
     <div class="pin-card">
@@ -192,15 +258,8 @@
             <option value="المدينة">فندق المدينة</option>
           </select>
           <input type="text" id="guide-hotel-name"
-          <div style="margin: 8px 0;">
-            <button type="button" id="btn-pick-hotel" onclick="enableHotelMapPicker()" class="btn" style="background: #0284c7; color: #fff; width: 100%; padding: 8px; font-weight: bold;">
-              📍 تحديد موقع الفندق من الخريطة مباشرة
-            </button>
-            <div id="picker-status" style="font-size: 0.8rem; color: #38bdf8; margin-top: 4px; display: none;">
-              👆 الخريطة جاهزة: انقر على مكان الفندق لتثبيته فوراً
-            </div>
-          </div>
- class="auth-input" style="margin: 0; padding: 6px; flex: 1;" placeholder="اسم الفندق (مثال: فندق أبراج الكسوة)">
+          
+ 
         </div>
         <div style="display: flex; gap: 6px;">
           <button onclick="saveCurrentLocationAsHotel()" class="btn-sub" style="flex: 1; background: #0369a1; color: white;">📍 جعل موقعي الحالي هو الفندق</button>
@@ -367,8 +426,138 @@
     <div id="places-list"></div>
   </main>
 
-  <script src="duas.js"></script>
-  <script src="content.js"></script>
+  <script src="duas.js">
+    // نظام التعميمات الذكي مع الإغلاق والأرشيف بالتاريخ والوقت
+    let lastBroadcastId = null;
+
+    function dismissBroadcast() {
+      const banner = document.getElementById('broadcast-banner');
+      if (banner) banner.style.display = 'none';
+      if (lastBroadcastId) {
+        localStorage.setItem('dismissed_broadcast_' + lastBroadcastId, 'true');
+      }
+    }
+
+    function toggleBroadcastArchive(show) {
+      const modal = document.getElementById('broadcasts-modal');
+      modal.style.display = show ? 'block' : 'none';
+      if (show) renderBroadcastsHistory();
+    }
+
+    function storeBroadcastHistory(msg, timeStr) {
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('omrah_broadcast_history') || '[]'); } catch(e){}
+      // تجنب التكرار
+        history.unshift({ msg, time: timeStr, date: new Date().toLocaleDateString('ar-DZ') });
+        if (history.length > 30) history.pop();
+        localStorage.setItem('omrah_broadcast_history', JSON.stringify(history));
+      }
+    }
+
+    function renderBroadcastsHistory() {
+      const list = document.getElementById('broadcasts-history-list');
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('omrah_broadcast_history') || '[]'); } catch(e){}
+      if (history.length === 0) {
+        list.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:15px; font-size:0.85rem;">لا توجد تعميمات مسجلة حتى الآن</div>';
+        return;
+      }
+      list.innerHTML = history.map(h => `
+        <div style="background:#0f172a; border-right:3px solid #ef4444; padding:10px; border-radius:6px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">
+            <span>📅 ${h.date || ''}</span>
+            <span>⏱ ${h.time || ''}</span>
+          </div>
+          <div style="color:#f8fafc; font-size:0.9rem; line-height:1.4;">${h.msg}</div>
+        </div>
+      `).join('');
+    }
+
+    // تحديث شريط التعميم عند وصول تعميم جديد
+    function handleNewBroadcast(msg, timeStr, bId) {
+      storeBroadcastHistory(msg, timeStr);
+      lastBroadcastId = bId || (msg + '_' + timeStr);
+      
+      // إذا كان المستخدم قد أغلق هذا التعميم من قبل لا نظهره مجدداً في الشريط
+      if (localStorage.getItem('dismissed_broadcast_' + lastBroadcastId) === 'true') {
+        return;
+      }
+
+      const banner = document.getElementById('broadcast-banner');
+      const textElem = document.getElementById('broadcast-msg-text');
+      if (banner && textElem) {
+        textElem.innerText = '📢 ' + msg + (timeStr ? ' (' + timeStr + ')' : '');
+        banner.style.display = 'block';
+      }
+    }
+
+</script>
+  <script src="content.js">
+    // نظام التعميمات الذكي مع الإغلاق والأرشيف بالتاريخ والوقت
+    let lastBroadcastId = null;
+
+    function dismissBroadcast() {
+      const banner = document.getElementById('broadcast-banner');
+      if (banner) banner.style.display = 'none';
+      if (lastBroadcastId) {
+        localStorage.setItem('dismissed_broadcast_' + lastBroadcastId, 'true');
+      }
+    }
+
+    function toggleBroadcastArchive(show) {
+      const modal = document.getElementById('broadcasts-modal');
+      modal.style.display = show ? 'block' : 'none';
+      if (show) renderBroadcastsHistory();
+    }
+
+    function storeBroadcastHistory(msg, timeStr) {
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('omrah_broadcast_history') || '[]'); } catch(e){}
+      // تجنب التكرار
+        history.unshift({ msg, time: timeStr, date: new Date().toLocaleDateString('ar-DZ') });
+        if (history.length > 30) history.pop();
+        localStorage.setItem('omrah_broadcast_history', JSON.stringify(history));
+      }
+    }
+
+    function renderBroadcastsHistory() {
+      const list = document.getElementById('broadcasts-history-list');
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('omrah_broadcast_history') || '[]'); } catch(e){}
+      if (history.length === 0) {
+        list.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:15px; font-size:0.85rem;">لا توجد تعميمات مسجلة حتى الآن</div>';
+        return;
+      }
+      list.innerHTML = history.map(h => `
+        <div style="background:#0f172a; border-right:3px solid #ef4444; padding:10px; border-radius:6px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">
+            <span>📅 ${h.date || ''}</span>
+            <span>⏱ ${h.time || ''}</span>
+          </div>
+          <div style="color:#f8fafc; font-size:0.9rem; line-height:1.4;">${h.msg}</div>
+        </div>
+      `).join('');
+    }
+
+    // تحديث شريط التعميم عند وصول تعميم جديد
+    function handleNewBroadcast(msg, timeStr, bId) {
+      storeBroadcastHistory(msg, timeStr);
+      lastBroadcastId = bId || (msg + '_' + timeStr);
+      
+      // إذا كان المستخدم قد أغلق هذا التعميم من قبل لا نظهره مجدداً في الشريط
+      if (localStorage.getItem('dismissed_broadcast_' + lastBroadcastId) === 'true') {
+        return;
+      }
+
+      const banner = document.getElementById('broadcast-banner');
+      const textElem = document.getElementById('broadcast-msg-text');
+      if (banner && textElem) {
+        textElem.innerText = '📢 ' + msg + (timeStr ? ' (' + timeStr + ')' : '');
+        banner.style.display = 'block';
+      }
+    }
+
+</script>
   <script>
     const DEFAULT_AGENCY_PHONE = "213795353719";
     const GUIDE_SECRET_PIN = "7788";
@@ -929,7 +1118,150 @@
     renderSaeyDua();
     renderLessons('all');
     renderPlaces('all');
-  </script>
-<script src="features.js"></script>
+  
+    // نظام التعميمات الذكي مع الإغلاق والأرشيف بالتاريخ والوقت
+    let lastBroadcastId = null;
+
+    function dismissBroadcast() {
+      const banner = document.getElementById('broadcast-banner');
+      if (banner) banner.style.display = 'none';
+      if (lastBroadcastId) {
+        localStorage.setItem('dismissed_broadcast_' + lastBroadcastId, 'true');
+      }
+    }
+
+    function toggleBroadcastArchive(show) {
+      const modal = document.getElementById('broadcasts-modal');
+      modal.style.display = show ? 'block' : 'none';
+      if (show) renderBroadcastsHistory();
+    }
+
+    function storeBroadcastHistory(msg, timeStr) {
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('omrah_broadcast_history') || '[]'); } catch(e){}
+      // تجنب التكرار
+        history.unshift({ msg, time: timeStr, date: new Date().toLocaleDateString('ar-DZ') });
+        if (history.length > 30) history.pop();
+        localStorage.setItem('omrah_broadcast_history', JSON.stringify(history));
+      }
+    }
+
+    function renderBroadcastsHistory() {
+      const list = document.getElementById('broadcasts-history-list');
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('omrah_broadcast_history') || '[]'); } catch(e){}
+      if (history.length === 0) {
+        list.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:15px; font-size:0.85rem;">لا توجد تعميمات مسجلة حتى الآن</div>';
+        return;
+      }
+      list.innerHTML = history.map(h => `
+        <div style="background:#0f172a; border-right:3px solid #ef4444; padding:10px; border-radius:6px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">
+            <span>📅 ${h.date || ''}</span>
+            <span>⏱ ${h.time || ''}</span>
+          </div>
+          <div style="color:#f8fafc; font-size:0.9rem; line-height:1.4;">${h.msg}</div>
+        </div>
+      `).join('');
+    }
+
+    // تحديث شريط التعميم عند وصول تعميم جديد
+    function handleNewBroadcast(msg, timeStr, bId) {
+      storeBroadcastHistory(msg, timeStr);
+      lastBroadcastId = bId || (msg + '_' + timeStr);
+      
+      // إذا كان المستخدم قد أغلق هذا التعميم من قبل لا نظهره مجدداً في الشريط
+      if (localStorage.getItem('dismissed_broadcast_' + lastBroadcastId) === 'true') {
+        return;
+      }
+
+      const banner = document.getElementById('broadcast-banner');
+      const textElem = document.getElementById('broadcast-msg-text');
+      if (banner && textElem) {
+        textElem.innerText = '📢 ' + msg + (timeStr ? ' (' + timeStr + ')' : '');
+        banner.style.display = 'block';
+      }
+    }
+
+</script>
+<script src="features.js">
+    // نظام التعميمات الذكي مع الإغلاق والأرشيف بالتاريخ والوقت
+    let lastBroadcastId = null;
+
+    function dismissBroadcast() {
+      const banner = document.getElementById('broadcast-banner');
+      if (banner) banner.style.display = 'none';
+      if (lastBroadcastId) {
+        localStorage.setItem('dismissed_broadcast_' + lastBroadcastId, 'true');
+      }
+    }
+
+    function toggleBroadcastArchive(show) {
+      const modal = document.getElementById('broadcasts-modal');
+      modal.style.display = show ? 'block' : 'none';
+      if (show) renderBroadcastsHistory();
+    }
+
+    function storeBroadcastHistory(msg, timeStr) {
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('omrah_broadcast_history') || '[]'); } catch(e){}
+      // تجنب التكرار
+        history.unshift({ msg, time: timeStr, date: new Date().toLocaleDateString('ar-DZ') });
+        if (history.length > 30) history.pop();
+        localStorage.setItem('omrah_broadcast_history', JSON.stringify(history));
+      }
+    }
+
+    function renderBroadcastsHistory() {
+      const list = document.getElementById('broadcasts-history-list');
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('omrah_broadcast_history') || '[]'); } catch(e){}
+      if (history.length === 0) {
+        list.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:15px; font-size:0.85rem;">لا توجد تعميمات مسجلة حتى الآن</div>';
+        return;
+      }
+      list.innerHTML = history.map(h => `
+        <div style="background:#0f172a; border-right:3px solid #ef4444; padding:10px; border-radius:6px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">
+            <span>📅 ${h.date || ''}</span>
+            <span>⏱ ${h.time || ''}</span>
+          </div>
+          <div style="color:#f8fafc; font-size:0.9rem; line-height:1.4;">${h.msg}</div>
+        </div>
+      `).join('');
+    }
+
+    // تحديث شريط التعميم عند وصول تعميم جديد
+    function handleNewBroadcast(msg, timeStr, bId) {
+      storeBroadcastHistory(msg, timeStr);
+      lastBroadcastId = bId || (msg + '_' + timeStr);
+      
+      // إذا كان المستخدم قد أغلق هذا التعميم من قبل لا نظهره مجدداً في الشريط
+      if (localStorage.getItem('dismissed_broadcast_' + lastBroadcastId) === 'true') {
+        return;
+      }
+
+      const banner = document.getElementById('broadcast-banner');
+      const textElem = document.getElementById('broadcast-msg-text');
+      if (banner && textElem) {
+        textElem.innerText = '📢 ' + msg + (timeStr ? ' (' + timeStr + ')' : '');
+        banner.style.display = 'block';
+      }
+    }
+
+</script>
+
+    <div id="broadcasts-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; padding:20px; overflow-y:auto;">
+      <div style="background:#1e293b; border-radius:12px; border:1px solid #475569; max-width:500px; margin:30px auto; padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:8px; margin-bottom:12px;">
+          <h3 style="color:#f8fafc; margin:0; font-size:1.1rem;">📢 أرشيف تعميمات الفوج</h3>
+          <button onclick="toggleBroadcastArchive(false)" style="background:#ef4444; border:none; color:#fff; border-radius:6px; padding:4px 10px; cursor:pointer;">إغلاق ✕</button>
+        </div>
+        <div id="broadcasts-history-list" style="display:flex; flex-direction:column; gap:8px;">
+          <div style="color:#94a3b8; text-align:center; font-size:0.85rem;">لا توجد تعميمات سابقة</div>
+        </div>
+      </div>
+    </div>
+
 </body>
 </html>
