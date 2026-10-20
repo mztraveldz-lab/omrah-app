@@ -1458,160 +1458,7 @@ setInterval(function() {
 </script>
 
 
-<script id="omrah-clean-features">
-// 1. تحديد الفندق بالنقر على الخريطة مع إخفاء أي تنبيه فوراً
-window.pickHotelOnMap = function() {
-  var targetMap = (typeof mapInstance !== 'undefined' && mapInstance) ? mapInstance : (typeof map !== 'undefined' ? map : null);
-  if (!targetMap) {
-    alert('يرجى فتح الخريطة أولاً');
-    return;
-  }
 
-  var mapEl = document.getElementById('map');
-  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
-
-  // تنبيه مؤقت يختفي تلقائياً بعد 3 ثوانٍ فقط حتى لا يعلق بالشاشة
-  var toast = document.getElementById('hotel-pin-toast');
-  if (toast) toast.remove();
-
-  toast = document.createElement('div');
-  toast.id = 'hotel-pin-toast';
-  toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.5); text-align:center; pointer-events:none;';
-  toast.innerHTML = '👆 انقر على الخريطة لتثبيت الفندق';
-  document.body.appendChild(toast);
-
-  setTimeout(function() {
-    var t = document.getElementById('hotel-pin-toast');
-    if (t) t.remove();
-  }, 4000);
-
-  targetMap.once('click', function(e) {
-    var t = document.getElementById('hotel-pin-toast');
-    if (t) t.remove();
-
-    var lat = e.latlng.lat;
-    var lng = e.latlng.lng;
-    var citySel = document.getElementById('guide-hotel-city') || document.querySelector('select');
-    var city = citySel ? citySel.value : 'مكة';
-    var nameInp = document.getElementById('guide-hotel-name') || document.querySelector('input[placeholder*="أبراج الكسوة"]');
-    var hotelName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : ('فندق ' + city);
-
-    if (window.myHotelMarker) targetMap.removeLayer(window.myHotelMarker);
-
-    window.myHotelMarker = L.marker([lat, lng], {
-      icon: L.divIcon({
-        className: 'hotel-pin',
-        html: '<div style="background:#ef4444; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.6);">🏨</div>',
-        iconSize: [34, 34],
-        iconAnchor: [17, 34]
-      })
-    }).addTo(targetMap).bindPopup('<b>' + hotelName + '</b><br>تم تثبيت الموقع بنجاح').openPopup();
-
-    if (typeof serverHotels !== 'undefined') {
-      serverHotels[city] = { name: hotelName, lat: lat, lng: lng };
-    }
-    if (typeof saveHotel === 'function') saveHotel();
-    alert('✅ تم تثبيت موقع ' + hotelName + ' على الخريطة بنجاح!');
-  });
-};
-
-// 2. إغلاق التعميم نهائياً بحذف العنصر وحفظه في الأرشيف
-window.dismissBroadcastPermanently = function() {
-  var b = document.getElementById('broadcast-banner');
-  if (b) {
-    var msg = b.innerText.replace('✕', '').trim();
-    if (msg) localStorage.setItem('dismissed_broadcast_text_final', msg);
-    b.style.display = 'none';
-  }
-};
-
-// 3. منع رجوع التعميم وتخزينه في الأرشيف
-setInterval(function() {
-  var b = document.getElementById('broadcast-banner');
-  if (!b) return;
-  var raw = b.innerText.replace('✕', '').trim();
-  if (raw) {
-    if (localStorage.getItem('dismissed_broadcast_text_final') === raw) {
-      b.style.display = 'none';
-    } else {
-      var hist = [];
-      try { hist = JSON.parse(localStorage.getItem('omrah_b_archive_v2') || '[]'); } catch(e){}
-      if (!hist.some(function(item) { return item.text === raw; })) {
-        var d = new Date();
-        hist.unshift({
-          text: raw,
-          date: d.toLocaleDateString('ar-DZ'),
-          time: d.toLocaleTimeString('ar-DZ', {hour:'2-digit', minute:'2-digit'})
-        });
-        if (hist.length > 50) hist.pop();
-        localStorage.setItem('omrah_b_archive_v2', JSON.stringify(hist));
-      }
-    }
-  }
-
-  // التحكم بظهور زر سجل التعميمات (إخفاؤه تماماً في شاشات تسجيل الدخول)
-  var authScreen = document.getElementById('auth-screen');
-  var roleModal = document.getElementById('guide-pin-modal');
-  var btnArchive = document.getElementById('btn-show-archive-modal-ui');
-
-  var isAuthVisible = (authScreen && authScreen.style.display !== 'none' && !authScreen.classList.contains('hidden'));
-  var isPinVisible = (roleModal && roleModal.style.display !== 'none' && !roleModal.classList.contains('hidden'));
-
-  if (isAuthVisible || isPinVisible) {
-    if (btnArchive) btnArchive.style.display = 'none';
-    var toast = document.getElementById('hotel-pin-toast');
-    if (toast) toast.remove();
-  } else {
-    if (btnArchive) btnArchive.style.display = 'block';
-  }
-}, 500);
-
-// نافذة عرض الأرشيف
-window.openOmrahArchiveModal = function() {
-  var old = document.getElementById('archive-modal-box-v2');
-  if (old) old.remove();
-
-  var hist = [];
-  try { hist = JSON.parse(localStorage.getItem('omrah_b_archive_v2') || '[]'); } catch(e){}
-  var items = '<div style="color:#94a3b8; text-align:center; padding:15px;">لا توجد تعميمات مسجلة بعد</div>';
-  if (hist.length > 0) {
-    items = hist.map(function(h) {
-      return '<div style="background:#0f172a; border-right:3px solid #ef4444; padding:8px 10px; border-radius:6px; margin-bottom:8px;">' +
-        '<div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-bottom:4px;">' +
-          '<span>📅 ' + h.date + '</span>' +
-          '<span>⏱ ' + h.time + '</span>' +
-        '</div>' +
-        '<div style="color:#fff; font-size:13px; line-height:1.4;">' + h.text + '</div>' +
-      '</div>';
-    }).join('');
-  }
-
-  var modal = document.createElement('div');
-  modal.id = 'archive-modal-box-v2';
-  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:16px;';
-  modal.innerHTML = '<div style="background:#1e293b; border-radius:10px; width:100%; max-width:460px; max-height:80vh; display:flex; flex-direction:column; border:1px solid #475569;">' +
-    '<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid #334155;">' +
-      '<h4 style="color:#fff; margin:0; font-size:14px;">📢 أرشيف تعميمات المرشد</h4>' +
-      '<button onclick="document.getElementById(\'archive-modal-box-v2\').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:4px; padding:3px 8px; cursor:pointer;">✕</button>' +
-    '</div>' +
-    '<div style="padding:12px; overflow-y:auto; flex:1;">' + items + '</div>' +
-  '</div>';
-  document.body.appendChild(modal);
-};
-
-// إنشاء الزر وتعيين دالته
-function ensureCleanArchiveButton() {
-  if (document.getElementById('btn-show-archive-modal-ui')) return;
-  var btn = document.createElement('button');
-  btn.id = 'btn-show-archive-modal-ui';
-  btn.innerHTML = '📜 سجل التعميمات';
-  btn.style.cssText = 'position:fixed; bottom:15px; left:15px; z-index:9999; background:#0284c7; color:#fff; border:none; padding:8px 14px; border-radius:20px; font-weight:bold; font-size:12px; box-shadow:0 3px 10px rgba(0,0,0,0.5); cursor:pointer; display:none;';
-  btn.onclick = window.openOmrahArchiveModal;
-  document.body.appendChild(btn);
-}
-
-ensureCleanArchiveButton();
-</script>
 
 <script>
 // دالة توجيه المعتمر إلى الفندق المثبت بدقة
@@ -1679,5 +1526,347 @@ setInterval(function() {
 }, 1000);
 </script>
 
+<script id="omrah-total-solution">
+
+// أدعية موسعة ومكتملة للطواف والسعي
+window.tawafDuas = [
+  "بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ، اللَّهُمَّ إِيمَاناً بِكَ وَتَصْدِيقاً بِكِتَابِكَ وَوَفَاءً بِعَهْدِكَ وَاتِّبَاعاً لِسُنَّةِ نَبِيِّكَ مُحَمَّدٍ ﷺ.",
+  "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ.",
+  "اللَّهُمَّ اغْفِرْ وَارْحَمْ، وَاعْفُ عَمَّا تَعْلَمْ، وَأَنْتَ الأَعَزُّ الأَكْرَمُ، اللَّهُمَّ اهْدِنِي لِأَحْسَنِ الأَعْمَالِ والأَخْلاقِ.",
+  "اللَّهُمَّ إِنِّي أَسْأَلُكَ العَفْوَ وَالعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي.",
+  "اللَّهُمَّ اسْتُرْ عَوْرَاتِي وَآمِنْ رَوْعَاتِي، وَاحْفَظْنِي مِنْ بَيْنِ يَدَيَّ وَمِنْ خَلْفِي وَعَنْ يَمِينِي وَعَنْ شِمَالِي.",
+  "سُبْحَانَ اللَّهِ، وَالحَمْدُ لِلَّهِ، وَلا إِلَهَ إِلَّا اللَّهُ، وَاللَّهُ أَكْبَرُ، وَلا حَوْلَ وَلا قُوَّةَ إِلَّا بِاللَّهِ العَلِيِّ العَظِيمِ.",
+  "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الشَّكِّ وَالشِّرْكِ وَالشِّقَاقِ وَالنِّفَاقِ وَسُوءِ الأَخْلاقِ.",
+  "اللَّهُمَّ حَبِّبْ إِلَيْنَا الإِيمَانَ وَزَيِّنْهُ فِي قُلُوبِنَا، وَكَرِّهْ إِلَيْنَا الكُفْرَ وَالفُسُوقَ وَالعِصْيَانَ.",
+  "اللَّهُمَّ آتِ نُفُوسَنَا تَقْوَاهَا، وَزَكِّهَا أَنْتَ خَيْرُ مَنْ زَكَّاهَا، أَنْتَ وَلِيُّهَا وَمَوْلاهَا.",
+  "اللَّهُمَّ اجْعَلْهُ حَجّاً مَبْرُوراً، وَعُمْرَةً مَقْبُولَةً، وَذَنْباً مَغْفُوراً، وَسَعْياً مَشْكُوراً، وَتِجَارَةً لَنْ تَبُورَ.",
+  "يَا وَلِيَّ الإِسْلامِ وَأَهْلِهِ ثَبِّتْنِي عَلَيْهِ حَتَّى أَلْقَاكَ.",
+  "اللَّهُمَّ إِنِّي أَسْأَلُكَ مُوجِبَاتِ رَحْمَتِكَ، وَعَزَائِمَ مَغْفِرَتِكَ، وَالغَنِيمَةَ مِنْ كُلِّ بِرٍّ، وَالسَّلامَةَ مِنْ كُلِّ إِثْمٍ.",
+  "اللَّهُمَّ أَصْلِحْ لِي دِينِي الَّذِي هُوَ عِصْمَةُ أَمْرِي، وَأَصْلِحْ لِي دُنْيَايَ الَّتِي فِيهَا مَعَاشِي.",
+  "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ زَوَالِ نِعْمَتِكَ، وَتَحَوُّلِ عَافِيَتِكَ، وَفُجَاءَةِ نِقْمَتِكَ، وَجَمِيعِ سَخَطِكَ.",
+  "اللَّهُمَّ إِنِّي ظَلَمْتُ نَفْسِي ظُلْماً كَثِيراً، وَلا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ، فَاغْفِرْ لِي مَغْفِرَةً مِنْ عِنْدِكَ وَارْحَمْنِي.",
+  "اللَّهُمَّ اكْفِنِي بِحَلالِكَ عَنْ حَرَامِكَ، وَأَغْنِنِي بِفَضْلِكَ عَمَّنْ سِوَاكَ.",
+  "اللَّهُمَّ إِنِّي أَسْأَلُكَ الهُدَى وَالتُّقَى وَالعَفَافَ وَالغِنَى.",
+  "اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ.",
+  "اللَّهُمَّ يَا مُقَلِّبَ القُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ.",
+  "اللَّهُمَّ إِنِّي أَسْأَلُكَ رِضَاكَ وَالجَنَّةَ، وَأَعُوذُ بِكَ مِنْ سَخَطِكَ وَالنَّارِ."
+];
+
+window.saiDuas = [
+  "أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ: إِنَّ الصَّفَا وَالمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ.. لا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لا شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ.",
+  "لا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الأَحْزَابَ وَحْدَهُ.",
+  "رَبِّ اغْفِرْ وَارْحَمْ، وَتَجَاوَزْ عَمَّا تَعْلَمْ، إِنَّكَ أَنْتَ الأَعَزُّ الأَكْرَمُ.",
+  "اللَّهُمَّ اعْصِمْنَا بِدِينِكَ، وَطَوَاعِيَتِكَ وَطَوَاعِيَةِ رَسُولِكَ ﷺ، وَجَنِّبْنَا حُدُودَكَ.",
+  "اللَّهُمَّ اجْعَلْنَا نُحِبُّكَ وَنُحِبُّ مَلائِكَتَكَ وَأَنْبِيَاءَكَ وَرُسُلَكَ وَعِبَادَكَ الصَّالِحِينَ.",
+  "اللَّهُمَّ يَسِّرْنَا لِلْيُسْرَى، وَجَنِّبْنَا العُسْرَى، وَاغْفِرْ لَنَا فِي الآخِرَةِ وَالأُولَى.",
+  "اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ خَيْرِ مَا سَأَلَكَ مِنْهُ نَبِيُّكَ مُحَمَّدٌ ﷺ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا اسْتَعَاذَ مِنْهُ نَبِيُّكَ مُحَمَّدٌ ﷺ.",
+  "اللَّهُمَّ فَرِّجْ هَمَّ المَهْمُومِينَ، وَنَفِّسْ كَرْبَ المَكْرُوبِينَ، وَاقْضِ الدَّيْنَ عَنِ المَدِينِينَ، وَاشْفِ مَرْضَانَا وَمَرْضَى المُسْلِمِينَ.",
+  "اللَّهُمَّ بَارِكْ لَنَا فِي أَوْقَاتِنَا، وَأَعْمَارِنَا، وَذُرِّيَّاتِنَا، وَأَمْوَالِنَا، وَاجْعَلْنَا مُبَارَكِينَ أَيْنَمَا كُنَّا.",
+  "اللَّهُمَّ اخْتِمْ بِالصَّالِحَاتِ أَعْمَالَنَا، وَبِالسَّعَادَةِ آجَالَنَا، وَبَلِّغْنَا فِيمَا يُرْضِيكَ آمَالَنَا.",
+  "اللَّهُمَّ تَقَبَّلْ سَعْيَنَا، وَارْحَمْ ضَعْفَنَا، وَاجْبُرْ كَسْرَنَا، وَتَوَلَّ أَمْرَنَا.",
+  "اللَّهُمَّ لا تَدَعْ لَنَا ذَنْباً إِلَّا غَفَرْتَهُ، وَلا هَمّاً إِلَّا فَرَّجْتَهُ، وَلا حَاجَةً هِيَ لَكَ رِضىً إِلَّا قَضَيْتَهَا يَا أَرْحَمَ الرَّاحِمِينَ.",
+  "اللَّهُمَّ إِنَّكَ عَفُوٌّ كَرِيمٌ تُحِبُّ العَفْوَ فَاعْفُ عَنَّا.",
+  "اللَّهُمَّ انْصُرْ إِخْوَانَنَا المُسْتَضْعَفِينَ فِي كُلِّ مَكَانٍ، وَكُنْ لَهُمْ عَوْناً وَنَصِيراً.",
+  "اللَّهُمَّ صَلِّ وَسَلِّمْ وَبَارِكْ عَلَى نَبِيِّنَا مُحَمَّدٍ وَعَلَى آلِهِ وَصَحْبِهِ أَجْمَعِينَ."
+];
+
+
+// ----------------------------------------------------
+// 1. تحديد الفندق من الخريطة وملء الاسم وترسيمه تلقائياً
+// ----------------------------------------------------
+window.pickHotelOnMap = function() {
+  var targetMap = (typeof mapInstance !== 'undefined' && mapInstance) ? mapInstance : (typeof map !== 'undefined' ? map : null);
+  if (!targetMap) {
+    alert('يرجى فتح الخريطة أولاً');
+    return;
+  }
+
+  var mapEl = document.getElementById('map');
+  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+
+  var toast = document.createElement('div');
+  toast.id = 'hotel-pin-toast';
+  toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.5); text-align:center; pointer-events:none;';
+  toast.innerHTML = '👆 المس الآن موقع الفندق على الخريطة بدقة';
+  document.body.appendChild(toast);
+
+  setTimeout(function() { if (toast) toast.remove(); }, 5000);
+
+  targetMap.once('click', function(e) {
+    if (toast) toast.remove();
+    var lat = e.latlng.lat;
+    var lng = e.latlng.lng;
+
+    var citySel = document.getElementById('guide-hotel-city') || document.querySelector('select');
+    var city = citySel ? citySel.value : 'مكة';
+    var nameInp = document.getElementById('guide-hotel-name') || document.querySelector('input[placeholder*="أبراج الكسوة"]');
+
+    // توليد وتعبئة اسم الفندق تلقائياً إذا كان فارغاً
+    var hotelName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : ('فندق الإقامة المعتمد (' + city + ')');
+    if (nameInp) nameInp.value = hotelName;
+
+    // وضع الدبوس الأحمر المخصص
+    if (window.myHotelMarker) targetMap.removeLayer(window.myHotelMarker);
+    window.myHotelMarker = L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: 'hotel-pin',
+        html: '<div style="background:#ef4444; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.6);">🏨</div>',
+        iconSize: [34, 34],
+        iconAnchor: [17, 34]
+      })
+    }).addTo(targetMap).bindPopup('<b>' + hotelName + '</b><br>تم تثبيت الموقع بنجاح').openPopup();
+
+    // حفظ محلي وسحابي فوري
+    if (typeof serverHotels === 'undefined') window.serverHotels = {};
+    window.serverHotels[city] = { name: hotelName, lat: lat, lng: lng };
+    localStorage.setItem('omrah_saved_hotels', JSON.stringify(window.serverHotels));
+
+    // إذا كانت هناك دالة حفظ سحابية نطلقها فوراً
+    if (typeof saveHotel === 'function') {
+      try { saveHotel(); } catch(err){}
+    }
+
+    alert('✅ تم تثبيت وترسيم موقع ' + hotelName + ' وإرساله لكافة المعتمرين!');
+  });
+};
+
+// ----------------------------------------------------
+// 2. توجيه المعتمر للفندق وحساب المسار وخرائط Google
+// ----------------------------------------------------
+window.goToMyHotel = function() {
+  var city = 'مكة';
+  var pSel = document.getElementById('pilgrim-hotel-select');
+  if (pSel && pSel.value.includes('المدينة')) city = 'المدينة';
+
+  var hData = null;
+  if (window.serverHotels && window.serverHotels[city]) {
+    hData = window.serverHotels[city];
+  } else {
+    try {
+      var saved = JSON.parse(localStorage.getItem('omrah_saved_hotels') || '{}');
+      if (saved[city]) hData = saved[city];
+    } catch(e){}
+  }
+
+  if (!hData || !hData.lat || !hData.lng) {
+    alert('لم يقم المرشد بتحديد إحداثيات هذا الفندق بعد.');
+    return;
+  }
+
+  var targetMap = (typeof mapInstance !== 'undefined' && mapInstance) ? mapInstance : (typeof map !== 'undefined' ? map : null);
+  if (targetMap) {
+    var mapEl = document.getElementById('map');
+    if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+    targetMap.setView([hData.lat, hData.lng], 18);
+    if (window.pilgrimMarker) targetMap.removeLayer(window.pilgrimMarker);
+    window.pilgrimMarker = L.marker([hData.lat, hData.lng]).addTo(targetMap).bindPopup('🏨 ' + hData.name).openPopup();
+  }
+
+  // فتح خرائط Google المباشرة للملاحة
+  var gmapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=' + hData.lat + ',' + hData.lng;
+  window.open(gmapsUrl, '_system');
+};
+
+// ----------------------------------------------------
+// 3. إغلاق التعميم نهائياً وأرشيف التعميمات بالمحتوى الكامل
+// ----------------------------------------------------
+window.dismissBroadcastPermanently = function() {
+  var b = document.getElementById('broadcast-banner');
+  if (b) {
+    var textEl = document.getElementById('broadcast-text') || b;
+    var msg = textEl.innerText.replace('✕', '').replace('تعميم', '').trim();
+    if (msg) localStorage.setItem('dismissed_broadcast_final_v3', msg);
+    b.style.display = 'none';
+  }
+};
+
+// فحص التعميم وحفظه وتطبيق منع الظهور الدائم
+setInterval(function() {
+  var b = document.getElementById('broadcast-banner');
+  if (b) {
+    var textEl = document.getElementById('broadcast-text') || b;
+    var fullMsg = textEl.innerText.replace('✕', '').replace(/تعميم\s*\([^\)]*\)/g, '').trim();
+    
+    // إذا كان نفس التعميم المغلق، نفرض إخفاءه ولا نسمح للسيرفر بإظهاره
+    var dismissed = localStorage.getItem('dismissed_broadcast_final_v3');
+    if (dismissed && fullMsg && dismissed === fullMsg) {
+      b.style.display = 'none';
+    }
+
+    // حفظ في الأرشيف إذا كانت الرسالة جديدة ومحتواها حقيقي
+    if (fullMsg && fullMsg.length > 2) {
+      var hist = [];
+      try { hist = JSON.parse(localStorage.getItem('omrah_full_b_archive') || '[]'); } catch(e){}
+      if (!hist.some(function(item) { return item.text === fullMsg; })) {
+        var d = new Date();
+        hist.unshift({
+          text: fullMsg,
+          date: d.toLocaleDateString('ar-DZ'),
+          time: d.toLocaleTimeString('ar-DZ', {hour:'2-digit', minute:'2-digit'})
+        });
+        if (hist.length > 50) hist.pop();
+        localStorage.setItem('omrah_full_b_archive', JSON.stringify(hist));
+      }
+    }
+  }
+
+  // ضبط ظهور زر السجل فقط بعد تسجيل الدخول
+  var authScreen = document.getElementById('auth-screen');
+  var roleModal = document.getElementById('guide-pin-modal');
+  var archiveBtn = document.getElementById('btn-show-archive-modal-ui');
+
+  var isLoginActive = (authScreen && authScreen.style.display !== 'none' && !authScreen.classList.contains('hidden'));
+  var isPinActive = (roleModal && roleModal.style.display !== 'none' && !roleModal.classList.contains('hidden'));
+
+  if (isLoginActive || isPinActive) {
+    if (archiveBtn) archiveBtn.style.display = 'none';
+  } else {
+    if (archiveBtn) archiveBtn.style.display = 'block';
+  }
+}, 500);
+
+// نافذة أرشيف التعميمات
+window.openOmrahArchiveModal = function() {
+  var old = document.getElementById('archive-modal-box-v3');
+  if (old) old.remove();
+
+  var hist = [];
+  try { hist = JSON.parse(localStorage.getItem('omrah_full_b_archive') || '[]'); } catch(e){}
+  var items = '<div style="color:#94a3b8; text-align:center; padding:15px;">لا توجد تعميمات مسجلة بعد</div>';
+  if (hist.length > 0) {
+    items = hist.map(function(h) {
+      return '<div style="background:#0f172a; border-right:3px solid #ef4444; padding:8px 10px; border-radius:6px; margin-bottom:8px;">' +
+        '<div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-bottom:4px;">' +
+          '<span>📅 ' + h.date + '</span>' +
+          '<span>⏱ ' + h.time + '</span>' +
+        '</div>' +
+        '<div style="color:#fff; font-size:13px; font-weight:bold; line-height:1.4;">' + h.text + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  var modal = document.createElement('div');
+  modal.id = 'archive-modal-box-v3';
+  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:16px;';
+  modal.innerHTML = '<div style="background:#1e293b; border-radius:10px; width:100%; max-width:460px; max-height:80vh; display:flex; flex-direction:column; border:1px solid #475569;">' +
+    '<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid #334155;">' +
+      '<h4 style="color:#fff; margin:0; font-size:14px;">📢 أرشيف تعميمات المرشد</h4>' +
+      '<button onclick="document.getElementById(\'archive-modal-box-v3\').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:4px; padding:3px 8px; cursor:pointer;">✕</button>' +
+    '</div>' +
+    '<div style="padding:12px; overflow-y:auto; flex:1;">' + items + '</div>' +
+  '</div>';
+  document.body.appendChild(modal);
+};
+
+// زر الأرشيف العائم
+if (!document.getElementById('btn-show-archive-modal-ui')) {
+  var bBtn = document.createElement('button');
+  bBtn.id = 'btn-show-archive-modal-ui';
+  bBtn.innerHTML = '📜 سجل التعميمات';
+  bBtn.style.cssText = 'position:fixed; bottom:15px; left:15px; z-index:9999; background:#0284c7; color:#fff; border:none; padding:8px 14px; border-radius:20px; font-weight:bold; font-size:12px; box-shadow:0 3px 10px rgba(0,0,0,0.5); cursor:pointer; display:none;';
+  bBtn.onclick = window.openOmrahArchiveModal;
+  document.body.appendChild(bBtn);
+}
+
+// ----------------------------------------------------
+// 4. أزرار ونماذج الإضافة والتعديل والحذف للدروس والمزارات
+// ----------------------------------------------------
+function renderLessonAndPlaceCRUD() {
+  var lCont = document.getElementById('lessons-container');
+  if (lCont && !document.getElementById('form-lesson-add-block')) {
+    var box = document.createElement('div');
+    box.id = 'form-lesson-add-block';
+    box.style.cssText = 'background:#1e293b; border:1px solid #38bdf8; border-radius:8px; padding:10px; margin-bottom:12px;';
+    box.innerHTML = '<div style="color:#38bdf8; font-weight:bold; font-size:13px; margin-bottom:6px;">➕ إضافة درس جديد للحافلة</div>' +
+      '<input type="text" id="add-l-title-input" placeholder="عنوان الدرس..." style="width:100%; box-sizing:border-box; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; margin-bottom:6px; font-size:12px;">' +
+      '<textarea id="add-l-body-input" rows="3" placeholder="نص الدرس كاملاً..." style="width:100%; box-sizing:border-box; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; margin-bottom:6px; font-size:12px;"></textarea>' +
+      '<button id="btn-save-new-lesson" class="btn btn-primary" style="width:100%; padding:6px; font-size:12px;">حفظ ونشر الدرس 📢</button>';
+    lCont.parentNode.insertBefore(box, lCont);
+
+    document.getElementById('btn-save-new-lesson').onclick = function() {
+      var t = document.getElementById('add-l-title-input').value.trim();
+      var b = document.getElementById('add-l-body-input').value.trim().replace(/\n/g, '<br>');
+      if (!t || !b) return alert('يرجى كتابة العنوان والمحتوى');
+      if (typeof lessons !== 'undefined') {
+        lessons.unshift({ title: t, content: b, category: 'أخلاق', badge: 'badge-purple', time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق' });
+        if (typeof renderLessons === 'function') renderLessons('all');
+      }
+      document.getElementById('add-l-title-input').value = '';
+      document.getElementById('add-l-body-input').value = '';
+      alert('تمت إضافة الدرس بنجاح!');
+    };
+  }
+
+  var pCont = document.getElementById('places-container');
+  if (pCont && !document.getElementById('form-place-add-block')) {
+    var box = document.createElement('div');
+    box.id = 'form-place-add-block';
+    box.style.cssText = 'background:#1e293b; border:1px solid #10b981; border-radius:8px; padding:10px; margin-bottom:12px;';
+    box.innerHTML = '<div style="color:#10b981; font-weight:bold; font-size:13px; margin-bottom:6px;">➕ إضافة مزار أو قصة جديدة</div>' +
+      '<div style="display:flex; gap:6px; margin-bottom:6px;">' +
+        '<select id="add-p-city-select" style="padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; font-size:12px;">' +
+          '<option value="مكة المكرمة والمشاعر">مكة المكرمة</option>' +
+          '<option value="المدينة المنورة">المدينة المنورة</option>' +
+        '</select>' +
+        '<input type="text" id="add-p-title-input" placeholder="اسم المزار..." style="flex:1; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; font-size:12px;">' +
+      '</div>' +
+      '<textarea id="add-p-story-input" rows="3" placeholder="سرد القصة والمكان بالتفصيل..." style="width:100%; box-sizing:border-box; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; margin-bottom:6px; font-size:12px;"></textarea>' +
+      '<button id="btn-save-new-place" class="btn btn-primary" style="width:100%; padding:6px; font-size:12px; background:#059669;">حفظ المزار 📍</button>';
+    pCont.parentNode.insertBefore(box, pCont);
+
+    document.getElementById('btn-save-new-place').onclick = function() {
+      var c = document.getElementById('add-p-city-select').value;
+      var t = document.getElementById('add-p-title-input').value.trim();
+      var s = document.getElementById('add-p-story-input').value.trim().replace(/\n/g, '<br>');
+      if (!t || !s) return alert('يرجى ملء اسم المزار والقصة');
+      if (typeof places !== 'undefined') {
+        places.unshift({ city: c, title: t, story: s });
+        if (typeof renderPlaces === 'function') renderPlaces('all');
+      }
+      document.getElementById('add-p-title-input').value = '';
+      document.getElementById('add-p-story-input').value = '';
+      alert('تم حفظ المزار بنجاح!');
+    };
+  }
+
+  // إضافة أزرار الحذف في كروت الدروس
+  document.querySelectorAll('#lessons-container .card').forEach(function(card, idx) {
+    if (!card.querySelector('.btn-clean-del-l')) {
+      var b = document.createElement('button');
+      b.className = 'btn-clean-del-l';
+      b.innerText = 'حذف الدرس 🗑️';
+      b.style.cssText = 'margin-top:8px; padding:3px 8px; font-size:11px; background:#ef4444; color:#fff; border:none; border-radius:4px; cursor:pointer;';
+      b.onclick = function() {
+        if (!confirm('حذف هذا الدرس؟')) return;
+        if (typeof lessons !== 'undefined') {
+          lessons.splice(idx, 1);
+          if (typeof renderLessons === 'function') renderLessons('all');
+        }
+      };
+      card.appendChild(b);
+    }
+  });
+
+  // إضافة أزرار الحذف في كروت المزارات
+  document.querySelectorAll('#places-container .card').forEach(function(card, idx) {
+    if (!card.querySelector('.btn-clean-del-p')) {
+      var b = document.createElement('button');
+      b.className = 'btn-clean-del-p';
+      b.innerText = 'حذف المزار 🗑️';
+      b.style.cssText = 'margin-top:8px; padding:3px 8px; font-size:11px; background:#ef4444; color:#fff; border:none; border-radius:4px; cursor:pointer;';
+      b.onclick = function() {
+        if (!confirm('حذف هذا المزار؟')) return;
+        if (typeof places !== 'undefined') {
+          places.splice(idx, 1);
+          if (typeof renderPlaces === 'function') renderPlaces('all');
+        }
+      };
+      card.appendChild(b);
+    }
+  });
+}
+
+setInterval(renderLessonAndPlaceCRUD, 1200);
+</script>
 </body>
 </html>
