@@ -117,7 +117,7 @@
 <body>
 
   <!-- شريط التعميمات والتنبيهات العاجلة -->
-  <div id="broadcast-banner">
+  <div id="broadcast-banner" style="position:relative;"><button onclick="this.parentElement.style.display='none';" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.35); border:none; color:#fff; border-radius:50%; width:24px; height:24px; cursor:pointer; font-weight:bold; font-size:12px; line-height:22px;">✕</button>
     📢 <span id="broadcast-text"></span>
   </div>
 
@@ -210,7 +210,7 @@
           <input type="text" id="guide-hotel-name" class="auth-input" style="margin: 0; padding: 6px; flex: 1;" placeholder="اسم الفندق (مثال: فندق أبراج الكسوة)">
         </div>
         <div style="display: flex; gap: 6px;">
-          <button onclick="saveCurrentLocationAsHotel()" class="btn-sub" style="flex: 1; background: #0369a1; color: white;">📍 جعل موقعي الحالي هو الفندق</button>
+          <button onclick="pickHotelOnMap()" class="btn-main" style="flex: 1; background: #0284c7; color: white; font-weight: bold; padding: 8px;">📍 حدد الفندق من الخريطة</button>
           <button onclick="saveManualHotel()" class="btn-main" style="flex: 0 0 auto; padding: 8px 12px; font-size: 0.8rem;">💾 حفظ الفندق</button>
         </div>
       </div>
