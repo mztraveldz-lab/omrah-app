@@ -1583,6 +1583,115 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }, 500);
 });
+
+
+<script>
+// ==========================================
+// نظام حفظ الجلسة ومنع تكرار المعتمر واسترجاع الحساب
+// ==========================================
+
+// فحص الجلسة المحفوظة تلقائياً عند الإقلاع
+function checkAutoLogin() {
+  try {
+    const savedRole = localStorage.getItem('omrah_user_role');
+    const savedPhone = localStorage.getItem('omrah_user_phone');
+    const savedName = localStorage.getItem('omrah_user_name');
+    const savedGroup = localStorage.getItem('omrah_user_group');
+
+    if (savedRole === 'pilgrim' && savedPhone && savedName) {
+      currentUser = {
+        role: 'pilgrim',
+        name: savedName,
+        phone: savedPhone,
+        group: savedGroup || 'الفوج 1 (الرئيسي)'
+      };
+      // تجاوز شاشة الدخول والدخول فوراً
+      applyRoleUI();
+      console.log('✅ تم تسجيل الدخول التلقائي للمعتمر:', savedName);
+    }
+  } catch(e) {
+    console.log('Auto-login err:', e);
+  }
+}
+
+// دالة تسجيل الدخول المحسنة لمنع التكرار وربط الحساب
+window.loginUserEnhanced = function() {
+  const nameInput = document.getElementById('user-name-input');
+  const phoneInput = document.getElementById('user-phone-input');
+  const groupSelect = document.getElementById('user-group-select');
+
+  const phone = phoneInput ? phoneInput.value.trim() : '';
+  let name = nameInput ? nameInput.value.trim() : '';
+  const group = groupSelect ? groupSelect.value : 'الفوج 1 (الرئيسي)';
+
+  if (!phone) {
+    alert('يرجى إدخال رقم الهاتف لمتابعة موقعك وحفظ حسابك');
+    return;
+  }
+
+  // في حال لم يكتب اسمه، نحاول استرجاع اسمه وفوجه السابق من قائمة السيرفر برقم هاتفه
+  if (typeof serverPilgrims !== 'undefined') {
+    const existing = serverPilgrims.find(p => p.phone === phone);
+    if (existing) {
+      if (!name) name = existing.name;
+    }
+  }
+
+  if (!name) {
+    alert('يرجى كتابة الاسم للمرة الأولى');
+    return;
+  }
+
+  // حفظ بيانات الجلسة الدائمة في الجهاز
+  localStorage.setItem('omrah_user_role', 'pilgrim');
+  localStorage.setItem('omrah_user_phone', phone);
+  localStorage.setItem('omrah_user_name', name);
+  localStorage.setItem('omrah_user_group', group);
+
+  currentUser = {
+    role: 'pilgrim',
+    name: name,
+    phone: phone,
+    group: group
+  };
+
+  applyRoleUI();
+};
+
+// فحص الهاتف تلقائياً عند كتابته: إذا كان مسجلاً مسبقاً يملأ الاسم والفوج تلقائياً
+window.onPhoneInputChange = function(phoneVal) {
+  const p = phoneVal.trim();
+  if (p.length >= 8 && typeof serverPilgrims !== 'undefined') {
+    const existing = serverPilgrims.find(item => item.phone === p);
+    if (existing) {
+      const nameInput = document.getElementById('user-name-input');
+      const groupSelect = document.getElementById('user-group-select');
+      if (nameInput) nameInput.value = existing.name;
+      if (groupSelect) groupSelect.value = existing.group;
+      
+      const authMsg = document.getElementById('auth-msg');
+      if (authMsg) {
+        authMsg.innerHTML = `مرحباً بعودتك يا <strong style="color:#34d399;">${existing.name}</strong>! اضغط دخول للمتابعة.`;
+      }
+    }
+  }
+};
+
+// زر الخروج وتبديل الحساب
+window.logoutUserSession = function() {
+  if (confirm('هل تريد تسجيل الخروج وتبديل الحساب؟')) {
+    localStorage.removeItem('omrah_user_role');
+    localStorage.removeItem('omrah_user_phone');
+    localStorage.removeItem('omrah_user_name');
+    location.reload();
+  }
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(checkAutoLogin, 200);
+});
+</script>
+
 </script>
 
 </body>
