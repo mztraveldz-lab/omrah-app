@@ -1239,6 +1239,7 @@
 
       const cleanUrl = window.location.origin + window.location.pathname;
       const joinUrl = `${cleanUrl}?group=${encodeURIComponent(grp)}`;
+      const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(joinUrl)}&margin=10`;
 
       let old = document.getElementById('group-qr-modal');
       if (old) old.remove();
@@ -1250,22 +1251,16 @@
         <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:20px; width:100%; max-width:360px; text-align:center;">
           <h3 style="color:#fff; margin-bottom:4px; font-size:1.1rem;">📲 ملصق QR لـ (${grp})</h3>
           <p style="color:#94a3b8; font-size:0.75rem; margin-bottom:12px;">اطبع هذا الرمز وعلقه بالحافلة أو أرسله لواتساب الفوج، بمجرد مسحه يدخل المعتمر لفوجه مباشرة دون عناء.</p>
-          <div style="background:#fff; padding:12px; border-radius:12px; display:inline-block; margin-bottom:12px;">
-            <canvas id="qr-canvas"></canvas>
+          <div style="background:#fff; padding:10px; border-radius:14px; display:inline-block; margin-bottom:12px; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
+            <img src="${qrImageUrl}" alt="QR Code" style="width:200px; height:200px; display:block; border-radius:8px;" />
           </div>
           <div style="display:flex; gap:6px;">
-            <button onclick="navigator.clipboard.writeText('${joinUrl}'); alert('تم نسخ رابط الانضمام للفوج بنجاح!');" class="btn-main" style="background:#0284c7; padding:8px; font-size:0.8rem; flex:1;">📋 نسخ الرابط</button>
+            <button onclick="navigator.clipboard.writeText('${joinUrl}'); alert('تم نسخ رابط الانضمام للفوج بنجاح!');" class="btn-main" style="background:#0284c7; padding:10px; font-size:0.85rem; flex:1;">📋 نسخ الرابط</button>
             <button onclick="document.getElementById('group-qr-modal').remove()" class="btn-sub" style="flex:0 0 auto;">إغلاق</button>
           </div>
         </div>
       `;
       document.body.appendChild(modal);
-
-      if (window.QRCode) {
-        QRCode.toCanvas(document.getElementById('qr-canvas'), joinUrl, { width: 200 }, function (error) {
-          if (error) console.error(error);
-        });
-      }
     };
 
     // نافذة استيراد قائمة المعتمرين دفعة واحدة
