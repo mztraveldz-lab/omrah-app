@@ -97,6 +97,7 @@
     .acc-body { display: none; padding: 14px; background: #080e1e; border-top: 1px solid #25334d; font-size: 0.9rem; line-height: 1.7; color: #cbd5e1; }
     .acc-body.active { display: block; }
   </style>
+<script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
@@ -155,55 +156,29 @@
     </div>
 
     <!-- بطاقة الفندق للمعتمر -->
-    <div class="card" style="text-align: right; border-color: #0284c7; background: #0c1c2e;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-weight: bold; color: #38bdf8; font-size: 0.95rem;">🏨 مقر إقامتك المعتمد:</span>
-        <select id="user-hotel-city" class="auth-input" style="width: auto; padding: 4px 8px; margin: 0; font-size: 0.8rem;" onchange="updateUserHotelView()">
-          <option value="مكة">فندق مكة المكرمة 🕋</option>
-          <option value="المدينة">فندق المدينة المنورة 🕌</option>
-        </select>
-      </div>
-      <div id="hotel-name-display" style="color: white; font-size: 1.1rem; margin-top: 6px; font-weight: bold;">جاري جلب الفندق من السيرفر...</div>
-      <div id="hotel-distance-box" style="margin-top: 8px; background: rgba(2, 132, 199, 0.15); border: 1px dashed #38bdf8; border-radius: 8px; padding: 6px 10px; font-size: 0.85rem; color: #7dd3fc; display: flex; justify-content: space-between; align-items: center;">
-        <span>📏 المسافة للفندق:</span>
-        <strong id="hotel-distance-val" style="color: #ffffff;">جاري الحساب...</strong>
-      </div>
-      <button onclick="navigateHotel()" class="btn-hotel">🧭 خذني إلى فندقي (خرائط Google)</button>
-    </div>
+            <!-- نظام ضبط فنادق مكة والمدينة برابط Google Maps وخريطة الساتلايت -->
+        <div class="card" style="padding: 12px; margin-bottom: 12px; border: 1px solid #0284c7; background: #131c31; border-radius: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="color: #38bdf8; margin: 0; font-size: 0.95rem;">🏨 ضبط فنادق الإقامة (مكة / المدينة):</h4>
+            <button type="button" onclick="toggleMapSatelliteLayer()" class="btn-main" style="background: #475569; padding: 5px 10px; font-size: 0.75rem; border-radius: 6px;">🛰️ قمر صناعي</button>
+          </div>
 
-    <div class="sos-container">
-      <h2 style="color: #fca5a5; font-size: 1.25rem; font-weight: 900; margin-bottom: 6px;">هل ضعت أو تحتاج مساعدة عاجلة؟</h2>
-      <p style="font-size: 0.95rem; color: #e2e8f0; margin-bottom: 18px; line-height: 1.6;">اضغط على الزر الأحمر.. سيحدد الهاتف موقعك ويرسله مباشرة للوكالة عبر الواتساب لنجدتك في الحال.</p>
-      <button onclick="sendSOS()" class="sos-btn">
-        <span style="font-size: 1.8rem;">🚨 اضغط هنا لطلب النجدة</span>
-        <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.95;">إرسال موقعي الحالي لواتساب الوكالة فوراً</span>
-      </button>
-      <div id="sos-status" style="font-size: 0.88rem; color: #34d399; font-weight: bold; margin-top: 12px; min-height: 22px;"></div>
-      <div style="margin-top: 10px; font-size: 0.78rem; color: #94a3b8;">
-        رقم طوارئ الوكالة: <strong id="sos-display-phone" style="color: #6ee7b7; direction: ltr; display: inline-block;">+213795353719</strong>
-      </div>
-    </div>
-  </main>
+          <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+            <select id="guide-hotel-type-select" class="auth-input" style="flex: 1; padding: 7px; margin: 0;" onchange="onHotelTypeSelected(this.value)">
+              <option value="makkah">🕋 فندق مكة المكرمة</option>
+              <option value="madinah">🕌 فندق المدينة المنورة</option>
+            </select>
+          </div>
 
-  <!-- 2. شاشة تتبع المعتمرين بالخريطة والأفواج (خاصة بالمرشد) -->
-  <main id="view-map" class="view">
-    <div class="card" style="text-align: right; padding: 14px;">
-      
-      <!-- لوحة المرشد: ضبط الفندق لجميع المعتمرين -->
-      <div style="background: #0f233a; border: 1px solid #0284c7; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-        <div style="font-size: 0.85rem; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">🏨 ضبط موقع الفندق ليظهر عند المعتمرين:</div>
-        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-          <select id="guide-hotel-city" class="auth-input" style="width: auto; padding: 6px; margin: 0; font-size: 0.8rem;">
-            <option value="مكة">فندق مكة</option>
-            <option value="المدينة">فندق المدينة</option>
-          </select>
-          <input type="text" id="guide-hotel-name" class="auth-input" style="margin: 0; padding: 6px; flex: 1;" placeholder="اسم الفندق (مثال: فندق أبراج الكسوة)">
+          <input type="text" id="guide-hotel-name-box" class="auth-input" style="padding: 8px; font-size: 0.85rem; margin-bottom: 8px;" placeholder="اسم الفندق (مثال: فندق أبراج مكة)" />
+
+          <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+            <input type="text" id="guide-gmaps-link-input" class="auth-input" style="padding: 8px; font-size: 0.8rem; margin: 0; flex: 1;" placeholder="الصق رابط خرائط Google Maps هنا" />
+            <button type="button" onclick="parseAndApplyGoogleMapsUrl()" class="btn-main" style="background: #0284c7; padding: 8px 12px; font-size: 0.8rem; flex: 0 0 auto;">📍 استخراج الموقع</button>
+          </div>
+
+          <button type="button" onclick="saveActiveHotelData()" class="btn-main" style="background: #10b981; padding: 9px; font-size: 0.85rem; width: 100%;">💾 حفظ وتثبيت الفندق للمعتمرين</button>
         </div>
-        <div style="display: flex; gap: 6px;">
-          <button onclick="pickHotelOnMap()" class="btn-main" style="flex: 1; background: #0284c7; color: white; font-weight: bold; padding: 8px;">📍 حدد الفندق من الخريطة</button>
-          <button onclick="saveManualHotel()" class="btn-main" style="flex: 0 0 auto; padding: 8px 12px; font-size: 0.8rem;">💾 حفظ الفندق</button>
-        </div>
-      </div>
 
       <!-- إرسال تعميم فوري لجميع المعتمرين -->
       <div style="background: #1e1b4b; border: 1px solid #6366f1; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
@@ -226,6 +201,7 @@
           <select id="filter-group-select" class="auth-input" style="padding: 6px; margin: 0; flex: 1;" onchange="renderPilgrimMarkers()">
             <option value="all">كل الأفواج (عرض شامل)</option>
           </select>
+          <button type="button" onclick="generateGroupQRModal()" class="btn-main" style="background:#0284c7; padding:6px 10px; font-size:0.78rem; margin-bottom:6px;">📲 ملصق QR للفوج</button>
           <button onclick="deleteCurrentFilteredGroup()" class="btn-danger-sm" style="padding: 6px 10px;">🗑️ مسح الفوج المحدد</button>
         </div>
       </div>
@@ -1268,6 +1244,271 @@ window.addEventListener('load', function() {
       if (nInput) nInput.value = savedName;
       if (gSelect && savedGroup) gSelect.value = savedGroup;
     }
+  } catch(e) {}
+});
+</script>
+
+
+<script>
+// ==========================================
+// 1. نظام فنادق مكة والمدينة المستقل واستخراج روابط Google Maps
+// ==========================================
+var activeCity = 'makkah';
+var allHotels = {
+  makkah: {
+    name: localStorage.getItem('om_hotel_makkah_name') || 'فندق مكة المكرمة',
+    lat: parseFloat(localStorage.getItem('om_hotel_makkah_lat')) || 21.4225,
+    lng: parseFloat(localStorage.getItem('om_hotel_makkah_lng')) || 39.8262
+  },
+  madinah: {
+    name: localStorage.getItem('om_hotel_madinah_name') || 'فندق المدينة المنورة',
+    lat: parseFloat(localStorage.getItem('om_hotel_madinah_lat')) || 24.4672,
+    lng: parseFloat(localStorage.getItem('om_hotel_madinah_lng')) || 39.6111
+  }
+};
+
+var makkahMapMarker = null;
+var madinahMapMarker = null;
+var satLayerInstance = null;
+var isSatMode = false;
+
+function toggleMapSatelliteLayer() {
+  if (typeof map === 'undefined' || !map) return;
+  if (!satLayerInstance) {
+    satLayerInstance = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Esri Satellite'
+    });
+  }
+  if (!isSatMode) {
+    map.addLayer(satLayerInstance);
+    isSatMode = true;
+    alert('🛰️ تم تفعيل رؤية القمر الصناعي');
+  } else {
+    map.removeLayer(satLayerInstance);
+    isSatMode = false;
+    alert('🗺️ تم تفعيل الخريطة العادية');
+  }
+}
+
+function onHotelTypeSelected(val) {
+  activeCity = val;
+  var nameBox = document.getElementById('guide-hotel-name-box');
+  if (nameBox) nameBox.value = allHotels[activeCity].name;
+
+  if (typeof map !== 'undefined' && map) {
+    var target = (activeCity === 'madinah') ? allHotels.madinah : allHotels.makkah;
+    map.flyTo([target.lat, target.lng], 16);
+  }
+}
+
+function parseAndApplyGoogleMapsUrl() {
+  var urlInput = document.getElementById('guide-gmaps-link-input');
+  var raw = urlInput ? urlInput.value.trim() : '';
+  if (!raw) {
+    alert('يرجى إلصاق رابط Google Maps أولاً');
+    return;
+  }
+
+  var lat = null;
+  var lng = null;
+
+  // فحص أنماط روابط خرائط جوجل المختلفة
+  // النمط 1: @lat,lng
+  var atMatch = raw.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (atMatch) {
+    lat = parseFloat(atMatch[1]);
+    lng = parseFloat(atMatch[2]);
+  } else {
+    // النمط 2: q=lat,lng أو ll=lat,lng
+    var qMatch = raw.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (qMatch) {
+      lat = parseFloat(qMatch[1]);
+      lng = parseFloat(qMatch[2]);
+    }
+  }
+
+  // محاولة استخراج الاسم من الرابط إن وجد
+  var placeMatch = raw.match(/\/place\/([^\/@?]+)/);
+  if (placeMatch && placeMatch[1]) {
+    var extractedName = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
+    var nameBox = document.getElementById('guide-hotel-name-box');
+    if (nameBox && extractedName) nameBox.value = extractedName;
+  }
+
+  if (lat && lng) {
+    allHotels[activeCity].lat = lat;
+    allHotels[activeCity].lng = lng;
+    if (typeof map !== 'undefined' && map) {
+      map.flyTo([lat, lng], 17);
+    }
+    renderMapHotelPins();
+    alert('✅ تم استخراج الإحداثيات بنجاح (' + lat.toFixed(4) + ', ' + lng.toFixed(4) + ')! اضغط (حفظ وتثبيت الفندق) لاعتماده.');
+  } else {
+    alert('تعذر استخراج الإحداثيات مباشرة من هذا الرابط. يمكنك فتح الرابط ومشاركة رابط بموقع محدد (يحتوي على @إحداثيات).');
+  }
+}
+
+function saveActiveHotelData() {
+  var nameBox = document.getElementById('guide-hotel-name-box');
+  var name = nameBox ? nameBox.value.trim() : '';
+  if (!name) name = (activeCity === 'madinah' ? 'فندق المدينة' : 'فندق مكة');
+
+  allHotels[activeCity].name = name;
+  localStorage.setItem('om_hotel_' + activeCity + '_name', name);
+  localStorage.setItem('om_hotel_' + activeCity + '_lat', allHotels[activeCity].lat);
+  localStorage.setItem('om_hotel_' + activeCity + '_lng', allHotels[activeCity].lng);
+
+  renderMapHotelPins();
+  alert('✅ تم حفظ وتثبيت (' + name + ') للفوج بنجاح!');
+}
+
+function renderMapHotelPins() {
+  if (typeof map === 'undefined' || !map) return;
+  if (makkahMapMarker) map.removeLayer(makkahMapMarker);
+  if (madinahMapMarker) map.removeLayer(madinahMapMarker);
+
+  var makkahIcon = L.divIcon({
+    className: 'm-icon',
+    html: '<div style="background:#0284c7; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">🕋</div>',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+
+  var madinahIcon = L.divIcon({
+    className: 'm-icon',
+    html: '<div style="background:#10b981; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">🕌</div>',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+
+  makkahMapMarker = L.marker([allHotels.makkah.lat, allHotels.makkah.lng], { icon: makkahIcon }).addTo(map)
+    .bindPopup('<b>' + allHotels.makkah.name + '</b><br>مقر إقامة مكة');
+
+  madinahMapMarker = L.marker([allHotels.madinah.lat, allHotels.madinah.lng], { icon: madinahIcon }).addTo(map)
+    .bindPopup('<b>' + allHotels.madinah.name + '</b><br>مقر إقامة المدينة');
+}
+
+// ==========================================
+// 2. توليد ملصق QR للفوج (صورة مباشرة)
+// ==========================================
+function generateGroupQRModal() {
+  var select = document.getElementById('filter-group-select');
+  var grp = (select && select.value !== 'all') ? select.value : 'الفوج 1 (الرئيسي)';
+  var qrData = 'OMRAH_GROUP:' + encodeURIComponent(grp);
+  var qrImgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + qrData + '&margin=10';
+
+  var old = document.getElementById('group-qr-modal');
+  if (old) old.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'group-qr-modal';
+  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;';
+  modal.innerHTML = `
+    <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:20px; width:100%; max-width:340px; text-align:center;">
+      <h3 style="color:#fff; margin-bottom:6px; font-size:1.1rem;">📲 ملصق QR لـ (` + grp + `)</h3>
+      <p style="color:#94a3b8; font-size:0.75rem; margin-bottom:12px;">احفظ الصورة أو اطبعها وعلقها بالحافلة؛ يمسحها المعتمر مباشرة من تطبيقه.</p>
+      <div style="background:#fff; padding:10px; border-radius:12px; display:inline-block; margin-bottom:14px;">
+        <img src="` + qrImgUrl + `" style="width:200px; height:200px; display:block; border-radius:8px;" />
+      </div>
+      <button type="button" onclick="document.getElementById('group-qr-modal').remove()" class="btn-sub" style="width:100%;">إغلاق</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+// ==========================================
+// 3. ماسح QR من المعرض والدخول التلقائي
+// ==========================================
+function openCameraScannerModal() {
+  var old = document.getElementById('camera-scan-modal');
+  if (old) old.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'camera-scan-modal';
+  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;';
+  modal.innerHTML = `
+    <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:18px; width:100%; max-width:320px; text-align:center;">
+      <h3 style="color:#fff; margin-bottom:12px; font-size:1.05rem;">📷 مسح رمز الفوج</h3>
+      <div id="qr-hidden-reader" style="display:none;"></div>
+      <button type="button" onclick="document.getElementById('qr-img-input').click()" class="btn-main" style="background:#0d9488; padding:10px; width:100%; font-size:0.9rem; margin-bottom:8px;">🖼️ اختيار صورة الـ QR من المعرض</button>
+      <input type="file" id="qr-img-input" accept="image/*" style="display:none;" onchange="readQrFileNow(this)" />
+      <button type="button" onclick="document.getElementById('camera-scan-modal').remove()" class="btn-sub" style="width:100%;">إلغاء</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function readQrFileNow(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+
+  if (typeof Html5Qrcode === 'undefined') {
+    alert('جاري تحميل قارئ الصور، يرجى المحاولة بعد لحظات.');
+    return;
+  }
+
+  var scanner = new Html5Qrcode("qr-hidden-reader");
+  scanner.scanFile(file, true)
+    .then(function(decodedText) {
+      var val = decodedText.trim();
+      var grp = val;
+      if (val.indexOf('OMRAH_GROUP:') === 0) {
+        grp = decodeURIComponent(val.replace('OMRAH_GROUP:', ''));
+      } else if (val.indexOf('group=') !== -1) {
+        var m = val.match(/[?&]group=([^&]+)/);
+        if (m && m[1]) grp = decodeURIComponent(m[1]);
+      }
+
+      var select = document.getElementById('user-group-select');
+      if (select) {
+        var found = false;
+        for (var i = 0; i < select.options.length; i++) {
+          if (select.options[i].value === grp) {
+            select.selectedIndex = i;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          var opt = document.createElement('option');
+          opt.value = grp;
+          opt.innerText = grp;
+          select.appendChild(opt);
+          select.value = grp;
+        }
+      }
+      var modal = document.getElementById('camera-scan-modal');
+      if (modal) modal.remove();
+      alert('✅ تم التعرف على رمز الفوج بنجاح: ' + grp);
+    })
+    .catch(function(err) {
+      alert('تعذر قراءة رمز QR من الصورة، يرجى التأكد من وضوح الصورة الملتقطة.');
+    })
+    .finally(function() {
+      input.value = '';
+    });
+}
+
+// استرجاع المعتمر وتفادي التكرار عند فتح التطبيق
+window.addEventListener('load', function() {
+  try {
+    var pInput = document.getElementById('user-phone-input');
+    var nInput = document.getElementById('user-name-input');
+    var gSelect = document.getElementById('user-group-select');
+
+    var sPhone = localStorage.getItem('omrah_user_phone');
+    var sName = localStorage.getItem('omrah_user_name');
+    var sGroup = localStorage.getItem('omrah_user_group');
+
+    if (pInput && sPhone) pInput.value = sPhone;
+    if (nInput && sName) nInput.value = sName;
+    if (gSelect && sGroup) gSelect.value = sGroup;
+
+    var nameBox = document.getElementById('guide-hotel-name-box');
+    if (nameBox) nameBox.value = allHotels[activeCity].name;
+
+    setTimeout(renderMapHotelPins, 1000);
   } catch(e) {}
 });
 </script>
