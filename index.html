@@ -1,22 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for (let registration of registrations) {
-            registration.unregister();
-          }
-        });
-      }
-      if ('caches' in window) {
-        caches.keys().then(function(names) {
-          for (let name of names) caches.delete(name);
-        });
-      }
-    </script>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>نظام إدارة المعتمرين والمرشد</title>
@@ -32,8 +16,8 @@
     .header-title { font-size: 1rem; font-weight: bold; color: #ffffff; }
     .role-badge { font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; font-weight: bold; background: #022c22; color: #6ee7b7; border: 1px solid #059669; }
     
-    #broadcast-banner { display: none; background: #b91c1c; color: white; padding: 10px 14px; font-size: 0.88rem; font-weight: bold; text-align: center; border-bottom: 2px solid #f87171; animation: pulse-bg 2s infinite; }
-    @keyframes pulse-bg { 0%, 100% { background: #b91c1c; } 50% { background: #991b1b; } }
+    #broadcast-banner { display: none; background: #b91c1c; color: white; padding: 10px 38px 10px 14px; font-size: 0.88rem; font-weight: bold; text-align: center; border-bottom: 2px solid #f87171; position: relative; }
+    .banner-close-btn { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; font-size: 12px; line-height: 22px; }
 
     #auth-screen { position: fixed; inset: 0; background: #080e1e; z-index: 2000; display: flex; flex-direction: column; justify-content: center; padding: 20px; overflow-y: auto; }
     .auth-card { background: #131c31; border: 1px solid #25334d; border-radius: 20px; padding: 22px; text-align: center; }
@@ -63,7 +47,7 @@
     .counter-label { font-size: 0.8rem; font-weight: bold; margin-top: 2px; }
 
     .btn-row { display: flex; gap: 8px; justify-content: center; align-items: center; }
-    .btn-main { flex: 1; background: #059669; color: white; border: none; padding: 13px; border-radius: 12px; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
+    .btn-main { flex: 1; background: #059669; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
     .btn-main:active { transform: scale(0.98); background: #10b981; }
     .btn-sub { background: #25334d; color: #cbd5e1; border: none; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; }
     .btn-danger-sm { background: #7f1d1d; color: #fca5a5; border: 1px solid #b91c1c; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
@@ -86,14 +70,14 @@
     .bat-low { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
 
     .dua-box { background: #131c31; border: 1px solid #25334d; border-radius: 16px; padding: 18px; margin-bottom: 14px; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
-    .dua-text { font-size: 22px; line-height: 1.7; color: #fef3c7; text-align: center; margin: 12px 0; font-family: serif; }
+    .dua-text { font-size: 1.15rem; line-height: 1.8; color: #fef3c7; text-align: center; margin: 12px 0; font-family: serif; }
     
     .info-box { background: rgba(120, 53, 15, 0.25); border: 1px solid #b45309; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
     .info-title { color: #f59e0b; font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; }
-    .info-text { color: #fde68a; font-family: serif; font-size: 1.1rem; line-height: 1.8; text-align: justify; }
+    .info-text { color: #fde68a; font-family: serif; font-size: 1.05rem; line-height: 1.8; text-align: justify; }
 
     .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
-    .filter-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #2d3b55; background: #131c31; color: #94a3b8; font-weight: bold; font-size: 0.8rem; }
+    .filter-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #2d3b55; background: #131c31; color: #94a3b8; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
     .filter-btn.active { background: #064e3b; color: #34d399; border-color: #10b981; }
 
     .item-card { background: #131c31; border: 1px solid #25334d; border-radius: 14px; padding: 16px; margin-bottom: 14px; text-align: right; }
@@ -105,8 +89,8 @@
     .badge-blue { background: #1e3a8a; color: #bfdbfe; }
     .badge-purple { background: #4c1d95; color: #ddd6fe; }
     .tag-time { font-size: 0.72rem; color: #94a3b8; }
-    .item-title { color: #ffffff; font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; }
-    .item-content { font-size: 0.95rem; color: #e2e8f0; line-height: 1.9; background: #080e1e; padding: 14px; border-radius: 10px; border-right: 4px solid #10b981; text-align: justify; }
+    .item-title { color: #ffffff; font-weight: bold; font-size: 1.05rem; margin-bottom: 8px; }
+    .item-content { font-size: 0.95rem; color: #e2e8f0; line-height: 1.8; background: #080e1e; padding: 14px; border-radius: 10px; border-right: 4px solid #10b981; text-align: justify; }
 
     .acc-item { background: #131c31; border: 1px solid #25334d; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
     .acc-btn { width: 100%; padding: 14px; text-align: right; background: none; border: none; color: #f8fafc; font-weight: bold; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
@@ -117,7 +101,8 @@
 <body>
 
   <!-- شريط التعميمات والتنبيهات العاجلة -->
-  <div id="broadcast-banner" style="position:relative; background:#dc2626; color:#fff; padding:10px 35px 10px 12px; font-weight:bold; text-align:center; display:none;"><button onclick="dismissCurrentBroadcast()" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.35); border:none; color:#fff; border-radius:50%; width:24px; height:24px; cursor:pointer; font-weight:bold; font-size:12px; line-height:22px;">✕</button><span id="broadcast-text"></span><button onclick="dismissBroadcastPermanently()" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.35); border:none; color:#fff; border-radius:50%; width:24px; height:24px; cursor:pointer; font-weight:bold; font-size:12px; line-height:22px;">✕</button>
+  <div id="broadcast-banner">
+    <button class="banner-close-btn" onclick="dismissCurrentBroadcast()">✕</button>
     📢 <span id="broadcast-text"></span>
   </div>
 
@@ -154,6 +139,7 @@
   <header>
     <div class="header-title" id="app-title">🕋 رفيق المعتمر</div>
     <div style="display: flex; gap: 6px; align-items: center;">
+      <button type="button" id="btn-header-archive" onclick="openOmrahArchiveModal()" style="display:none; background:#0284c7; color:#fff; border:none; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:bold; cursor:pointer;">📜 الأرشيف</button>
       <span id="role-indicator" class="role-badge">معتمر</span>
       <button onclick="toggleUserRole()" style="background: #334155; border: none; color: white; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">تبديل الدور ⇄</button>
     </div>
@@ -266,7 +252,7 @@
 
     <div class="dua-box">
       <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #34d399; font-weight: bold;">
-        <span id="dua-counter">دعاء 1 من 30</span>
+        <span id="dua-counter">دعاء 1 من 20</span>
         <span style="color: #94a3b8;">أدعية الشوط الحالي</span>
       </div>
       <p class="dua-text" id="active-dua-text"></p>
@@ -299,7 +285,7 @@
 
     <div class="dua-box">
       <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #2dd4bf; font-weight: bold;">
-        <span id="saey-dua-counter">دعاء السعي 1 من 5</span>
+        <span id="saey-dua-counter">دعاء السعي 1 من 15</span>
         <span style="color: #94a3b8;">أدعية أثناء المشي بين العلمين</span>
       </div>
       <p class="dua-text" id="active-saey-dua-text" style="color: #ccfbf1;"></p>
@@ -354,6 +340,12 @@
 
   <!-- 6. حقيبة دروس الحافلة كاملة -->
   <main id="view-dourous" class="view">
+    <div id="add-lesson-box" style="display:none; background:#131c31; border:1px solid #38bdf8; border-radius:12px; padding:12px; margin-bottom:14px; text-align:right;">
+      <div style="font-size:0.85rem; font-weight:bold; color:#38bdf8; margin-bottom:6px;">➕ إضافة درس جديد للحافلة:</div>
+      <input type="text" id="new-lesson-title" class="auth-input" style="padding:8px; margin-bottom:8px;" placeholder="عنوان الدرس...">
+      <textarea id="new-lesson-content" class="auth-input" rows="3" style="padding:8px; margin-bottom:8px;" placeholder="نص الدرس كاملاً..."></textarea>
+      <button onclick="addNewLesson()" class="btn-main" style="padding:8px; font-size:0.85rem;">نشر وحفظ الدرس 📢</button>
+    </div>
     <div class="filter-bar">
       <button class="filter-btn active" onclick="filterLessons('all')" id="flt-l-all">الكل</button>
       <button class="filter-btn" onclick="filterLessons('أخلاق')" id="flt-l-akhlak">الأخلاق واللحمة 🤝</button>
@@ -366,6 +358,18 @@
 
   <!-- 7. موسوعة المزارات والقصص التاريخية الكبرى كاملة -->
   <main id="view-ziyarat" class="view">
+    <div id="add-place-box" style="display:none; background:#131c31; border:1px solid #10b981; border-radius:12px; padding:12px; margin-bottom:14px; text-align:right;">
+      <div style="font-size:0.85rem; font-weight:bold; color:#10b981; margin-bottom:6px;">➕ إضافة قصة أو مزار جديد:</div>
+      <div style="display:flex; gap:6px; margin-bottom:6px;">
+        <select id="new-place-city" class="auth-input" style="width:auto; padding:6px; margin:0; font-size:0.85rem;">
+          <option value="مكة">مكة المكرمة</option>
+          <option value="المدينة">المدينة المنورة</option>
+        </select>
+        <input type="text" id="new-place-title" class="auth-input" style="margin:0; padding:6px; flex:1;" placeholder="اسم المزار...">
+      </div>
+      <textarea id="new-place-story" class="auth-input" rows="3" style="padding:8px; margin-bottom:8px;" placeholder="سرد القصة والمكان بالتفصيل..."></textarea>
+      <button onclick="addNewPlace()" class="btn-main" style="background:#059669; padding:8px; font-size:0.85rem;">حفظ المزار 📍</button>
+    </div>
     <div class="filter-bar">
       <button class="filter-btn active" onclick="filterPlaces('all')" id="flt-p-all">كل المزارات 📖</button>
       <button class="filter-btn" onclick="filterPlaces('مكة')" id="flt-p-makkah">مكة المكرمة والمشاعر 🕋</button>
@@ -399,6 +403,7 @@
       return (stored && stored.trim()) ? stored.trim() : DEFAULT_AGENCY_PHONE;
     }
 
+    // مزامنة السيرفر المستقرة
     function syncWithServer() {
       fetch(`${VPS_API}/api/sync`)
         .then(res => res.json())
@@ -420,11 +425,14 @@
             const banner = document.getElementById('broadcast-banner');
             const msgFull = `${b.text} (${b.time})`;
             document.getElementById('broadcast-text').innerText = msgFull;
+
+            // إذا أغلقه المستخدم لا يظهر نهائياً
             if (localStorage.getItem('omrah_dismissed_broadcast_val') === msgFull) {
                 banner.style.display = 'none';
             } else {
                 banner.style.display = 'block';
             }
+
             // حفظ تلقائي في أرشيف التعميمات
             let hist = [];
             try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]'); } catch(e){}
@@ -439,6 +447,17 @@
         .catch(err => console.log('VPS Sync error:', err));
     }
 
+    // إغلاق التعميم نهائياً
+    function dismissCurrentBroadcast() {
+      const banner = document.getElementById('broadcast-banner');
+      const textEl = document.getElementById('broadcast-text');
+      if (banner && textEl) {
+        localStorage.setItem('omrah_dismissed_broadcast_val', textEl.innerText.trim());
+        banner.style.display = 'none';
+      }
+    }
+
+    // عرض الفندق للمعتمر
     function updateUserHotelView() {
       const citySelect = document.getElementById('user-hotel-city');
       const city = citySelect ? citySelect.value : 'مكة';
@@ -447,51 +466,90 @@
       if (disp && hotel) disp.innerText = `${hotel.name} (${city})`;
     }
 
+    // توجيه المعتمر للفندق الحقيقي
     function navigateHotel() {
-    const citySelect = document.getElementById('user-hotel-city');
-    const city = citySelect ? citySelect.value : 'مكة';
-    const hotel = (typeof serverHotels !== 'undefined' && serverHotels) ? (serverHotels[city] || serverHotels['مكة']) : null;
-    
-    if (hotel && hotel.lat && hotel.lng) {
-        // إذا كانت الخريطة موجودة، نركز عليها
-        if (typeof mapInstance !== 'undefined' && mapInstance) {
-            const mapEl = document.getElementById('map');
-            if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
-            mapInstance.setView([hotel.lat, hotel.lng], 18);
-            if (window.userHotelMarker) mapInstance.removeLayer(window.userHotelMarker);
-            window.userHotelMarker = L.marker([hotel.lat, hotel.lng]).addTo(mapInstance).bindPopup(`<b>${hotel.name || 'فندق الإقامة'}</b>`).openPopup();
+      const citySelect = document.getElementById('user-hotel-city');
+      const city = citySelect ? citySelect.value : 'مكة';
+      const hotel = serverHotels[city] || serverHotels['مكة'];
+      
+      if (hotel && hotel.lat && hotel.lng) {
+        if (mapInstance) {
+          const mapEl = document.getElementById('map');
+          if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+          mapInstance.setView([hotel.lat, hotel.lng], 18);
+          if (window.userHotelMarker) mapInstance.removeLayer(window.userHotelMarker);
+          window.userHotelMarker = L.marker([hotel.lat, hotel.lng]).addTo(mapInstance).bindPopup(`<b>${hotel.name}</b>`).openPopup();
         }
-        // فتح مسار الملاحة مباشرة في Google Maps
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${hotel.lat},${hotel.lng}`, '_system');
-    } else {
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${hotel.lat},${hotel.lng}&travelmode=walking`, '_system');
+      } else {
         alert("لم يقم المرشد بضبط موقع الفندق بعد");
-    }
-&travelmode=walking`);
       }
     }
 
-    function saveCurrentLocationAsHotel() {
-      const city = document.getElementById('guide-hotel-city').value;
-      const name = document.getElementById('guide-hotel-name').value.trim() || `فندق الإقامة - ${city}`;
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          fetch(`${VPS_API}/api/hotels/update`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ city, name, lat: pos.coords.latitude, lng: pos.coords.longitude })
-          }).then(() => {
-            alert(`تم حفظ موقعك الحالي كـ (${name}) لجميع المعتمرين بنجاح!`);
-            syncWithServer();
-          });
-        });
+    // تحديد الفندق باللمس على الخريطة للمرشد
+    window.pickHotelOnMap = function() {
+      if (!mapInstance) {
+        alert('يرجى فتح الخريطة أولاً');
+        return;
       }
-    }
+      const mapEl = document.getElementById('map');
+      if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+
+      let toast = document.getElementById('hotel-pick-toast');
+      if (toast) toast.remove();
+      toast = document.createElement('div');
+      toast.id = 'hotel-pick-toast';
+      toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.5); pointer-events:none;';
+      toast.innerHTML = '👆 المس الآن موقع الفندق على الخريطة لتثبيته';
+      document.body.appendChild(toast);
+      setTimeout(() => { if (toast) toast.remove(); }, 5000);
+
+      mapInstance.once('click', function(e) {
+        if (toast) toast.remove();
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        const citySel = document.getElementById('guide-hotel-city');
+        const city = citySel ? citySel.value : 'مكة';
+        const nameInp = document.getElementById('guide-hotel-name');
+        
+        const finalName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : ('فندق الإقامة - ' + city);
+        if (nameInp) nameInp.value = finalName;
+
+        if (window.guideHotelMarker) mapInstance.removeLayer(window.guideHotelMarker);
+        window.guideHotelMarker = L.marker([lat, lng], {
+          icon: L.divIcon({
+            className: 'hotel-pin',
+            html: '<div style="background:#ef4444; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.6);">🏨</div>',
+            iconSize: [34, 34],
+            iconAnchor: [17, 34]
+          })
+        }).addTo(mapInstance).bindPopup(`<b>${finalName}</b><br>تم تثبيت الموقع`).openPopup();
+
+        serverHotels[city] = { name: finalName, lat: lat, lng: lng };
+        localStorage.setItem('omrah_guide_hotels', JSON.stringify(serverHotels));
+
+        fetch(`${VPS_API}/api/hotels/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ city, name: finalName, lat, lng })
+        }).catch(err => {});
+
+        alert(`✅ تم تثبيت موقع ${finalName} بنجاح وترسيمه لجميع المعتمرين!`);
+      });
+    };
 
     function saveManualHotel() {
       const city = document.getElementById('guide-hotel-city').value;
       const name = document.getElementById('guide-hotel-name').value.trim();
       if (!name) return alert("أدخل اسم الفندق أولاً");
-      saveCurrentLocationAsHotel();
+      if (serverHotels[city]) {
+        serverHotels[city].name = name;
+        fetch(`${VPS_API}/api/hotels/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ city, name, lat: serverHotels[city].lat, lng: serverHotels[city].lng })
+        }).then(() => alert(`تم تحديث اسم فندق ${city} إلى (${name})`));
+      }
     }
 
     function sendBroadcast() {
@@ -508,6 +566,41 @@
         syncWithServer();
       });
     }
+
+    // أرشيف التعميمات
+    window.openOmrahArchiveModal = function() {
+      let old = document.getElementById('archive-modal-view');
+      if (old) old.remove();
+
+      let hist = [];
+      try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]'); } catch(e){}
+      let items = '<div style="color:#94a3b8; text-align:center; padding:15px;">لا توجد تعميمات سابقة مسجلة</div>';
+      if (hist.length > 0) {
+        items = hist.map(h => `
+          <div style="background:#0f172a; border-right:3px solid #ef4444; padding:8px 10px; border-radius:6px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-bottom:4px;">
+              <span>📅 ${h.date || ''}</span>
+              <span>⏱ ${h.time || ''}</span>
+            </div>
+            <div style="color:#fff; font-size:13px; font-weight:bold; line-height:1.4;">${h.text}</div>
+          </div>
+        `).join('');
+      }
+
+      const modal = document.createElement('div');
+      modal.id = 'archive-modal-view';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:16px;';
+      modal.innerHTML = `
+        <div style="background:#1e293b; border-radius:10px; width:100%; max-width:460px; max-height:80vh; display:flex; flex-direction:column; border:1px solid #475569;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid #334155;">
+            <h4 style="color:#fff; margin:0; font-size:14px;">📢 أرشيف تعميمات المرشد</h4>
+            <button onclick="document.getElementById('archive-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:4px; padding:3px 8px; cursor:pointer;">✕</button>
+          </div>
+          <div style="padding:12px; overflow-y:auto; flex:1;">${items}</div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    };
 
     async function getBatteryLevel() {
       try {
@@ -722,20 +815,20 @@
       }
       currentUser = JSON.parse(saved);
 
-      if (currentUser.role === 'pilgrim') {
-        startAutoGpsTracking();
-      } else {
-        if (autoTrackingInterval) clearInterval(autoTrackingInterval);
-        syncWithServer();
-        if (!syncInterval) syncInterval = setInterval(syncWithServer, 5000);
-      }
-
-      document.getElementById('auth-screen').style.display = 'none';
       const nav = document.getElementById('nav-bar');
       const roleInd = document.getElementById('role-indicator');
       const appTitle = document.getElementById('app-title');
+      const headerArchive = document.getElementById('btn-header-archive');
+      const addLessonBox = document.getElementById('add-lesson-box');
+      const addPlaceBox = document.getElementById('add-place-box');
+
+      document.getElementById('auth-screen').style.display = 'none';
 
       if (currentUser.role === 'guide') {
+        if (headerArchive) headerArchive.style.display = 'inline-block';
+        if (addLessonBox) addLessonBox.style.display = 'block';
+        if (addPlaceBox) addPlaceBox.style.display = 'block';
+
         roleInd.innerText = "مرشد الفوج 🛡️";
         roleInd.style.background = "#1e3a8a";
         roleInd.style.color = "#93c5fd";
@@ -751,7 +844,14 @@
         switchTab('map');
         initMap();
         updateGroupsDropdowns();
+        syncWithServer();
+        if (!syncInterval) syncInterval = setInterval(syncWithServer, 5000);
       } else {
+        if (headerArchive) headerArchive.style.display = 'none';
+        if (addLessonBox) addLessonBox.style.display = 'none';
+        if (addPlaceBox) addPlaceBox.style.display = 'none';
+
+        startAutoGpsTracking();
         roleInd.innerText = `معتمر: ${currentUser.name} (${currentUser.group || 'فوج عام'})`;
         roleInd.style.background = "#064e3b";
         roleInd.style.color = "#a7f3d0";
@@ -764,6 +864,7 @@
         `;
         switchTab('sos');
         updateUserHotelView();
+        syncWithServer();
       }
     }
 
@@ -807,31 +908,52 @@
       }
     }
 
-    // الطواف
+    // ------------------------------------
+    // أدعية الطواف والسعي المكتملة والموسعة
+    // ------------------------------------
+    const allTawafDuas = (typeof tawafDuas !== 'undefined' && tawafDuas.length > 0) ? tawafDuas : [
+      "بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ، اللَّهُمَّ إِيمَاناً بِكَ وَتَصْدِيقاً بِكِتَابِكَ وَوَفَاءً بِعَهْدِكَ وَاتِّبَاعاً لِسُنَّةِ نَبِيِّكَ مُحَمَّدٍ ﷺ.",
+      "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ.",
+      "اللَّهُمَّ اغْفِرْ وَارْحَمْ، وَاعْفُ عَمَّا تَعْلَمْ، وَأَنْتَ الأَعَزُّ الأَكْرَمُ، اللَّهُمَّ اهْدِنِي لِأَحْسَنِ الأَعْمَالِ والأَخْلاقِ.",
+      "اللَّهُمَّ إِنِّي أَسْأَلُكَ العَفْوَ وَالعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي.",
+      "اللَّهُمَّ اسْتُرْ عَوْرَاتِي وَآمِنْ رَوْعَاتِي، وَاحْفَظْنِي مِنْ بَيْنِ يَدَيَّ وَمِنْ خَلْفِي وَعَنْ يَمِينِي وَعَنْ شِمَالِي.",
+      "سُبْحَانَ اللَّهِ، وَالحَمْدُ لِلَّهِ، وَلا إِلَهَ إِلَّا اللَّهُ، وَاللَّهُ أَكْبَرُ، وَلا حَوْلَ وَلا قُوَّةَ إِلَّا بِاللَّهِ العَلِيِّ العَظِيمِ.",
+      "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الشَّكِّ وَالشِّرْكِ وَالشِّقَاقِ وَالنِّفَاقِ وَسُوءِ الأَخْلاقِ.",
+      "اللَّهُمَّ حَبِّبْ إِلَيْنَا الإِيمَانَ وَزَيِّنْهُ فِي قُلُوبِنَا، وَكَرِّهْ إِلَيْنَا الكُفْرَ وَالفُسُوقَ وَالعِصْيَانَ.",
+      "اللَّهُمَّ آتِ نُفُوسَنَا تَقْوَاهَا، وَزَكِّهَا أَنْتَ خَيْرُ مَنْ زَكَّاهَا، أَنْتَ وَلِيُّهَا وَمَوْلاهَا.",
+      "اللَّهُمَّ اجْعَلْهُ حَجّاً مَبْرُوراً، وَعُمْرَةً مَقْبُولَةً، وَذَنْباً مَغْفُوراً، وَسَعْياً مَشْكُوراً، وَتِجَارَةً لَنْ تَبُورَ.",
+      "يَا وَلِيَّ الإِسْلامِ وَأَهْلِهِ ثَبِّتْنِي عَلَيْهِ حَتَّى أَلْقَاكَ.",
+      "اللَّهُمَّ إِنِّي أَسْأَلُكَ مُوجِبَاتِ رَحْمَتِكَ، وَعَزَائِمَ مَغْفِرَتِكَ، وَالغَنِيمَةَ مِنْ كُلِّ بِرٍّ، وَالسَّلامَةَ مِنْ كُلِّ إِثْمٍ.",
+      "اللَّهُمَّ أَصْلِحْ لِي دِينِي الَّذِي هُوَ عِصْمَةُ أَمْرِي، وَأَصْلِحْ لِي دُنْيَايَ الَّتِي فِيهَا مَعَاشِي.",
+      "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ زَوَالِ نِعْمَتِكَ، وَتَحَوُّلِ عَافِيَتِكَ، وَفُجَاءَةِ نِقْمَتِكَ، وَجَمِيعِ سَخَطِكَ.",
+      "اللَّهُمَّ إِنِّي ظَلَمْتُ نَفْسِي ظُلْماً كَثِيراً، وَلا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ، فَاغْفِرْ لِي مَغْفِرَةً مِنْ عِنْدِكَ وَارْحَمْنِي.",
+      "اللَّهُمَّ اكْفِنِي بِحَلالِكَ عَنْ حَرَامِكَ، وَأَغْنِنِي بِفَضْلِكَ عَمَّنْ سِوَاكَ.",
+      "اللَّهُمَّ إِنِّي أَسْأَلُكَ الهُدَى وَالتُّقَى وَالعَفَافَ وَالغِنَى.",
+      "اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ.",
+      "اللَّهُمَّ يَا مُقَلِّبَ القُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ.",
+      "اللَّهُمَّ إِنِّي أَسْأَلُكَ رِضَاكَ وَالجَنَّةَ، وَأَعُوذُ بِكَ مِنْ سَخَطِكَ وَالنَّارِ."
+    ];
+
+    const allSaiDuas = (typeof saiDuas !== 'undefined' && saiDuas.length > 0) ? saiDuas : [
+      "أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ: إِنَّ الصَّفَا وَالمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ.. لا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لا شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ.",
+      "لا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الأَحْزَابَ وَحْدَهُ.",
+      "رَبِّ اغْفِرْ وَارْحَمْ، وَتَجَاوَزْ عَمَّا تَعْلَمْ، إِنَّكَ أَنْتَ الأَعَزُّ الأَكْرَمُ.",
+      "اللَّهُمَّ اعْصِمْنَا بِدِينِكَ، وَطَوَاعِيَتِكَ وَطَوَاعِيَةِ رَسُولِكَ ﷺ، وَجَنِّبْنَا حُدُودَكَ.",
+      "اللَّهُمَّ اجْعَلْنَا نُحِبُّكَ وَنُحِبُّ مَلائِكَتَكَ وَأَنْبِيَاءَكَ وَرُسُلَكَ وَعِبَادَكَ الصَّالِحِينَ.",
+      "اللَّهُمَّ يَسِّرْنَا لِلْيُسْرَى، وَجَنِّبْنَا العُسْرَى، وَاغْفِرْ لَنَا فِي الآخِرَةِ وَالأُولَى.",
+      "اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ خَيْرِ مَا سَأَلَكَ مِنْهُ نَبِيُّكَ مُحَمَّدٌ ﷺ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا اسْتَعَاذَ مِنْهُ نَبِيُّكَ مُحَمَّدٌ ﷺ.",
+      "اللَّهُمَّ فَرِّجْ هَمَّ المَهْمُومِينَ، وَنَفِّسْ كَرْبَ المَكْرُوبِينَ، وَاقْضِ الدَّيْنَ عَنِ المَدِينِينَ، وَاشْفِ مَرْضَانَا وَمَرْضَى المُسْلِمِينَ.",
+      "اللَّهُمَّ بَارِكْ لَنَا فِي أَوْقَاتِنَا، وَأَعْمَارِنَا، وَذُرِّيَّاتِنَا، وَأَمْوَالِنَا، وَاجْعَلْنَا مُبَارَكِينَ أَيْنَمَا كُنَّا.",
+      "اللَّهُمَّ اخْتِمْ بِالصَّالِحَاتِ أَعْمَالَنَا، وَبِالسَّعَادَةِ آجَالَنَا، وَبَلِّغْنَا فِيمَا يُرْضِيكَ آمَالَنَا.",
+      "اللَّهُمَّ تَقَبَّلْ سَعْيَنَا، وَارْحَمْ ضَعْفَنَا، وَاجْبُرْ كَسْرَنَا، وَتَوَلَّ أَمْرَنَا.",
+      "اللَّهُمَّ لا تَدَعْ لَنَا ذَنْباً إِلَّا غَفَرْتَهُ، وَلا هَمّاً إِلَّا فَرَّجْتَهُ، وَلا حَاجَةً هِيَ لَكَ رِضىً إِلَّا قَضَيْتَهَا يَا أَرْحَمَ الرَّاحِمِينَ.",
+      "اللَّهُمَّ إِنَّكَ عَفُوٌّ كَرِيمٌ تُحِبُّ العَفْوَ فَاعْفُ عَنَّا.",
+      "اللَّهُمَّ انْصُرْ إِخْوَانَنَا المُسْتَضْعَفِينَ فِي كُلِّ مَكَانٍ، وَكُنْ لَهُمْ عَوْناً وَنَصِيراً.",
+      "اللَّهُمَّ صَلِّ وَسَلِّمْ وَبَارِكْ عَلَى نَبِيِّنَا مُحَمَّدٍ وَعَلَى آلِهِ وَصَحْبِهِ أَجْمَعِينَ."
+    ];
+
     let currentTawaf = 1;
     let currentDuaIdx = 0;
-    const baseDuas = [
-      "بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ، اللَّهُمَّ إِيمَانًا بِكَ، وَتَصْدِيقًا بِكِتَابِكَ، وَوَفَاءً بِعَهْدِكَ، وَاتِّبَاعًا لِسُنَّةِ نَبِيِّكَ مُحَمَّدٍ ﷺ.",
-      "سُبْحَانَ اللَّهِ، وَالْحَمْدُ لِلَّهِ، وَلا إِلَهَ إِلا اللَّهُ، وَاللَّهُ أَكْبَرُ، وَلا حَوْلَ وَلا قُوَّةَ إِلا بِاللَّهِ الْعَلِيِّ الْعَظِيمِ.",
-      "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي.",
-      "اللَّهُمَّ اسْتُرْ عَوْرَاتِي، وَآمِنْ رَوْعَاتِي، وَاحْفَظْنِي مِنْ بَيْنِ يَدَيَّ، وَمِنْ خَلْفِي، وَعَنْ يَمِينِي، وَعَنْ شِمَالِي، وَمِنْ فَوْقِي.",
-      "رَبَّنَا اغْفِرْ لِي وَلِوَالِدَيَّ وَلِلْمُؤْمِنِينَ يَوْمَ يَقُومُ الْحِسَابُ.",
-      "اللَّهُمَّ آتِ نُفُوسَنَا تَقْوَاهَا، وَزَكِّهَا أَنْتَ خَيْرُ مَنْ زَكَّاهَا، أَنْتَ وَلِيُّهَا وَمَوْلَاهَا.",
-      "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ زَوَالِ نِعْمَتِكَ، وَتَحَوُّلِ عَافِيَتِكَ، وَفُجَاءَةِ نِقْمَتِكَ، وَجَمِيعِ سَخَطِكَ.",
-      "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ، وَالْعَجْزِ وَالْكَسَلِ، وَالْبُخْلِ وَالْجُبْنِ، وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ.",
-      "رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّكَ أَنْتَ الْوَهَّابُ.",
-      "اللَّهُمَّ حَبِّبْ إِلَيْنَا الإِيمَانَ وَزَيِّنْهُ فِي قُلُوبِنَا، وَكَرِّهْ إِلَيْنَا الْكُفْرَ وَالْفُسُوقَ وَالْعِصْيَانَ.",
-      "اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ.",
-      "رَبِّ إِنِّي ظَلَمْتُ نَفْسِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ.",
-      "اللَّهُمَّ إِنَّكَ عَفُوٌّ كَرِيمٌ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي.",
-      "اللَّهُمَّ أَصْلِحْ لِي دِينِي الَّذِي هُوَ عِصْمَةُ أَمْرِي، وَأَصْلِحْ لِي دُنْيَايَ الَّتِي فِيهَا مَعَاشِي، وَأَصْلِحْ لِي آخِرَتِي الَّتِي فِيهَا مَعَادِي.",
-      "اللَّهُمَّ اجْعَلِ الْحَيَاةَ زِيَادَةً لِي فِي كُلِّ خَيْرٍ، وَاجْعَلِ الْمَوْتَ رَاحَةً لِي مِنْ كُلِّ شَرٍّ.",
-      "لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ.",
-      "اللَّهُمَّ ارْزُقْنِي قَلْبًا خَاشِعًا، وَلِسَانًا ذَاكِرًا، وَعَمَلًا صَالِحًا مُتَقَبَّلًا.",
-      "اللَّهُمَّ إِنِّي أَسْأَلُكَ الثَّبَاتَ فِي الأَمْرِ، وَالْعَزِيمَةَ عَلَى الرُّشْدِ.",
-      "اللَّهُمَّ فَرِّجْ هَمَّ الْمَهْمُومِينَ، وَنَفِّسْ كَرْبَ الْمَكْرُوبِينَ، وَاقْضِ الدَّيْنَ عَنِ الْمَدِينِينَ.",
-      "اللَّهُمَّ اشْفِ مَرْضَانَا وَمَرْضَى الْمُسْلِمِينَ، وَارْحَمْ مَوْتَانَا وَمَوْتَى الْمُسْلِمِينَ."
-    ];
     function handleTawafCircleClick() {
       if (currentTawaf < 7) { currentTawaf++; currentDuaIdx = 0; updateTawafUI(); }
       else alert("🎉 أتممت 7 أشواط كاملة من الطواف!");
@@ -845,22 +967,14 @@
       renderDua();
     }
     function renderDua() {
-      document.getElementById('active-dua-text').innerText = `"${baseDuas[currentDuaIdx % baseDuas.length]}"`;
-      document.getElementById('dua-counter').innerText = `دعاء ${currentDuaIdx + 1} من ${baseDuas.length}`;
+      document.getElementById('active-dua-text').innerText = `"${allTawafDuas[currentDuaIdx % allTawafDuas.length]}"`;
+      document.getElementById('dua-counter').innerText = `دعاء ${currentDuaIdx + 1} من ${allTawafDuas.length}`;
     }
-    function nextDua() { currentDuaIdx = (currentDuaIdx + 1) % baseDuas.length; renderDua(); }
-    function prevDua() { currentDuaIdx = (currentDuaIdx - 1 + baseDuas.length) % baseDuas.length; renderDua(); }
+    function nextDua() { currentDuaIdx = (currentDuaIdx + 1) % allTawafDuas.length; renderDua(); }
+    function prevDua() { currentDuaIdx = (currentDuaIdx - 1 + allTawafDuas.length) % allTawafDuas.length; renderDua(); }
 
-    // السعي
     let currentSaey = 1;
     let currentSaeyDuaIdx = 0;
-    const saeyDuas = [
-      "رَبِّ اغْفِرْ وَارْحَمْ، وَتَجَاوَزْ عَمَّا تَعْلَمْ، إِنَّكَ أَنْتَ الْأَعَزُّ الْأَكْرَمُ.",
-      "اللَّهُمَّ إِنِّي أَسْأَلُكَ مُوجِبَاتِ رَحْمَتِكَ، وَعَزَائِمَ مَغْفِرَتِكَ، وَالسَّلَامَةَ مِنْ كُلِّ إِثْمٍ، وَالْفَوْزَ بِالْجَنَّةِ، وَالنَّجَاةَ مِنَ النَّارِ.",
-      "اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ، وَتَقَبَّلْ مِنِّي سَعْيِي وَعُمْرَتِي.",
-      "رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنْتَ السَّمِيعُ الْعَلِيمُ، وَتُبْ عَلَيْنَا إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ.",
-      "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ."
-    ];
     function handleSaeyCircleClick() {
       if (currentSaey < 7) { currentSaey++; updateSaeyUI(); }
       else alert("🎉 أتممت السعي تماماً! بقي لك الحلق أو التقصير للتحلل.");
@@ -874,52 +988,37 @@
       renderSaeyDua();
     }
     function renderSaeyDua() {
-      document.getElementById('active-saey-dua-text').innerText = `"${saeyDuas[currentSaeyDuaIdx]}"`;
-      document.getElementById('saey-dua-counter').innerText = `دعاء السعي ${currentSaeyDuaIdx + 1} من ${saeyDuas.length}`;
+      document.getElementById('active-saey-dua-text').innerText = `"${allSaiDuas[currentSaeyDuaIdx % allSaiDuas.length]}"`;
+      document.getElementById('saey-dua-counter').innerText = `دعاء السعي ${currentSaeyDuaIdx + 1} من ${allSaiDuas.length}`;
     }
-    function nextSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx + 1) % saeyDuas.length; renderSaeyDua(); }
-    function prevSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx - 1 + saeyDuas.length) % saeyDuas.length; renderSaeyDua(); }
+    function nextSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx + 1) % allSaiDuas.length; renderSaeyDua(); }
+    function prevSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx - 1 + allSaiDuas.length) % allSaiDuas.length; renderSaeyDua(); }
 
-    // حقيبة الدروس
-    const lessonsData = [
-      {
-        category: "أخلاق", badge: "badge-purple", time: "⏱ وقت الإلقاء: دقيقتان",
-        title: "درس اللحمة وجعل الفوج عائلة واحدة (أخلاق الرفقة في السفر)",
-        content: "بسم الله الرحمن الرحيم. أيها الإخوة والأخوات، يا ضيوف الرحمن.. أنتم الآن لستم مجرد ركاب تجمعهم حافلة واحدة، بل اختاركم الله لتكونوا 'عائلة واحدة' في هذه الرحلة المباركة التي تتنزل فيها الرحمات.<br><br>يقول الحبيب المصطفى ﷺ: 'مَثَلُ الْمُؤْمِنِينَ فِي تَوَادِّهِمْ وَتَرَاحُمِهِمْ وَتَعَاطُفِهِمْ مَثَلُ الْجَسَدِ الْوَاحِدِ إِذَا اشْتَكَى مِنْهُ عُضْوٌ تَدَاعَى لَهُ سَائِرُ الْجَسَدِ بِالسَّهَرِ وَالْحُمَّى'.<br><br><strong>وصايا الرفقة:</strong><br>• الإيثار في الركوب والمصاعد والوجبات.<br>• التغافل والابتسامة عند التعب.<br>• تفقد الشيخ والمريض والغائب."
-      },
-      {
-        category: "أخلاق", badge: "badge-purple", time: "⏱ وقت الإلقاء: دقيقة ونصف",
-        title: "درس الصبر عند التعب والزحام وضبط النفس",
-        content: "﴿فَمَن فَرَضَ فِيهِنَّ الْحَجَّ فَلَا رَفَثَ وَلَا فُسُوقَ وَلَا جِدَالَ فِي الْحَجِّ﴾، هذا الأدب هو روح العمرة وعنوان قبولها.<br><br>في الحرمين ستواجهون زحاماً كبيراً، وهنا يظهر جوهر عبادتك. إذا دفعك أحد في الطواف عن غير قصد، فاستغفر الله وقل: 'غفر الله لك ويسر أمرك'، وتذكر أن أجرك على قدر نَصَبِك."
-      },
-      {
-        category: "تنظيم", badge: "badge-amber", time: "⏱ وقت الإلقاء: دقيقتان",
-        title: "درس الحافلة: عند الوصول من المطار إلى الفندق والتسكين",
-        content: "• <strong>بطاقة الفندق:</strong> خذ كارت الفندق مباشرة وضعه في جيبك؛ فهو دليلك للعودة إن ضللت الطريق.<br>• <strong>الهدوء:</strong> تسليم الغرف يأخذ وقتاً يسيراً فتجنبوا التزاحم.<br>• <strong>الأمانات:</strong> احفظوا الجوازات والأموال في قاصة الغرفة الإلكترونية.<br>• <strong>الراحة:</strong> استريحوا قبل الذهاب للحرم لتؤدوا عمرتكم بنشاط."
-      },
-      {
-        category: "صلاة", badge: "badge-rose", time: "⏱ وقت الإلقاء: دقيقتان",
-        title: "درس تفصيلي: صلاة الجنازة في الحرمين",
-        content: "صلاة الجنازة <strong>كلها قيام.. ليس فيها ركوع ولا سجود!</strong><br>• <strong>التكبيرة 1:</strong> الفاتحة سراً.<br>• <strong>التكبيرة 2:</strong> الصلاة الإبراهيمية.<br>• <strong>التكبيرة 3:</strong> الدعاء للميت سراً.<br>• <strong>التكبيرة 4:</strong> نسكت يسيراً أو ندعو للمسلمين، ثم تسليمة واحدة جهة اليمين."
-      }
-    ];
+    // ------------------------------------
+    // حقيبة الدروس والمزارات مع الحذف والإضافة
+    // ------------------------------------
+    let activeLessons = (typeof lessonsData !== 'undefined') ? lessonsData : [];
+    let activePlaces = (typeof ziyaratData !== 'undefined') ? ziyaratData : [];
 
     function renderLessons(filter = 'all') {
-      const source = (typeof lessonsData !== 'undefined') ? lessonsData : lessons;
       const c = document.getElementById('lessons-list');
       if (!c) return;
-      const list = filter === 'all' ? lessonsData : lessonsData.filter(l => l.category === filter);
-      c.innerHTML = list.map(l => `
+      const list = filter === 'all' ? activeLessons : activeLessons.filter(l => l.category === filter);
+      const isGuide = currentUser && currentUser.role === 'guide';
+
+      c.innerHTML = list.map((l, idx) => `
         <div class="item-card">
           <div class="item-header">
-            <span class="badge ${l.badge}">${l.category}</span>
-            <span class="tag-time">${l.time}</span>
+            <span class="badge ${l.badge || 'badge-purple'}">${l.category}</span>
+            <span class="tag-time">${l.time || ''}</span>
           </div>
           <div class="item-title">${l.title}</div>
           <div class="item-content">${l.content}</div>
+          ${isGuide ? `<button onclick="deleteLesson(${idx})" class="btn-danger-sm" style="margin-top:10px;">حذف الدرس 🗑️</button>` : ''}
         </div>
       `).join('');
     }
+
     function filterLessons(cat) {
       document.querySelectorAll('#view-dourous .filter-btn').forEach(b => b.classList.remove('active'));
       const activeBtn = document.getElementById(`flt-l-${cat === 'أخلاق' ? 'akhlak' : cat === 'تنظيم' ? 'org' : cat === 'صلاة' ? 'salah' : cat === 'عمرة' ? 'omrah' : 'all'}`);
@@ -927,31 +1026,42 @@
       renderLessons(cat);
     }
 
-    // موسوعة المزارات
-    const ziyaratData = [
-      { city: "مكة", title: "غار حراء (جبل النور) - مهبط الوحي", story: "مهبط الوحي وفجر الرسالة؛ صعده النبي ﷺ بأقدامه الشريفة متحنثاً، ونزل عليه الروح الأمين جبريل بـ ﴿اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ﴾." },
-      { city: "مكة", title: "غار ثور - ملحمة الهجرة ومعية الله", story: "الشاهد على الهجرة؛ مكث فيه النبي ﷺ والصديق 3 ليالٍ، وقال له بيقين: 'ما ظنك باثنين الله ثالثهما؟ لا تحزن إن الله معنا'." },
-      { city: "مكة", title: "صعيد عرفات وجبل الرحمة", story: "موقف النبي ﷺ في حجة الوداع حيث نزل: ﴿الْيَوْمَ أَكْمَلْتُ لَكُمْ دِينَكُمْ﴾، وموطن مباهاة الله بأهل الموقف لملائكة السماء." },
-      { city: "المدينة", title: "المسجد النبوي الشريف والروضة الشريفة", story: "ثاني الحرمين وفيه الروضة التي قال عنها ﷺ: 'ما بين بيتي ومنبري روضة من رياض الجنة'، ومرقد خير الأنام وصاحبيه." },
-      { city: "المدينة", title: "مسجد قباء - أول مسجد أُسس على التقوى", story: "الصلاة فيه تعدل عمرة تامة؛ كان النبي ﷺ يزوره كل سبت راكباً وماشياً عبر درب السُنّة." },
-      { city: "المدينة", title: "جبل أُحُد ومقبرة الشهداء", story: "الجبل الذي يحبنا ونحبه؛ دارت عنده غزوة أحد، وفيه يرقد سبعون شهيداً يتقدمهم حمزة بن عبد المطلب ومصعب بن عمير." }
-    ];
+    function addNewLesson() {
+      const t = document.getElementById('new-lesson-title').value.trim();
+      const b = document.getElementById('new-lesson-content').value.trim().replace(/\n/g, '<br>');
+      if (!t || !b) return alert('يرجى كتابة العنوان والمحتوى');
+      activeLessons.unshift({ title: t, content: b, category: 'أخلاق', badge: 'badge-purple', time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق' });
+      document.getElementById('new-lesson-title').value = '';
+      document.getElementById('new-lesson-content').value = '';
+      renderLessons('all');
+      alert('تم نشر الدرس بنجاح!');
+    }
+
+    function deleteLesson(idx) {
+      if (confirm('حذف هذا الدرس نهائياً؟')) {
+        activeLessons.splice(idx, 1);
+        renderLessons('all');
+      }
+    }
 
     function renderPlaces(filter = 'all') {
-      const source = (typeof ziyaratData !== 'undefined') ? ziyaratData : places;
       const c = document.getElementById('places-list');
       if (!c) return;
-      const list = filter === 'all' ? ziyaratData : ziyaratData.filter(p => p.city === filter);
-      c.innerHTML = list.map(p => `
+      const list = filter === 'all' ? activePlaces : activePlaces.filter(p => p.city === filter);
+      const isGuide = currentUser && currentUser.role === 'guide';
+
+      c.innerHTML = list.map((p, idx) => `
         <div class="item-card">
           <div class="item-header">
             <span class="badge ${p.city === 'مكة' ? 'badge-amber' : 'badge-green'}">${p.city === 'مكة' ? 'مكة المكرمة' : 'المدينة المنورة'}</span>
           </div>
           <div class="item-title">📍 ${p.title}</div>
           <div class="item-content">${p.story}</div>
+          ${isGuide ? `<button onclick="deletePlace(${idx})" class="btn-danger-sm" style="margin-top:10px;">حذف المزار 🗑️</button>` : ''}
         </div>
       `).join('');
     }
+
     function filterPlaces(city) {
       document.querySelectorAll('#view-ziyarat .filter-btn').forEach(b => b.classList.remove('active'));
       const activeBtn = document.getElementById(`flt-p-${city === 'مكة' ? 'makkah' : city === 'المدينة' ? 'madinah' : 'all'}`);
@@ -959,370 +1069,31 @@
       renderPlaces(city);
     }
 
+    function addNewPlace() {
+      const c = document.getElementById('new-place-city').value;
+      const t = document.getElementById('new-place-title').value.trim();
+      const s = document.getElementById('new-place-story').value.trim().replace(/\n/g, '<br>');
+      if (!t || !s) return alert('يرجى ملء اسم المزار والقصة');
+      activePlaces.unshift({ city: c, title: t, story: s });
+      document.getElementById('new-place-title').value = '';
+      document.getElementById('new-place-story').value = '';
+      renderPlaces('all');
+      alert('تم حفظ المزار بنجاح!');
+    }
+
+    function deletePlace(idx) {
+      if (confirm('حذف هذا المزار نهائياً؟')) {
+        activePlaces.splice(idx, 1);
+        renderPlaces('all');
+      }
+    }
+
+    // بدء التشغيل
     applyRoleUI();
     updateTawafUI();
-    renderSaeyDua();
+    updateSaeyUI();
     renderLessons('all');
     renderPlaces('all');
-  
-
-// ========================================================
-// المحرك الموحد الميداني (تحديد الفندق، التعميمات، التوجيه، CRUD)
-// ========================================================
-
-// 1. تحديد الفندق بالنقر على الخريطة وتعبئة اسمه وترسيمه
-window.pickHotelOnMap = function() {
-  if (!mapInstance) {
-    alert('يرجى التمرير للأسفل حتى تظهر الخريطة أولاً');
-    return;
-  }
-  const mapEl = document.getElementById('map');
-  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
-
-  let toast = document.getElementById('hotel-pick-toast');
-  if (toast) toast.remove();
-  toast = document.createElement('div');
-  toast.id = 'hotel-pick-toast';
-  toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.5); pointer-events:none;';
-  toast.innerHTML = '👆 المس الآن موقع الفندق على الخريطة لتثبيته';
-  document.body.appendChild(toast);
-
-  setTimeout(() => { if (toast) toast.remove(); }, 5000);
-
-  mapInstance.once('click', function(e) {
-    if (toast) toast.remove();
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
-    const citySel = document.getElementById('guide-hotel-city') || document.querySelector('select');
-    const city = citySel ? citySel.value : 'مكة';
-    const nameInp = document.getElementById('guide-hotel-name') || document.querySelector('input[placeholder*="أبراج الكسوة"]');
-    
-    const finalName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : ('فندق الإقامة - ' + city);
-    if (nameInp) nameInp.value = finalName;
-
-    if (window.guideHotelMarker) mapInstance.removeLayer(window.guideHotelMarker);
-    window.guideHotelMarker = L.marker([lat, lng], {
-      icon: L.divIcon({
-        className: 'hotel-pin',
-        html: '<div style="background:#ef4444; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.6);">🏨</div>',
-        iconSize: [34, 34],
-        iconAnchor: [17, 34]
-      })
-    }).addTo(mapInstance).bindPopup('<b>' + finalName + '</b><br>تم تثبيت الموقع بنجاح').openPopup();
-
-    if (typeof serverHotels !== 'undefined') {
-      serverHotels[city] = { name: finalName, lat: lat, lng: lng };
-    }
-    localStorage.setItem('omrah_guide_hotels', JSON.stringify({ [city]: { name: finalName, lat: lat, lng: lng } }));
-    if (typeof saveHotel === 'function') {
-      try { saveHotel(); } catch(err){}
-    }
-    alert('✅ تم تثبيت موقع ' + finalName + ' بنجاح وترسيمه للمعتمرين!');
-  });
-};
-
-// 2. توجيه المعتمر للفندق وحساب خط السير
-window.goToMyHotel = function() {
-  let city = 'مكة';
-  const pSel = document.getElementById('pilgrim-hotel-select');
-  if (pSel && pSel.value.includes('المدينة')) city = 'المدينة';
-
-  let hData = (typeof serverHotels !== 'undefined' && serverHotels && serverHotels[city]) ? serverHotels[city] : null;
-  if (!hData) {
-    try {
-      const saved = JSON.parse(localStorage.getItem('omrah_guide_hotels') || '{}');
-      if (saved[city]) hData = saved[city];
-    } catch(e){}
-  }
-
-  if (!hData || !hData.lat || !hData.lng) {
-    alert('لم يقم المرشد بتحديد إحداثيات هذا الفندق بعد.');
-    return;
-  }
-
-  if (mapInstance) {
-    const mapEl = document.getElementById('map');
-    if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
-    mapInstance.setView([hData.lat, hData.lng], 18);
-    if (window.pilgrimHotelMarker) mapInstance.removeLayer(window.pilgrimHotelMarker);
-    window.pilgrimHotelMarker = L.marker([hData.lat, hData.lng]).addTo(mapInstance).bindPopup('🏨 ' + hData.name).openPopup();
-  }
-
-  window.open(`https://www.google.com/maps/dir/?api=1&destination=${hData.lat},${hData.lng}`, '_system');
-};
-
-// 3. إغلاق التعميم نهائياً وأرشيف التعميمات
-window.dismissCurrentBroadcast = function() {
-  const b = document.getElementById('broadcast-banner');
-  const t = document.getElementById('broadcast-text');
-  if (b) {
-    const msg = t ? t.innerText.trim() : b.innerText.replace('✕', '').trim();
-    if (msg) localStorage.setItem('dismissed_omrah_broadcast', msg);
-    b.style.display = 'none';
-  }
-};
-
-window.openBroadcastArchiveModal = function() {
-  let old = document.getElementById('archive-modal-view');
-  if (old) old.remove();
-
-  let hist = [];
-  try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_log') || '[]'); } catch(e){}
-  let items = '<div style="color:#94a3b8; text-align:center; padding:15px;">لا توجد تعميمات مسجلة بعد</div>';
-  if (hist.length > 0) {
-    items = hist.map(h => `
-      <div style="background:#0f172a; border-right:3px solid #ef4444; padding:8px 10px; border-radius:6px; margin-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-bottom:4px;">
-          <span>📅 ${h.date}</span>
-          <span>⏱ ${h.time}</span>
-        </div>
-        <div style="color:#fff; font-size:13px; font-weight:bold; line-height:1.4;">${h.text}</div>
-      </div>
-    `).join('');
-  }
-
-  const modal = document.createElement('div');
-  modal.id = 'archive-modal-view';
-  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:16px;';
-  modal.innerHTML = `
-    <div style="background:#1e293b; border-radius:10px; width:100%; max-width:460px; max-height:80vh; display:flex; flex-direction:column; border:1px solid #475569;">
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid #334155;">
-        <h4 style="color:#fff; margin:0; font-size:14px;">📢 أرشيف تعميمات المرشد</h4>
-        <button onclick="document.getElementById('archive-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:4px; padding:3px 8px; cursor:pointer;">✕</button>
-      </div>
-      <div style="padding:12px; overflow-y:auto; flex:1;">${items}</div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-};
-
-// حفظ التعميم في الأرشيف بمجرد ظهوره بنصه الكامل
-setInterval(function() {
-  const bText = document.getElementById('broadcast-text');
-  if (bText) {
-    const raw = bText.innerText.trim();
-    if (raw && raw.length > 1) {
-      let hist = [];
-      try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_log') || '[]'); } catch(e){}
-      if (!hist.some(item => item.text === raw)) {
-        const d = new Date();
-        hist.unshift({
-          text: raw,
-          date: d.toLocaleDateString('ar-DZ'),
-          time: d.toLocaleTimeString('ar-DZ', {hour:'2-digit', minute:'2-digit'})
-        });
-        if (hist.length > 50) hist.pop();
-        localStorage.setItem('omrah_broadcast_archive_log', JSON.stringify(hist));
-      }
-    }
-  }
-}, 1000);
-
-// 4. أزرار إضافة وحذف الدروس والمزارات
-function renderCRUD() {
-  const lCont = document.getElementById('lessons-container');
-  if (lCont && !document.getElementById('form-add-lesson-clean')) {
-    const box = document.createElement('div');
-    box.id = 'form-add-lesson-clean';
-    box.style.cssText = 'background:#1e293b; border:1px solid #38bdf8; border-radius:8px; padding:10px; margin-bottom:12px;';
-    box.innerHTML = `
-      <div style="color:#38bdf8; font-weight:bold; font-size:13px; margin-bottom:6px;">➕ إضافة درس جديد للحافلة</div>
-      <input type="text" id="c-l-title" placeholder="عنوان الدرس..." style="width:100%; box-sizing:border-box; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; margin-bottom:6px; font-size:12px;">
-      <textarea id="c-l-body" rows="3" placeholder="نص الدرس كاملاً..." style="width:100%; box-sizing:border-box; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; margin-bottom:6px; font-size:12px;"></textarea>
-      <button id="c-l-btn" class="btn btn-primary" style="width:100%; padding:6px; font-size:12px;">حفظ ونشر الدرس 📢</button>
-    `;
-    lCont.parentNode.insertBefore(box, lCont);
-
-    document.getElementById('c-l-btn').onclick = function() {
-      const t = document.getElementById('c-l-title').value.trim();
-      const b = document.getElementById('c-l-body').value.trim().replace(/\n/g, '<br>');
-      if (!t || !b) return alert('يرجى كتابة العنوان والمحتوى');
-      if (typeof lessons !== 'undefined') {
-        lessons.unshift({ title: t, content: b, category: 'أخلاق', badge: 'badge-purple', time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق' });
-        if (typeof renderLessons === 'function') renderLessons('all');
-      }
-      document.getElementById('c-l-title').value = '';
-      document.getElementById('c-l-body').value = '';
-      alert('تمت إضافة الدرس بنجاح!');
-    };
-  }
-
-  const pCont = document.getElementById('places-container');
-  if (pCont && !document.getElementById('form-add-place-clean')) {
-    const box = document.createElement('div');
-    box.id = 'form-add-place-clean';
-    box.style.cssText = 'background:#1e293b; border:1px solid #10b981; border-radius:8px; padding:10px; margin-bottom:12px;';
-    box.innerHTML = `
-      <div style="color:#10b981; font-weight:bold; font-size:13px; margin-bottom:6px;">➕ إضافة مزار أو قصة جديدة</div>
-      <div style="display:flex; gap:6px; margin-bottom:6px;">
-        <select id="c-p-city" style="padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; font-size:12px;">
-          <option value="مكة المكرمة والمشاعر">مكة المكرمة</option>
-          <option value="المدينة المنورة">المدينة المنورة</option>
-        </select>
-        <input type="text" id="c-p-title" placeholder="اسم المزار..." style="flex:1; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; font-size:12px;">
-      </div>
-      <textarea id="c-p-story" rows="3" placeholder="سرد القصة والمكان بالتفصيل..." style="width:100%; box-sizing:border-box; padding:6px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:4px; margin-bottom:6px; font-size:12px;"></textarea>
-      <button id="c-p-btn" class="btn btn-primary" style="width:100%; padding:6px; font-size:12px; background:#059669;">حفظ المزار 📍</button>
-    `;
-    pCont.parentNode.insertBefore(box, pCont);
-
-    document.getElementById('c-p-btn').onclick = function() {
-      const c = document.getElementById('c-p-city').value;
-      const t = document.getElementById('c-p-title').value.trim();
-      const s = document.getElementById('c-p-story').value.trim().replace(/\n/g, '<br>');
-      if (!t || !s) return alert('يرجى ملء اسم المزار والقصة');
-      if (typeof places !== 'undefined') {
-        places.unshift({ city: c, title: t, story: s });
-        if (typeof renderPlaces === 'function') renderPlaces('all');
-      }
-      document.getElementById('c-p-title').value = '';
-      document.getElementById('c-p-story').value = '';
-      alert('تم حفظ المزار بنجاح!');
-    };
-  }
-
-  // أزرار الحذف
-  document.querySelectorAll('#lessons-container .card').forEach((card, idx) => {
-    if (!card.querySelector('.btn-clean-del-l')) {
-      const b = document.createElement('button');
-      b.className = 'btn-clean-del-l';
-      b.innerText = 'حذف الدرس 🗑️';
-      b.style.cssText = 'margin-top:8px; padding:3px 8px; font-size:11px; background:#ef4444; color:#fff; border:none; border-radius:4px; cursor:pointer;';
-      b.onclick = function() {
-        if (!confirm('حذف هذا الدرس؟')) return;
-        if (typeof lessons !== 'undefined') {
-          lessons.splice(idx, 1);
-          if (typeof renderLessons === 'function') renderLessons('all');
-        }
-      };
-      card.appendChild(b);
-    }
-  });
-
-  document.querySelectorAll('#places-container .card').forEach((card, idx) => {
-    if (!card.querySelector('.btn-clean-del-p')) {
-      const b = document.createElement('button');
-      b.className = 'btn-clean-del-p';
-      b.innerText = 'حذف المزار 🗑️';
-      b.style.cssText = 'margin-top:8px; padding:3px 8px; font-size:11px; background:#ef4444; color:#fff; border:none; border-radius:4px; cursor:pointer;';
-      b.onclick = function() {
-        if (!confirm('حذف هذا المزار؟')) return;
-        if (typeof places !== 'undefined') {
-          places.splice(idx, 1);
-          if (typeof renderPlaces === 'function') renderPlaces('all');
-        }
-      };
-      card.appendChild(b);
-    }
-  });
-}
-
-setInterval(renderCRUD, 1200);
-
-
-
-window.pickHotelOnMap = function() {
-  if (!mapInstance) {
-    alert('يرجى الانتقال لتبويب الخريطة أولاً');
-    return;
-  }
-  const mapEl = document.getElementById('map');
-  if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
-
-  let toast = document.getElementById('hotel-pick-toast');
-  if (toast) toast.remove();
-  toast = document.createElement('div');
-  toast.id = 'hotel-pick-toast';
-  toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.5); pointer-events:none;';
-  toast.innerHTML = '👆 المس الآن موقع الفندق على الخريطة لتثبيته';
-  document.body.appendChild(toast);
-  setTimeout(() => { if (toast) toast.remove(); }, 5000);
-
-  mapInstance.once('click', function(e) {
-    if (toast) toast.remove();
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
-    const citySel = document.getElementById('guide-hotel-city') || document.querySelector('select');
-    const city = citySel ? citySel.value : 'مكة';
-    const nameInp = document.getElementById('guide-hotel-name') || document.querySelector('input[placeholder*="أبراج الكسوة"]');
-    
-    const finalName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : ('فندق الإقامة - ' + city);
-    if (nameInp) nameInp.value = finalName;
-
-    if (window.guideHotelMarker) mapInstance.removeLayer(window.guideHotelMarker);
-    window.guideHotelMarker = L.marker([lat, lng], {
-      icon: L.divIcon({
-        className: 'hotel-pin',
-        html: '<div style="background:#ef4444; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.6);">🏨</div>',
-        iconSize: [34, 34],
-        iconAnchor: [17, 34]
-      })
-    }).addTo(mapInstance).bindPopup(`<b>${finalName}</b><br>تم تثبيت الموقع`).openPopup();
-
-    if (typeof serverHotels !== 'undefined') {
-      serverHotels[city] = { name: finalName, lat: lat, lng: lng };
-    }
-    
-    // إرسال الإحداثيات للسيرفر مباشرة لكي تظهر فوراً لجميع المعتمرين
-    fetch(`${VPS_API}/api/hotel/save`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ city: city, name: finalName, lat: lat, lng: lng })
-    }).catch(e => console.log('Local save active'));
-
-    alert(`✅ تم تثبيت وترسيم موقع ${finalName} بنجاح لجميع المعتمرين!`);
-  });
-};
-
-
-window.openOmrahArchiveModal = function() {
-  let old = document.getElementById('archive-modal-view');
-  if (old) old.remove();
-
-  let hist = [];
-  try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]'); } catch(e){}
-  let items = '<div style="color:#94a3b8; text-align:center; padding:15px;">لا توجد تعميمات مسجلة بعد</div>';
-  if (hist.length > 0) {
-    items = hist.map(h => `
-      <div style="background:#0f172a; border-right:3px solid #ef4444; padding:8px 10px; border-radius:6px; margin-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-bottom:4px;">
-          <span>📅 ${h.date || ''}</span>
-          <span>⏱ ${h.time || ''}</span>
-        </div>
-        <div style="color:#fff; font-size:13px; font-weight:bold; line-height:1.4;">${h.text}</div>
-      </div>
-    `).join('');
-  }
-
-  const modal = document.createElement('div');
-  modal.id = 'archive-modal-view';
-  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:16px;';
-  modal.innerHTML = `
-    <div style="background:#1e293b; border-radius:10px; width:100%; max-width:460px; max-height:80vh; display:flex; flex-direction:column; border:1px solid #475569;">
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid #334155;">
-        <h4 style="color:#fff; margin:0; font-size:14px;">📢 أرشيف تعميمات المرشد</h4>
-        <button onclick="document.getElementById('archive-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:4px; padding:3px 8px; cursor:pointer;">✕</button>
-      </div>
-      <div style="padding:12px; overflow-y:auto; flex:1;">${items}</div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-};
-
-// وضع زر الأرشيف داخل لوحة تحكم المرشد فقط وتجنب شاشات الدخول
-setInterval(function() {
-  const roleBadge = document.getElementById('roleBadge');
-  if (roleBadge && !document.getElementById('btn-archive-header-fixed')) {
-    const b = document.createElement('button');
-    b.id = 'btn-archive-header-fixed';
-    b.type = 'button';
-    b.innerHTML = '📜 أرشيف التعميمات';
-    b.style.cssText = 'background:#0284c7; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; margin-right:8px; cursor:pointer; vertical-align:middle;';
-    b.onclick = window.openOmrahArchiveModal;
-    roleBadge.parentNode.insertBefore(b, roleBadge.nextSibling);
-  }
-}, 1000);
-
-</script>
+  </script>
 </body>
 </html>
