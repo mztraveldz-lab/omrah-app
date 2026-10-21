@@ -1258,6 +1258,25 @@ function openCameraScanner() {
   `;
   document.body.appendChild(modal);
 
+  // طلب إذن الكاميرا صراحة من النظام
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(stream => {
+        // إيقاف البث التجريبي بعد أخذ الإذن
+        stream.getTracks().forEach(track => track.stop());
+        startActualScanner();
+      })
+      .catch(err => {
+        console.log('Permission err:', err);
+        // في حال تعذر الإذن المباشر، إتاحة خيار المعرض والالتقاط
+        document.getElementById('qr-file-input').click();
+      });
+  } else {
+    startActualScanner();
+  }
+}
+
+function startActualScanner() {
   html5QrCodeScanner = new Html5Qrcode("qr-reader-box");
   html5QrCodeScanner.start(
     { facingMode: "environment" },
