@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>نظام إدارة المعتمرين والمرشد</title>
+  <title>نظام رفيق المعتمر والمرشد</title>
   
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -51,7 +52,6 @@
     .btn-main:active { transform: scale(0.98); background: #10b981; }
     .btn-sub { background: #25334d; color: #cbd5e1; border: none; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; }
     .btn-danger-sm { background: #7f1d1d; color: #fca5a5; border: 1px solid #b91c1c; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
-    .btn-hotel { background: #0284c7; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 0.95rem; width: 100%; margin-top: 10px; cursor: pointer; }
 
     .sos-container { background: #1c1322; border: 2px solid #ef4444; border-radius: 20px; padding: 20px 16px; text-align: center; margin-bottom: 16px; }
     .sos-btn { width: 100%; background: #dc2626; color: white; border: none; padding: 20px 12px; border-radius: 16px; font-size: 1.25rem; font-weight: 900; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
@@ -97,7 +97,6 @@
     .acc-body { display: none; padding: 14px; background: #080e1e; border-top: 1px solid #25334d; font-size: 0.9rem; line-height: 1.7; color: #cbd5e1; }
     .acc-body.active { display: block; }
   </style>
-<script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
@@ -131,7 +130,7 @@
       <div style="text-align: right; margin-bottom: 14px;">
         <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px;">اختر الفوج المخصص لك:</label>
         <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
-          <select id="user-group-select" class="auth-input" style="margin-bottom:0; flex:1;" style="padding: 10px;"></select>
+          <select id="user-group-select" class="auth-input" style="margin-bottom:0; flex:1; padding: 10px;"></select>
           <button type="button" onclick="openQrPickerModal()" style="background:#0284c7; color:#fff; border:none; border-radius:8px; padding:10px 14px; font-size:1.15rem; cursor:pointer;" title="مسح رمز الفوج من المعرض">📷</button>
         </div>
       </div>
@@ -151,7 +150,7 @@
 
   <nav id="nav-bar"></nav>
 
-  <!-- 1. شاشة المعتمر -->
+  <!-- 1. شاشة المعتمر (للاطلاع البسيط فقط) -->
   <main id="view-sos" class="view">
     <div class="tracking-status">
       <div class="pulse-dot"></div>
@@ -159,34 +158,70 @@
     </div>
 
     <!-- بطاقة الفندق للمعتمر -->
-          <!-- مقر إقامة المعتمر (للاطلاع فقط) -->
-              <!-- تحكم المرشد الكامل في ضبط مقرات الإقامة بروابط جوجل والساتلايت -->
-        <div class="card" style="padding: 12px; margin-bottom: 12px; border: 1px solid #0284c7; background: #131c31; border-radius: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h4 style="color: #38bdf8; margin: 0; font-size: 0.95rem;">🏨 ضبط مقرات الإقامة (المرشد):</h4>
-            <button type="button" onclick="toggleMapSatelliteMode()" class="btn-main" style="background: #475569; padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;">🛰️ قمر صناعي</button>
-          </div>
+    <div class="card" style="padding: 14px; margin-bottom: 14px; border: 1px solid #0284c7; background: #0f1c30; border-radius: 16px; text-align: right;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-weight: bold; color: #38bdf8; font-size: 0.95rem;">🏨 مقر إقامتك المعتمد:</span>
+        <select id="user-hotel-city" class="auth-input" style="width: auto; padding: 4px 8px; margin: 0; font-size: 0.8rem;" onchange="updatePilgrimHotelView()">
+          <option value="مكة">فندق مكة المكرمة 🕋</option>
+          <option value="المدينة">فندق المدينة المنورة 🕌</option>
+        </select>
+      </div>
+      <div id="hotel-name-display" style="color: white; font-size: 1.1rem; margin: 6px 0; font-weight: bold;">جاري جلب الفندق من السيرفر...</div>
+      
+      <!-- عداد المسافة والوقت التقديري مشياً -->
+      <div style="display: flex; justify-content: space-around; background: rgba(255,255,255,0.06); padding: 8px; border-radius: 8px; margin: 10px 0; font-size: 0.85rem; text-align: center;">
+        <div style="color: #38bdf8;">📏 المسافة: <strong id="live-distance-val">--</strong></div>
+        <div style="color: #34d399;">⏱️ الوقت مشياً: <strong id="live-walk-time">--</strong></div>
+      </div>
 
-          <!-- فندق مكة -->
-          <div style="background: rgba(2, 132, 199, 0.12); border: 1px solid #0284c7; border-radius: 8px; padding: 8px; margin-bottom: 8px;">
-            <span style="color: #38bdf8; font-weight: bold; font-size: 0.82rem;">🕋 فندق مكة المكرمة:</span>
-            <input type="text" id="hotel-makkah-name" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 6px 0;" placeholder="اسم فندق مكة" />
-            <div style="display: flex; gap: 6px;">
-              <input type="text" id="hotel-makkah-link" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 0; flex: 1;" placeholder="الصق رابط Google Maps لفندق مكة" />
-              <button type="button" onclick="processHotelLink('makkah')" class="btn-main" style="background: #0284c7; padding: 6px 10px; font-size: 0.8rem;">تثبيت مكة</button>
-            </div>
-          </div>
+      <button onclick="navigateHotel()" class="btn-main" style="background: #0284c7; width: 100%; padding: 12px; border-radius: 12px; font-size: 0.95rem;">🧭 خذني إلى فندقي (خرائط Google)</button>
+    </div>
 
-          <!-- فندق المدينة -->
-          <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid #10b981; border-radius: 8px; padding: 8px;">
-            <span style="color: #34d399; font-weight: bold; font-size: 0.82rem;">🕌 فندق المدينة المنورة:</span>
-            <input type="text" id="hotel-madinah-name" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 6px 0;" placeholder="اسم فندق المدينة" />
-            <div style="display: flex; gap: 6px;">
-              <input type="text" id="hotel-madinah-link" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 0; flex: 1;" placeholder="الصق رابط Google Maps لفندق المدينة" />
-              <button type="button" onclick="processHotelLink('madinah')" class="btn-main" style="background: #10b981; padding: 6px 10px; font-size: 0.8rem;">تثبيت المدينة</button>
-            </div>
+    <div class="sos-container">
+      <h2 style="color: #fca5a5; font-size: 1.25rem; font-weight: 900; margin-bottom: 6px;">هل ضعت أو تحتاج مساعدة عاجلة؟</h2>
+      <p style="font-size: 0.95rem; color: #e2e8f0; margin-bottom: 18px; line-height: 1.6;">اضغط على الزر الأحمر.. سيحدد الهاتف موقعك ويرسله مباشرة للوكالة عبر الواتساب لنجدتك في الحال.</p>
+      <button onclick="sendSOS()" class="sos-btn">
+        <span style="font-size: 1.8rem;">🚨 اضغط هنا لطلب النجدة</span>
+        <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.95;">إرسال موقعي الحالي لواتساب الوكالة فوراً</span>
+      </button>
+      <div id="sos-status" style="font-size: 0.88rem; color: #34d399; font-weight: bold; margin-top: 12px; min-height: 22px;"></div>
+      <div style="margin-top: 10px; font-size: 0.78rem; color: #94a3b8;">
+        رقم طوارئ الوكالة: <strong id="sos-display-phone" style="color: #6ee7b7; direction: ltr; display: inline-block;">+213795353719</strong>
+      </div>
+    </div>
+  </main>
+
+  <!-- 2. شاشة تتبع المعتمرين والأفواج (خاصة بالمرشد للإدارة الكاملة) -->
+  <main id="view-map" class="view">
+    <div class="card" style="text-align: right; padding: 14px;">
+      
+      <!-- لوحة المرشد: ضبط الفندقين المستقلين بروابط جوجل والساتلايت -->
+      <div style="background: #0f233a; border: 1px solid #0284c7; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h4 style="color: #38bdf8; margin: 0; font-size: 0.95rem;">🏨 ضبط مقرات الإقامة المستقلة:</h4>
+          <button type="button" onclick="toggleMapSatelliteMode()" class="btn-main" style="background: #475569; padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; flex: 0 0 auto;">🛰️ قمر صناعي</button>
+        </div>
+
+        <!-- فندق مكة -->
+        <div style="background: rgba(2, 132, 199, 0.12); border: 1px solid #0284c7; border-radius: 8px; padding: 8px; margin-bottom: 8px;">
+          <span style="color: #38bdf8; font-weight: bold; font-size: 0.82rem;">🕋 فندق مكة المكرمة:</span>
+          <input type="text" id="hotel-makkah-name" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 6px 0;" placeholder="اسم فندق مكة" />
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="hotel-makkah-link" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 0; flex: 1;" placeholder="الصق رابط Google Maps لفندق مكة" />
+            <button type="button" onclick="processHotelLink('مكة')" class="btn-main" style="background: #0284c7; padding: 6px 10px; font-size: 0.8rem; flex: 0 0 auto;">تثبيت مكة</button>
           </div>
         </div>
+
+        <!-- فندق المدينة -->
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid #10b981; border-radius: 8px; padding: 8px;">
+          <span style="color: #34d399; font-weight: bold; font-size: 0.82rem;">🕌 فندق المدينة المنورة:</span>
+          <input type="text" id="hotel-madinah-name" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 6px 0;" placeholder="اسم فندق المدينة" />
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="hotel-madinah-link" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 0; flex: 1;" placeholder="الصق رابط Google Maps لفندق المدينة" />
+            <button type="button" onclick="processHotelLink('المدينة')" class="btn-main" style="background: #10b981; padding: 6px 10px; font-size: 0.8rem; flex: 0 0 auto;">تثبيت المدينة</button>
+          </div>
+        </div>
+      </div>
 
       <!-- إرسال تعميم فوري لجميع المعتمرين -->
       <div style="background: #1e1b4b; border: 1px solid #6366f1; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
@@ -203,7 +238,10 @@
       <div class="group-manager">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <span style="font-size: 0.85rem; font-weight: bold; color: #f1f5f9;">📁 تصفية وإدارة الأفواج:</span>
-          <button onclick="createNewGroup()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #064e3b; color: #a7f3d0;">+ إنشاء فوج جديد</button>
+          <div style="display:flex; gap:6px;">
+            <button onclick="generateGroupQRModal()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #0284c7; color: #fff;">📲 ملصق QR للفوج</button>
+            <button onclick="createNewGroup()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #064e3b; color: #a7f3d0;">+ إنشاء فوج</button>
+          </div>
         </div>
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
           <select id="filter-group-select" class="auth-input" style="padding: 6px; margin: 0; flex: 1;" onchange="renderPilgrimMarkers()">
@@ -222,7 +260,7 @@
     </div>
   </main>
 
-  <!-- 3. شاشة الطواف كاملة -->
+  <!-- 3. شاشة الطواف -->
   <main id="view-tawaf" class="view">
     <div class="card">
       <div style="font-size: 0.85rem; color: #94a3b8;" id="tawaf-progress">الشوط 1 من 7</div>
@@ -255,7 +293,7 @@
     </div>
   </main>
 
-  <!-- 4. شاشة السعي كاملة -->
+  <!-- 4. شاشة السعي -->
   <main id="view-saey" class="view">
     <div class="card">
       <div style="font-size: 0.85rem; color: #94a3b8;" id="saey-progress">الشوط 1 من 7</div>
@@ -343,7 +381,7 @@
     <div id="lessons-list"></div>
   </main>
 
-  <!-- 7. موسوعة المزارات والقصص التاريخية الكبرى كاملة -->
+  <!-- 7. موسوعة المزارات الكبرى كاملة -->
   <main id="view-ziyarat" class="view">
     <div id="add-place-box" style="display:none; background:#131c31; border:1px solid #10b981; border-radius:12px; padding:12px; margin-bottom:14px; text-align:right;">
       <div style="font-size:0.85rem; font-weight:bold; color:#10b981; margin-bottom:6px;">➕ إضافة قصة أو مزار جديد:</div>
@@ -367,6 +405,7 @@
 
   <script src="duas.js"></script>
   <script src="content.js"></script>
+
   <script>
     const DEFAULT_AGENCY_PHONE = "213795353719";
     const GUIDE_SECRET_PIN = "7788";
@@ -377,20 +416,217 @@
     let mapMarkers = [];
     let serverGroups = ["الفوج 1 (الرئيسي)", "فوج 14 نوفمبر"];
     let serverPilgrims = [];
+    
+    // بيانات الفندقين المستقلين
     let serverHotels = {
-      "مكة": { name: "فندق الإقامة - مكة", lat: 21.4225, lng: 39.8262 },
-      "المدينة": { name: "فندق الإقامة - المدينة", lat: 24.4672, lng: 39.6108 }
+      "مكة": {
+        name: localStorage.getItem('om_h_makkah_name') || "فندق مكة المكرمة",
+        lat: parseFloat(localStorage.getItem('om_h_makkah_lat')) || 21.4225,
+        lng: parseFloat(localStorage.getItem('om_h_makkah_lng')) || 39.8262
+      },
+      "المدينة": {
+        name: localStorage.getItem('om_h_madinah_name') || "فندق المدينة المنورة",
+        lat: parseFloat(localStorage.getItem('om_h_madinah_lat')) || 24.4672,
+        lng: parseFloat(localStorage.getItem('om_h_madinah_lng')) || 39.6108
+      }
     };
+
+    let userCurrentLat = 21.4225;
+    let userCurrentLng = 39.8262;
 
     let autoTrackingInterval = null;
     let syncInterval = null;
+    let satTileLayerInstance = null;
+    let isSatelliteModeOn = false;
+    let makkahMapPin = null;
+    let madinahMapPin = null;
 
     function getAgencyPhone() {
       const stored = localStorage.getItem('omrah_agency_phone');
       return (stored && stored.trim()) ? stored.trim() : DEFAULT_AGENCY_PHONE;
     }
 
-    // مزامنة السيرفر المستقرة
+    // 1. التبديل لنمط الساتلايت في الخريطة
+    function toggleMapSatelliteMode() {
+      if (!mapInstance) return;
+      if (!satTileLayerInstance) {
+        satTileLayerInstance = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 19,
+          attribution: 'Esri Satellite'
+        });
+      }
+      if (!isSatelliteModeOn) {
+        mapInstance.addLayer(satTileLayerInstance);
+        isSatelliteModeOn = true;
+      } else {
+        mapInstance.removeLayer(satTileLayerInstance);
+        isSatelliteModeOn = false;
+      }
+    }
+
+    // 2. معالجة رابط خرائط Google واستخراج الإحداثيات وتثبيت الفندق
+    function processHotelLink(city) {
+      const isMakkah = (city === 'مكة');
+      const linkBox = document.getElementById(isMakkah ? 'hotel-makkah-link' : 'hotel-madinah-link');
+      const nameBox = document.getElementById(isMakkah ? 'hotel-makkah-name' : 'hotel-madinah-name');
+      
+      const rawLink = linkBox ? linkBox.value.trim() : '';
+      let nameVal = nameBox ? nameBox.value.trim() : '';
+      let lat = null, lng = null;
+
+      if (rawLink) {
+        const atMatch = rawLink.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (atMatch) {
+          lat = parseFloat(atMatch[1]);
+          lng = parseFloat(atMatch[2]);
+        } else {
+          const qMatch = rawLink.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+          if (qMatch) {
+            lat = parseFloat(qMatch[1]);
+            lng = parseFloat(qMatch[2]);
+          }
+        }
+
+        if (!nameVal) {
+          const pMatch = rawLink.match(/\/place\/([^\/@?]+)/);
+          if (pMatch && pMatch[1]) {
+            nameVal = decodeURIComponent(pMatch[1]).replace(/\+/g, ' ');
+          }
+        }
+      }
+
+      if (!nameVal) nameVal = (isMakkah ? 'فندق مكة المكرمة' : 'فندق المدينة المنورة');
+
+      if (lat && lng) {
+        serverHotels[city].lat = lat;
+        serverHotels[city].lng = lng;
+        localStorage.setItem(isMakkah ? 'om_h_makkah_lat' : 'om_h_madinah_lat', lat);
+        localStorage.setItem(isMakkah ? 'om_h_makkah_lng' : 'om_h_madinah_lng', lng);
+      }
+
+      serverHotels[city].name = nameVal;
+      localStorage.setItem(isMakkah ? 'om_h_makkah_name' : 'om_h_madinah_name', nameVal);
+      if (nameBox) nameBox.value = nameVal;
+
+      // إرسال التحديث للسيرفر لتعميمه
+      fetch(`${VPS_API}/api/hotels/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ city, name: nameVal, lat: serverHotels[city].lat, lng: serverHotels[city].lng })
+      }).catch(err => {});
+
+      renderMapHotelPins();
+      updatePilgrimHotelView();
+
+      if (mapInstance && serverHotels[city].lat && serverHotels[city].lng) {
+        mapInstance.flyTo([serverHotels[city].lat, serverHotels[city].lng], 16);
+      }
+
+      alert(`✅ تم تثبيت مقر إقامة ${city} بنجاح: (${nameVal})`);
+    }
+
+    function renderMapHotelPins() {
+      if (!mapInstance) return;
+      if (makkahMapPin) mapInstance.removeLayer(makkahMapPin);
+      if (madinahMapPin) mapInstance.removeLayer(madinahMapPin);
+
+      const mIcon = L.divIcon({
+        className: 'm-pin',
+        html: '<div style="background:#0284c7; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">🕋</div>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+
+      const dIcon = L.divIcon({
+        className: 'm-pin',
+        html: '<div style="background:#10b981; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">🕌</div>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+
+      if (serverHotels["مكة"] && serverHotels["مكة"].lat) {
+        makkahMapPin = L.marker([serverHotels["مكة"].lat, serverHotels["مكة"].lng], { icon: mIcon }).addTo(mapInstance)
+          .bindPopup(`<b>${serverHotels["مكة"].name}</b><br>مقر مكة المكرمة`);
+      }
+
+      if (serverHotels["المدينة"] && serverHotels["المدينة"].lat) {
+        madinahMapPin = L.marker([serverHotels["المدينة"].lat, serverHotels["المدينة"].lng], { icon: dIcon }).addTo(mapInstance)
+          .bindPopup(`<b>${serverHotels["المدينة"].name}</b><br>مقر المدينة المنورة`);
+      }
+    }
+
+    // 3. تحديث واجهة الفندق عند المعتمر وحساب المسافة ووقت المشي
+    function updatePilgrimHotelView() {
+      const citySelect = document.getElementById('user-hotel-city');
+      const city = citySelect ? citySelect.value : 'مكة';
+      const hotel = serverHotels[city] || serverHotels['مكة'];
+      const disp = document.getElementById('hotel-name-display');
+      if (disp && hotel) disp.innerText = `${hotel.name}`;
+
+      if (hotel && hotel.lat && hotel.lng) {
+        const dist = calculateDistance(userCurrentLat, userCurrentLng, hotel.lat, hotel.lng);
+        const distElem = document.getElementById('live-distance-val');
+        const timeElem = document.getElementById('live-walk-time');
+
+        if (distElem) {
+          distElem.innerText = (dist < 1000) ? `${dist} م` : `${(dist / 1000).toFixed(1)} كم`;
+        }
+
+        if (timeElem) {
+          const mins = Math.max(1, Math.round(dist / 75)); // 75 متر/دقيقة
+          if (mins < 60) {
+            timeElem.innerText = `${mins} دقيقة`;
+          } else {
+            timeElem.innerText = `${Math.floor(mins / 60)} س و ${mins % 60} د`;
+          }
+        }
+      }
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    }
+
+    function navigateHotel() {
+      const citySelect = document.getElementById('user-hotel-city');
+      const city = citySelect ? citySelect.value : 'مكة';
+      const hotel = serverHotels[city] || serverHotels['مكة'];
+      if (hotel && hotel.lat && hotel.lng) {
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${hotel.lat},${hotel.lng}&travelmode=walking`, '_system');
+      } else {
+        alert("لم يقم المرشد بضبط موقع الفندق بعد");
+      }
+    }
+
+    // 4. نغمة واهتزاز التعاميم العاجلة
+    function playBroadcastAlert() {
+      try {
+        if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 400]);
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+          osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.25, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.5);
+        }
+      } catch (e) {}
+    }
+
+    // 5. مزامنة السيرفر
     function syncWithServer() {
       fetch(`${VPS_API}/api/sync`)
         .then(res => res.json())
@@ -404,8 +640,10 @@
             if (currentUser && currentUser.role === 'guide') renderPilgrimMarkers();
           }
           if (data.hotels) {
-            serverHotels = data.hotels;
-            updateUserHotelView();
+            serverHotels["مكة"] = Object.assign(serverHotels["مكة"], data.hotels["مكة"] || {});
+            serverHotels["المدينة"] = Object.assign(serverHotels["المدينة"], data.hotels["المدينة"] || {});
+            updatePilgrimHotelView();
+            renderMapHotelPins();
           }
           if (data.broadcasts && data.broadcasts.length > 0) {
             const b = data.broadcasts[0];
@@ -413,133 +651,26 @@
             const msgFull = `${b.text} (${b.time})`;
             document.getElementById('broadcast-text').innerText = msgFull;
 
-            // إذا أغلقه المستخدم لا يظهر نهائياً
             if (localStorage.getItem('omrah_dismissed_broadcast_val') === msgFull) {
-                banner.style.display = 'none';
+              banner.style.display = 'none';
             } else {
-                banner.style.display = 'block';
-                if (!window.lastAlertedBroadcast || window.lastAlertedBroadcast !== msgFull) {
-                    window.lastAlertedBroadcast = msgFull;
-                    playBroadcastAlert();
-                }
-            }
-
-            // حفظ تلقائي في أرشيف التعميمات
-            let hist = [];
-            try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]'); } catch(e){}
-            if (!hist.some(x => x.text === b.text && x.time === b.time)) {
-                const now = new Date();
-                hist.unshift({ text: b.text, time: b.time, date: now.toLocaleDateString('ar-DZ') });
-                if (hist.length > 50) hist.pop();
-                localStorage.setItem('omrah_broadcast_archive_data', JSON.stringify(hist));
+              banner.style.display = 'block';
+              if (!window.lastAlertedBroadcast || window.lastAlertedBroadcast !== msgFull) {
+                window.lastAlertedBroadcast = msgFull;
+                playBroadcastAlert();
+              }
             }
           }
         })
-        .catch(err => console.log('VPS Sync error:', err));
+        .catch(err => console.log('Sync err:', err));
     }
 
-    // إغلاق التعميم نهائياً
     function dismissCurrentBroadcast() {
       const banner = document.getElementById('broadcast-banner');
       const textEl = document.getElementById('broadcast-text');
       if (banner && textEl) {
         localStorage.setItem('omrah_dismissed_broadcast_val', textEl.innerText.trim());
         banner.style.display = 'none';
-      }
-    }
-
-    // عرض الفندق للمعتمر
-    function updateUserHotelView() {
-      const citySelect = document.getElementById('user-hotel-city');
-      const city = citySelect ? citySelect.value : 'مكة';
-      const hotel = serverHotels[city] || serverHotels['مكة'];
-      const disp = document.getElementById('hotel-name-display');
-      if (disp && hotel) disp.innerText = `${hotel.name} (${city})`;
-    }
-
-    // توجيه المعتمر للفندق الحقيقي
-    function navigateHotel() {
-      const citySelect = document.getElementById('user-hotel-city');
-      const city = citySelect ? citySelect.value : 'مكة';
-      const hotel = serverHotels[city] || serverHotels['مكة'];
-      
-      if (hotel && hotel.lat && hotel.lng) {
-        if (mapInstance) {
-          const mapEl = document.getElementById('map');
-          if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
-          mapInstance.setView([hotel.lat, hotel.lng], 18);
-          if (window.userHotelMarker) mapInstance.removeLayer(window.userHotelMarker);
-          window.userHotelMarker = L.marker([hotel.lat, hotel.lng]).addTo(mapInstance).bindPopup(`<b>${hotel.name}</b>`).openPopup();
-        }
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${hotel.lat},${hotel.lng}&travelmode=walking`, '_system');
-      } else {
-        alert("لم يقم المرشد بضبط موقع الفندق بعد");
-      }
-    }
-
-    // تحديد الفندق باللمس على الخريطة للمرشد
-    window.pickHotelOnMap = function() {
-      if (!mapInstance) {
-        alert('يرجى فتح الخريطة أولاً');
-        return;
-      }
-      const mapEl = document.getElementById('map');
-      if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
-
-      let toast = document.getElementById('hotel-pick-toast');
-      if (toast) toast.remove();
-      toast = document.createElement('div');
-      toast.id = 'hotel-pick-toast';
-      toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.5); pointer-events:none;';
-      toast.innerHTML = '👆 المس الآن موقع الفندق على الخريطة لتثبيته';
-      document.body.appendChild(toast);
-      setTimeout(() => { if (toast) toast.remove(); }, 5000);
-
-      mapInstance.once('click', function(e) {
-        if (toast) toast.remove();
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-        const citySel = document.getElementById('guide-hotel-city');
-        const city = citySel ? citySel.value : 'مكة';
-        const nameInp = document.getElementById('guide-hotel-name');
-        
-        const finalName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : ('فندق الإقامة - ' + city);
-        if (nameInp) nameInp.value = finalName;
-
-        if (window.guideHotelMarker) mapInstance.removeLayer(window.guideHotelMarker);
-        window.guideHotelMarker = L.marker([lat, lng], {
-          icon: L.divIcon({
-            className: 'hotel-pin',
-            html: '<div style="background:#ef4444; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.6);">🏨</div>',
-            iconSize: [34, 34],
-            iconAnchor: [17, 34]
-          })
-        }).addTo(mapInstance).bindPopup(`<b>${finalName}</b><br>تم تثبيت الموقع`).openPopup();
-
-        serverHotels[city] = { name: finalName, lat: lat, lng: lng };
-        localStorage.setItem('omrah_guide_hotels', JSON.stringify(serverHotels));
-
-        fetch(`${VPS_API}/api/hotels/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ city, name: finalName, lat, lng })
-        }).catch(err => {});
-
-        alert(`✅ تم تثبيت موقع ${finalName} بنجاح وترسيمه لجميع المعتمرين!`);
-      });
-    };
-
-    function saveManualHotel() {
-      const city = document.getElementById('guide-hotel-city').value;
-      const name = document.getElementById('guide-hotel-name').value.trim();
-      if (!name) return alert("أدخل اسم الفندق أولاً");
-      if (serverHotels[city]) {
-        serverHotels[city].name = name;
-        fetch(`${VPS_API}/api/hotels/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ city, name, lat: serverHotels[city].lat, lng: serverHotels[city].lng })
-        }).then(() => alert(`تم تحديث اسم فندق ${city} إلى (${name})`));
       }
     }
 
@@ -552,47 +683,98 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, sender: 'مرشد الفوج' })
       }).then(() => {
-        alert("تم إرسال التعميم لجميع المعتمرين بنجاح!");
+        alert("تم إرسال التعميم بنجاح!");
         input.value = '';
         syncWithServer();
       });
     }
 
-    // أرشيف التعميمات
-    window.openOmrahArchiveModal = function() {
-      let old = document.getElementById('archive-modal-view');
+    // 6. توليد ملصق QR للفوج
+    function generateGroupQRModal() {
+      const select = document.getElementById('filter-group-select');
+      const grp = (select && select.value !== 'all') ? select.value : 'الفوج 1 (الرئيسي)';
+      const qrData = 'OMRAH_GROUP:' + encodeURIComponent(grp);
+      const qrImgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + qrData + '&margin=10';
+
+      const old = document.getElementById('group-qr-modal');
       if (old) old.remove();
 
-      let hist = [];
-      try { hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]'); } catch(e){}
-      let items = '<div style="color:#94a3b8; text-align:center; padding:15px;">لا توجد تعميمات سابقة مسجلة</div>';
-      if (hist.length > 0) {
-        items = hist.map(h => `
-          <div style="background:#0f172a; border-right:3px solid #ef4444; padding:8px 10px; border-radius:6px; margin-bottom:8px;">
-            <div style="display:flex; justify-content:space-between; font-size:11px; color:#94a3b8; margin-bottom:4px;">
-              <span>📅 ${h.date || ''}</span>
-              <span>⏱ ${h.time || ''}</span>
-            </div>
-            <div style="color:#fff; font-size:13px; font-weight:bold; line-height:1.4;">${h.text}</div>
-          </div>
-        `).join('');
-      }
-
       const modal = document.createElement('div');
-      modal.id = 'archive-modal-view';
-      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:16px;';
+      modal.id = 'group-qr-modal';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;';
       modal.innerHTML = `
-        <div style="background:#1e293b; border-radius:10px; width:100%; max-width:460px; max-height:80vh; display:flex; flex-direction:column; border:1px solid #475569;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid #334155;">
-            <h4 style="color:#fff; margin:0; font-size:14px;">📢 أرشيف تعميمات المرشد</h4>
-            <button onclick="document.getElementById('archive-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:4px; padding:3px 8px; cursor:pointer;">✕</button>
+        <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:20px; width:100%; max-width:340px; text-align:center;">
+          <h3 style="color:#fff; margin-bottom:6px; font-size:1.1rem;">📲 ملصق QR لـ (${grp})</h3>
+          <p style="color:#94a3b8; font-size:0.75rem; margin-bottom:12px;">احفظ الصورة أو اطبعها وعلقها بالحافلة؛ يمسحها المعتمر مباشرة من تطبيقه.</p>
+          <div style="background:#fff; padding:10px; border-radius:12px; display:inline-block; margin-bottom:14px;">
+            <img src="${qrImgUrl}" style="width:200px; height:200px; display:block; border-radius:8px;" />
           </div>
-          <div style="padding:12px; overflow-y:auto; flex:1;">${items}</div>
+          <button type="button" onclick="document.getElementById('group-qr-modal').remove()" class="btn-sub" style="width:100%;">إغلاق</button>
         </div>
       `;
       document.body.appendChild(modal);
-    };
+    }
 
+    // 7. قارئ QR من المعرض للمعتمر
+    function openQrPickerModal() {
+      const old = document.getElementById('qr-picker-modal');
+      if (old) old.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'qr-picker-modal';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;';
+      modal.innerHTML = `
+        <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:18px; width:100%; max-width:320px; text-align:center;">
+          <h3 style="color:#fff; margin-bottom:12px; font-size:1rem;">📷 مسح رمز الفوج</h3>
+          <div id="qr-scan-box-hidden" style="display:none;"></div>
+          <button type="button" onclick="document.getElementById('pick-qr-input-file').click()" class="btn-main" style="background:#0d9488; padding:10px; width:100%; font-size:0.9rem; margin-bottom:8px;">🖼️ اختيار صورة الـ QR من المعرض</button>
+          <input type="file" id="pick-qr-input-file" accept="image/*" style="display:none;" onchange="readQrImageFromStorage(this)" />
+          <button type="button" onclick="document.getElementById('qr-picker-modal').remove()" class="btn-sub" style="width:100%;">إلغاء</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function readQrImageFromStorage(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      if (typeof Html5Qrcode === 'undefined') {
+        alert('جاري تهيئة قارئ الصور...');
+        return;
+      }
+      const scanner = new Html5Qrcode("qr-scan-box-hidden");
+      scanner.scanFile(file, true)
+        .then(decodedText => {
+          let grp = decodedText.trim();
+          if (grp.indexOf('OMRAH_GROUP:') === 0) grp = decodeURIComponent(grp.replace('OMRAH_GROUP:', ''));
+          else if (grp.indexOf('group=') !== -1) {
+            const m = grp.match(/[?&]group=([^&]+)/);
+            if (m && m[1]) grp = decodeURIComponent(m[1]);
+          }
+
+          const select = document.getElementById('user-group-select');
+          if (select) {
+            let exists = false;
+            for (let i = 0; i < select.options.length; i++) {
+              if (select.options[i].value === grp) { select.selectedIndex = i; exists = true; break; }
+            }
+            if (!exists) {
+              const opt = document.createElement('option');
+              opt.value = grp;
+              opt.innerText = grp;
+              select.appendChild(opt);
+              select.value = grp;
+            }
+          }
+          const modal = document.getElementById('qr-picker-modal');
+          if (modal) modal.remove();
+          alert('✅ تم تحديد الفوج بنجاح: ' + grp);
+        })
+        .catch(() => alert('لم يتم التعرف على الرمز، يرجى اختيار لقطة واضحة لصورة الـ QR.'))
+        .finally(() => { input.value = ''; });
+    }
+
+    // 8. دورة حياة المستخدم والدخول
     async function getBatteryLevel() {
       try {
         if ('getBattery' in navigator) {
@@ -610,16 +792,18 @@
         name: currentUser.name,
         phone: currentUser.phone || 'غير مسجل',
         group: currentUser.group || 'الفوج 1 (الرئيسي)',
-        lat: 21.4225,
-        lng: 39.8262,
+        lat: userCurrentLat,
+        lng: userCurrentLng,
         battery: bat
       };
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           pos => {
-            payload.lat = pos.coords.latitude;
-            payload.lng = pos.coords.longitude;
+            userCurrentLat = pos.coords.latitude;
+            userCurrentLng = pos.coords.longitude;
+            payload.lat = userCurrentLat;
+            payload.lng = userCurrentLng;
             postToServer(payload);
           },
           err => { postToServer(payload); },
@@ -638,7 +822,7 @@
       })
       .then(res => res.json())
       .then(data => {
-        updateHotelDistance(payload.lat, payload.lng);
+        updatePilgrimHotelView();
         const statusElem = document.getElementById('auto-gps-text');
         if (statusElem) {
           const d = new Date();
@@ -788,6 +972,10 @@
 
       currentUser = { name, phone, role, group };
       localStorage.setItem('omrah_user', JSON.stringify(currentUser));
+      localStorage.setItem('omrah_user_phone', phone);
+      localStorage.setItem('omrah_user_name', name);
+      localStorage.setItem('omrah_user_group', group);
+
       if (role === 'pilgrim') sendLiveLocation();
       applyRoleUI();
     }
@@ -855,7 +1043,7 @@
           <button onclick="switchTab('fiqh')" id="tab-fiqh">كيفية العمرة</button>
         `;
         switchTab('sos');
-        updateUserHotelView();
+        updatePilgrimHotelView();
         syncWithServer();
         if (!syncInterval) syncInterval = setInterval(syncWithServer, 5000);
       }
@@ -867,6 +1055,7 @@
           mapInstance = L.map('map').setView([21.4225, 39.8262], 16);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
         }
+        renderMapHotelPins();
         renderPilgrimMarkers();
       }, 300);
     }
@@ -901,48 +1090,15 @@
       }
     }
 
-    // ------------------------------------
-    // أدعية الطواف والسعي المكتملة والموسعة
-    // ------------------------------------
+    // الطواف والسعي
     const allTawafDuas = (typeof tawafDuas !== 'undefined' && tawafDuas.length > 0) ? tawafDuas : [
       "بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ، اللَّهُمَّ إِيمَاناً بِكَ وَتَصْدِيقاً بِكِتَابِكَ وَوَفَاءً بِعَهْدِكَ وَاتِّبَاعاً لِسُنَّةِ نَبِيِّكَ مُحَمَّدٍ ﷺ.",
-      "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ.",
-      "اللَّهُمَّ اغْفِرْ وَارْحَمْ، وَاعْفُ عَمَّا تَعْلَمْ، وَأَنْتَ الأَعَزُّ الأَكْرَمُ، اللَّهُمَّ اهْدِنِي لِأَحْسَنِ الأَعْمَالِ والأَخْلاقِ.",
-      "اللَّهُمَّ إِنِّي أَسْأَلُكَ العَفْوَ وَالعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي.",
-      "اللَّهُمَّ اسْتُرْ عَوْرَاتِي وَآمِنْ رَوْعَاتِي، وَاحْفَظْنِي مِنْ بَيْنِ يَدَيَّ وَمِنْ خَلْفِي وَعَنْ يَمِينِي وَعَنْ شِمَالِي.",
-      "سُبْحَانَ اللَّهِ، وَالحَمْدُ لِلَّهِ، وَلا إِلَهَ إِلَّا اللَّهُ، وَاللَّهُ أَكْبَرُ، وَلا حَوْلَ وَلا قُوَّةَ إِلَّا بِاللَّهِ العَلِيِّ العَظِيمِ.",
-      "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الشَّكِّ وَالشِّرْكِ وَالشِّقَاقِ وَالنِّفَاقِ وَسُوءِ الأَخْلاقِ.",
-      "اللَّهُمَّ حَبِّبْ إِلَيْنَا الإِيمَانَ وَزَيِّنْهُ فِي قُلُوبِنَا، وَكَرِّهْ إِلَيْنَا الكُفْرَ وَالفُسُوقَ وَالعِصْيَانَ.",
-      "اللَّهُمَّ آتِ نُفُوسَنَا تَقْوَاهَا، وَزَكِّهَا أَنْتَ خَيْرُ مَنْ زَكَّاهَا، أَنْتَ وَلِيُّهَا وَمَوْلاهَا.",
-      "اللَّهُمَّ اجْعَلْهُ حَجّاً مَبْرُوراً، وَعُمْرَةً مَقْبُولَةً، وَذَنْباً مَغْفُوراً، وَسَعْياً مَشْكُوراً، وَتِجَارَةً لَنْ تَبُورَ.",
-      "يَا وَلِيَّ الإِسْلامِ وَأَهْلِهِ ثَبِّتْنِي عَلَيْهِ حَتَّى أَلْقَاكَ.",
-      "اللَّهُمَّ إِنِّي أَسْأَلُكَ مُوجِبَاتِ رَحْمَتِكَ، وَعَزَائِمَ مَغْفِرَتِكَ، وَالغَنِيمَةَ مِنْ كُلِّ بِرٍّ، وَالسَّلامَةَ مِنْ كُلِّ إِثْمٍ.",
-      "اللَّهُمَّ أَصْلِحْ لِي دِينِي الَّذِي هُوَ عِصْمَةُ أَمْرِي، وَأَصْلِحْ لِي دُنْيَايَ الَّتِي فِيهَا مَعَاشِي.",
-      "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ زَوَالِ نِعْمَتِكَ، وَتَحَوُّلِ عَافِيَتِكَ، وَفُجَاءَةِ نِقْمَتِكَ، وَجَمِيعِ سَخَطِكَ.",
-      "اللَّهُمَّ إِنِّي ظَلَمْتُ نَفْسِي ظُلْماً كَثِيراً، وَلا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ، فَاغْفِرْ لِي مَغْفِرَةً مِنْ عِنْدِكَ وَارْحَمْنِي.",
-      "اللَّهُمَّ اكْفِنِي بِحَلالِكَ عَنْ حَرَامِكَ، وَأَغْنِنِي بِفَضْلِكَ عَمَّنْ سِوَاكَ.",
-      "اللَّهُمَّ إِنِّي أَسْأَلُكَ الهُدَى وَالتُّقَى وَالعَفَافَ وَالغِنَى.",
-      "اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ.",
-      "اللَّهُمَّ يَا مُقَلِّبَ القُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ.",
-      "اللَّهُمَّ إِنِّي أَسْأَلُكَ رِضَاكَ وَالجَنَّةَ، وَأَعُوذُ بِكَ مِنْ سَخَطِكَ وَالنَّارِ."
+      "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ."
     ];
 
     const allSaiDuas = (typeof saiDuas !== 'undefined' && saiDuas.length > 0) ? saiDuas : [
-      "أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ: إِنَّ الصَّفَا وَالمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ.. لا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لا شَرِيكَ لَهُ، لَهُ المُلْكُ وَلَهُ الحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ.",
-      "لا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الأَحْزَابَ وَحْدَهُ.",
-      "رَبِّ اغْفِرْ وَارْحَمْ، وَتَجَاوَزْ عَمَّا تَعْلَمْ، إِنَّكَ أَنْتَ الأَعَزُّ الأَكْرَمُ.",
-      "اللَّهُمَّ اعْصِمْنَا بِدِينِكَ، وَطَوَاعِيَتِكَ وَطَوَاعِيَةِ رَسُولِكَ ﷺ، وَجَنِّبْنَا حُدُودَكَ.",
-      "اللَّهُمَّ اجْعَلْنَا نُحِبُّكَ وَنُحِبُّ مَلائِكَتَكَ وَأَنْبِيَاءَكَ وَرُسُلَكَ وَعِبَادَكَ الصَّالِحِينَ.",
-      "اللَّهُمَّ يَسِّرْنَا لِلْيُسْرَى، وَجَنِّبْنَا العُسْرَى، وَاغْفِرْ لَنَا فِي الآخِرَةِ وَالأُولَى.",
-      "اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ خَيْرِ مَا سَأَلَكَ مِنْهُ نَبِيُّكَ مُحَمَّدٌ ﷺ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا اسْتَعَاذَ مِنْهُ نَبِيُّكَ مُحَمَّدٌ ﷺ.",
-      "اللَّهُمَّ فَرِّجْ هَمَّ المَهْمُومِينَ، وَنَفِّسْ كَرْبَ المَكْرُوبِينَ، وَاقْضِ الدَّيْنَ عَنِ المَدِينِينَ، وَاشْفِ مَرْضَانَا وَمَرْضَى المُسْلِمِينَ.",
-      "اللَّهُمَّ بَارِكْ لَنَا فِي أَوْقَاتِنَا، وَأَعْمَارِنَا، وَذُرِّيَّاتِنَا، وَأَمْوَالِنَا، وَاجْعَلْنَا مُبَارَكِينَ أَيْنَمَا كُنَّا.",
-      "اللَّهُمَّ اخْتِمْ بِالصَّالِحَاتِ أَعْمَالَنَا، وَبِالسَّعَادَةِ آجَالَنَا، وَبَلِّغْنَا فِيمَا يُرْضِيكَ آمَالَنَا.",
-      "اللَّهُمَّ تَقَبَّلْ سَعْيَنَا، وَارْحَمْ ضَعْفَنَا، وَاجْبُرْ كَسْرَنَا، وَتَوَلَّ أَمْرَنَا.",
-      "اللَّهُمَّ لا تَدَعْ لَنَا ذَنْباً إِلَّا غَفَرْتَهُ، وَلا هَمّاً إِلَّا فَرَّجْتَهُ، وَلا حَاجَةً هِيَ لَكَ رِضىً إِلَّا قَضَيْتَهَا يَا أَرْحَمَ الرَّاحِمِينَ.",
-      "اللَّهُمَّ إِنَّكَ عَفُوٌّ كَرِيمٌ تُحِبُّ العَفْوَ فَاعْفُ عَنَّا.",
-      "اللَّهُمَّ انْصُرْ إِخْوَانَنَا المُسْتَضْعَفِينَ فِي كُلِّ مَكَانٍ، وَكُنْ لَهُمْ عَوْناً وَنَصِيراً.",
-      "اللَّهُمَّ صَلِّ وَسَلِّمْ وَبَارِكْ عَلَى نَبِيِّنَا مُحَمَّدٍ وَعَلَى آلِهِ وَصَحْبِهِ أَجْمَعِينَ."
+      "أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ: إِنَّ الصَّفَا وَالمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ.. لا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لا شَرِيكَ لَهُ.",
+      "رَبِّ اغْفِرْ وَارْحَمْ، وَتَجَاوَزْ عَمَّا تَعْلَمْ، إِنَّكَ أَنْتَ الأَعَزُّ الأَكْرَمُ."
     ];
 
     let currentTawaf = 1;
@@ -987,9 +1143,7 @@
     function nextSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx + 1) % allSaiDuas.length; renderSaeyDua(); }
     function prevSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx - 1 + allSaiDuas.length) % allSaiDuas.length; renderSaeyDua(); }
 
-    // ------------------------------------
-    // حقيبة الدروس والمزارات مع الحذف والإضافة
-    // ------------------------------------
+    // حقيبة الدروس والمزارات
     let activeLessons = (typeof lessonsData !== 'undefined') ? lessonsData : [];
     let activePlaces = (typeof ziyaratData !== 'undefined') ? ziyaratData : [];
 
@@ -1081,321 +1235,33 @@
       }
     }
 
-    // بدء التشغيل
-    applyRoleUI();
-    updateTawafUI();
-    updateSaeyUI();
-    renderLessons('all');
-    renderPlaces('all');
-  
-
-    // ==========================================
-    // المرحلة 1: التنبيه الصوتي والاهتزاز وحساب المسافة
-    // ==========================================
-
-    // 1. تشغيل نغمة تنبيه واهتزاز عند وصول تعميم جديد
-    function playBroadcastAlert() {
+    // بدء التشغيل واسترجاع الحساب المحفوظ
+    window.addEventListener('load', function() {
       try {
-        if ('vibrate' in navigator) {
-          navigator.vibrate([200, 100, 200, 100, 400]);
-        }
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (AudioCtx) {
-          const ctx = new AudioCtx();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-          osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
-          gain.gain.setValueAtTime(0.2, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.5);
-        }
-      } catch (e) {
-        console.log('Audio alert error:', e);
-      }
-    }
+        const pInput = document.getElementById('user-phone');
+        const nInput = document.getElementById('user-name');
+        const gSelect = document.getElementById('user-group-select');
 
-    // 2. حساب المسافة المباشرة (معادلة Haversine)
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371e3; // نصف قطر الأرض بالمتر
-      const φ1 = lat1 * Math.PI / 180;
-      const φ2 = lat2 * Math.PI / 180;
-      const Δφ = (lat2 - lat1) * Math.PI / 180;
-      const Δλ = (lon2 - lon1) * Math.PI / 180;
+        const sPhone = localStorage.getItem('omrah_user_phone');
+        const sName = localStorage.getItem('omrah_user_name');
+        const sGroup = localStorage.getItem('omrah_user_group');
 
-      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                Math.cos(φ1) * Math.cos(φ2) *
-                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return Math.round(R * c); // المسافة بالأمتار
-    }
+        if (pInput && sPhone) pInput.value = sPhone;
+        if (nInput && sName) nInput.value = sName;
+        if (gSelect && sGroup) gSelect.value = sGroup;
 
-    // 3. تحديث مسافة الفندق في واجهة المعتمر
-    function updateHotelDistance(userLat, userLng) {
-      const distElem = document.getElementById('hotel-distance-val');
-      if (!distElem) return;
+        const makName = document.getElementById('hotel-makkah-name');
+        const madName = document.getElementById('hotel-madinah-name');
+        if (makName) makName.value = serverHotels["مكة"].name;
+        if (madName) madName.value = serverHotels["المدينة"].name;
+      } catch(e) {}
 
-      const citySelect = document.getElementById('user-hotel-city');
-      const city = citySelect ? citySelect.value : 'مكة';
-      const hotel = serverHotels[city] || serverHotels['مكة'];
-
-      if (!hotel || !hotel.lat || !hotel.lng) {
-        distElem.innerText = 'غير محدد بعد';
-        return;
-      }
-
-      const meters = calculateDistance(userLat, userLng, hotel.lat, hotel.lng);
-      const minutes = Math.max(1, Math.round(meters / 80)); // معدل المشي 80م/دقيقة
-
-      if (meters < 1000) {
-        distElem.innerHTML = `${meters} متر (~${minutes} د مشياً)`;
-      } else {
-        const km = (meters / 1000).toFixed(1);
-        distElem.innerHTML = `${km} كم (~${minutes} د)`;
-      }
-    }
-
-</script>
-
-<script>
-// ==========================================
-// إدارة البيانات والفنادق وحفظ الجلسة
-// ==========================================
-var globalHotels = {
-  makkah: {
-    name: localStorage.getItem('cfg_makkah_name') || 'فندق مكة المكرمة',
-    lat: parseFloat(localStorage.getItem('cfg_makkah_lat')) || 21.4225,
-    lng: parseFloat(localStorage.getItem('cfg_makkah_lng')) || 39.8262
-  },
-  madinah: {
-    name: localStorage.getItem('cfg_madinah_name') || 'فندق المدينة المنورة',
-    lat: parseFloat(localStorage.getItem('cfg_madinah_lat')) || 24.4672,
-    lng: parseFloat(localStorage.getItem('cfg_madinah_lng')) || 39.6111
-  }
-};
-
-var currentPilgrimCity = 'makkah';
-var makkahMarkerObj = null;
-var madinahMarkerObj = null;
-var satTileLayerInstance = null;
-var isSatelliteModeOn = false;
-
-function toggleMapSatelliteMode() {
-  if (typeof map === 'undefined' || !map) return;
-  if (!satTileLayerInstance) {
-    satTileLayerInstance = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      maxZoom: 19,
-      attribution: 'Esri Satellite'
+      applyRoleUI();
+      updateTawafUI();
+      updateSaeyUI();
+      renderLessons('all');
+      renderPlaces('all');
     });
-  }
-  if (!isSatelliteModeOn) {
-    map.addLayer(satTileLayerInstance);
-    isSatelliteModeOn = true;
-  } else {
-    map.removeLayer(satTileLayerInstance);
-    isSatelliteModeOn = false;
-  }
-}
-
-function processHotelLink(city) {
-  var linkBox = document.getElementById(city === 'makkah' ? 'hotel-makkah-link' : 'hotel-madinah-link');
-  var nameBox = document.getElementById(city === 'makkah' ? 'hotel-makkah-name' : 'hotel-madinah-name');
-  
-  var rawLink = linkBox ? linkBox.value.trim() : '';
-  var nameVal = nameBox ? nameBox.value.trim() : '';
-  var lat = null, lng = null;
-
-  if (rawLink) {
-    var atMatch = rawLink.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-    if (atMatch) {
-      lat = parseFloat(atMatch[1]);
-      lng = parseFloat(atMatch[2]);
-    } else {
-      var qMatch = rawLink.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (qMatch) {
-        lat = parseFloat(qMatch[1]);
-        lng = parseFloat(qMatch[2]);
-      }
-    }
-
-    if (!nameVal) {
-      var pMatch = rawLink.match(/\/place\/([^\/@?]+)/);
-      if (pMatch && pMatch[1]) {
-        nameVal = decodeURIComponent(pMatch[1]).replace(/\+/g, ' ');
-      }
-    }
-  }
-
-  if (!nameVal) nameVal = (city === 'makkah' ? 'فندق مكة المكرمة' : 'فندق المدينة المنورة');
-
-  if (lat && lng) {
-    globalHotels[city].lat = lat;
-    globalHotels[city].lng = lng;
-    localStorage.setItem('cfg_' + city + '_lat', lat);
-    localStorage.setItem('cfg_' + city + '_lng', lng);
-  }
-
-  globalHotels[city].name = nameVal;
-  localStorage.setItem('cfg_' + city + '_name', nameVal);
-
-  if (nameBox) nameBox.value = nameVal;
-
-  renderMapHotelPins();
-  updatePilgrimHotelDisplay();
-
-  if (typeof map !== 'undefined' && map) {
-    map.flyTo([globalHotels[city].lat, globalHotels[city].lng], 16);
-  }
-
-  alert('✅ تم تثبيت مقر إقامة ' + (city === 'makkah' ? 'مكة' : 'المدينة') + ': ' + nameVal);
-}
-
-function renderMapHotelPins() {
-  if (typeof map === 'undefined' || !map) return;
-  if (makkahMarkerObj) map.removeLayer(makkahMarkerObj);
-  if (madinahMarkerObj) map.removeLayer(madinahMarkerObj);
-
-  var mIcon = L.divIcon({
-    className: 'm-pin',
-    html: '<div style="background:#0284c7; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">🕋</div>',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16]
-  });
-
-  var dIcon = L.divIcon({
-    className: 'm-pin',
-    html: '<div style="background:#10b981; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">🕌</div>',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16]
-  });
-
-  makkahMarkerObj = L.marker([globalHotels.makkah.lat, globalHotels.makkah.lng], { icon: mIcon }).addTo(map)
-    .bindPopup('<b>' + globalHotels.makkah.name + '</b><br>فندق مكة');
-
-  madinahMarkerObj = L.marker([globalHotels.madinah.lat, globalHotels.madinah.lng], { icon: dIcon }).addTo(map)
-    .bindPopup('<b>' + globalHotels.madinah.name + '</b><br>فندق المدينة');
-}
-
-function onPilgrimCityToggle(c) {
-  currentPilgrimCity = c;
-  updatePilgrimHotelDisplay();
-}
-
-function updatePilgrimHotelDisplay() {
-  var hotel = globalHotels[currentPilgrimCity] || globalHotels.makkah;
-  var nameEl = document.getElementById('pilgrim-hotel-name-display');
-  if (nameEl) nameEl.innerText = hotel.name;
-
-  var navBtn = document.getElementById('gmaps-nav-btn');
-  if (navBtn) {
-    navBtn.onclick = function() {
-      window.open('https://www.google.com/maps/dir/?api=1&destination=' + hotel.lat + ',' + hotel.lng, '_system');
-    };
-  }
-
-  if (typeof currentLat !== 'undefined' && currentLat && typeof getDistanceMetres === 'function') {
-    var meters = getDistanceMetres(currentLat, currentLng, hotel.lat, hotel.lng);
-    var distEl = document.getElementById('live-distance-val');
-    var timeEl = document.getElementById('live-walk-time');
-
-    if (distEl) distEl.innerText = (meters < 1000) ? (meters + ' م') : ((meters / 1000).toFixed(1) + ' كم');
-    if (timeEl) {
-      var mins = Math.round(meters / 75);
-      timeEl.innerText = (mins < 60) ? (mins + ' دقيقة') : (Math.floor(mins / 60) + ' س و ' + (mins % 60) + ' د');
-    }
-  }
-}
-
-function openQrPickerModal() {
-  var old = document.getElementById('qr-picker-modal');
-  if (old) old.remove();
-
-  var modal = document.createElement('div');
-  modal.id = 'qr-picker-modal';
-  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;';
-  modal.innerHTML = `
-    <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:18px; width:100%; max-width:320px; text-align:center;">
-      <h3 style="color:#fff; margin-bottom:12px; font-size:1rem;">📷 مسح رمز الفوج</h3>
-      <div id="qr-scan-box-hidden" style="display:none;"></div>
-      <button type="button" onclick="document.getElementById('pick-qr-input-file').click()" class="btn-main" style="background:#0d9488; padding:10px; width:100%; font-size:0.9rem; margin-bottom:8px;">🖼️ اختيار صورة الـ QR من المعرض</button>
-      <input type="file" id="pick-qr-input-file" accept="image/*" style="display:none;" onchange="readQrImageFromStorage(this)" />
-      <button type="button" onclick="document.getElementById('qr-picker-modal').remove()" class="btn-sub" style="width:100%;">إلغاء</button>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-function readQrImageFromStorage(input) {
-  if (!input.files || !input.files[0]) return;
-  var file = input.files[0];
-  if (typeof Html5Qrcode === 'undefined') {
-    alert('جاري تهيئة قارئ الصور...');
-    return;
-  }
-  var scanner = new Html5Qrcode("qr-scan-box-hidden");
-  scanner.scanFile(file, true)
-    .then(function(decodedText) {
-      var grp = decodedText.trim();
-      if (grp.indexOf('OMRAH_GROUP:') === 0) grp = decodeURIComponent(grp.replace('OMRAH_GROUP:', ''));
-      else if (grp.indexOf('group=') !== -1) {
-        var m = grp.match(/[?&]group=([^&]+)/);
-        if (m && m[1]) grp = decodeURIComponent(m[1]);
-      }
-
-      var select = document.getElementById('user-group-select');
-      if (select) {
-        var exists = false;
-        for (var i = 0; i < select.options.length; i++) {
-          if (select.options[i].value === grp) { select.selectedIndex = i; exists = true; break; }
-        }
-        if (!exists) {
-          var opt = document.createElement('option');
-          opt.value = grp;
-          opt.innerText = grp;
-          select.appendChild(opt);
-          select.value = grp;
-        }
-      }
-      var modal = document.getElementById('qr-picker-modal');
-      if (modal) modal.remove();
-      alert('✅ تم تحديد الفوج بنجاح: ' + grp);
-    })
-    .catch(function() {
-      alert('لم يتم التعرف على الرمز، يرجى اختيار لقطة واضحة لصورة الـ QR.');
-    })
-    .finally(function() { input.value = ''; });
-}
-
-// استرجاع المعتمر تلقائياً ومنع تكرار التسجيل
-window.addEventListener('load', function() {
-  try {
-    var pInput = document.getElementById('user-phone-input');
-    var nInput = document.getElementById('user-name-input');
-    var gSelect = document.getElementById('user-group-select');
-
-    var sPhone = localStorage.getItem('omrah_user_phone');
-    var sName = localStorage.getItem('omrah_user_name');
-    var sGroup = localStorage.getItem('omrah_user_group');
-
-    if (pInput && sPhone) pInput.value = sPhone;
-    if (nInput && sName) nInput.value = sName;
-    if (gSelect && sGroup) gSelect.value = sGroup;
-
-    var makInput = document.getElementById('hotel-makkah-name');
-    var madInput = document.getElementById('hotel-madinah-name');
-    if (makInput) makInput.value = globalHotels.makkah.name;
-    if (madInput) madInput.value = globalHotels.madinah.name;
-
-    updatePilgrimHotelDisplay();
-    setTimeout(renderMapHotelPins, 1200);
-    setInterval(updatePilgrimHotelDisplay, 4000);
-  } catch(e) {}
-});
-</script>
-
+  </script>
 </body>
 </html>
