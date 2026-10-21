@@ -1201,18 +1201,39 @@
     // ==========================================
 
     // قراءة الرابط تلقائياً عند فتح المعتمر للتطبيق من الـ QR
+    
+    // قراءة رابط التطبيق المباشر omrah:// أو الروابط العادية
     function checkUrlParameters() {
       try {
-        const params = new URLSearchParams(window.location.search);
+        let search = window.location.search;
+          search = window.location.hash.substring(window.location.hash.indexOf('?'));
+        }
+        const params = new URLSearchParams(search);
         const groupParam = params.get('group');
         if (groupParam) {
           const groupSelect = document.getElementById('user-group-select');
           if (groupSelect) {
-            // إضافة الفوج إن لم يكن بالقائمة واختياره
             let exists = false;
             for (let i = 0; i < groupSelect.options.length; i++) {
               if (groupSelect.options[i].value === groupParam) { exists = true; break; }
             }
+              const opt = document.createElement('option');
+              opt.value = groupParam;
+              opt.innerText = groupParam;
+              groupSelect.appendChild(opt);
+            }
+            groupSelect.value = groupParam;
+          }
+          const authMsg = document.getElementById('auth-msg');
+          if (authMsg) {
+            authMsg.innerHTML = ;
+          }
+        }
+      } catch (e) {
+        console.log('Deep link parse error:', e);
+      }
+    }
+
             if (!exists) {
               const opt = document.createElement('option');
               opt.value = groupParam;
@@ -1237,7 +1258,7 @@
       let grp = select ? select.value : 'الفوج 1 (الرئيسي)';
       if (grp === 'all') grp = (serverGroups && serverGroups[0]) ? serverGroups[0] : 'الفوج 1 (الرئيسي)';
 
-      const cleanUrl = 'http://169.58.26.43:3000';
+      const cleanUrl = 'omrah://join';
       const joinUrl = `${cleanUrl}?group=${encodeURIComponent(grp)}`;
       const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(joinUrl)}&margin=10`;
 
