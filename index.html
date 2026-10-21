@@ -1249,9 +1249,12 @@ function openCameraScanner() {
     <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:16px; width:100%; max-width:340px; text-align:center;">
       <h3 style="color:#fff; margin-bottom:8px; font-size:1rem;">📷 مسح رمز الفوج</h3>
       <div id="qr-reader-box" style="width:100%; border-radius:10px; overflow:hidden; background:#000;"></div>
-      <div style="margin-top: 10px;">
-        <label for="qr-file-input" style="display:block; background:#0284c7; color:#fff; padding:8px 12px; border-radius:8px; font-size:0.85rem; cursor:pointer;">📸 التقاط صورة أو اختيارها من المعرض</label>
-        <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleQrFile(this)">
+      <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <button type="button" onclick="document.getElementById('qr-camera-capture').click()" class="btn-main" style="background: #0284c7; padding: 10px; font-size: 0.85rem;">📸 التقاط صورة للرمز بالكاميرا</button>
+        <button type="button" onclick="document.getElementById('qr-gallery-pick').click()" class="btn-main" style="background: #0d9488; padding: 10px; font-size: 0.85rem;">🖼️ اختيار صورة الـ QR من المعرض</button>
+        
+        <input type="file" id="qr-camera-capture" accept="image/*" capture="environment" style="display:none;" onchange="handleQrFile(this)">
+        <input type="file" id="qr-gallery-pick" accept="image/*" style="display:none;" onchange="handleQrFile(this)">
       </div>
       <button onclick="closeCameraScanner()" class="btn-sub" style="margin-top:10px; width:100%;">إلغاء</button>
     </div>
