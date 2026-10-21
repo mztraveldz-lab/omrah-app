@@ -164,6 +164,10 @@
         </select>
       </div>
       <div id="hotel-name-display" style="color: white; font-size: 1.1rem; margin-top: 6px; font-weight: bold;">جاري جلب الفندق من السيرفر...</div>
+      <div id="hotel-distance-box" style="margin-top: 8px; background: rgba(2, 132, 199, 0.15); border: 1px dashed #38bdf8; border-radius: 8px; padding: 6px 10px; font-size: 0.85rem; color: #7dd3fc; display: flex; justify-content: space-between; align-items: center;">
+        <span>📏 المسافة للفندق:</span>
+        <strong id="hotel-distance-val" style="color: #ffffff;">جاري الحساب...</strong>
+      </div>
       <button onclick="navigateHotel()" class="btn-hotel">🧭 خذني إلى فندقي (خرائط Google)</button>
     </div>
 
@@ -431,6 +435,10 @@
                 banner.style.display = 'none';
             } else {
                 banner.style.display = 'block';
+                if (!window.lastAlertedBroadcast || window.lastAlertedBroadcast !== msgFull) {
+                    window.lastAlertedBroadcast = msgFull;
+                    playBroadcastAlert();
+                }
             }
 
             // حفظ تلقائي في أرشيف التعميمات
@@ -647,6 +655,7 @@
       })
       .then(res => res.json())
       .then(data => {
+        updateHotelDistance(payload.lat, payload.lng);
         const statusElem = document.getElementById('auto-gps-text');
         if (statusElem) {
           const d = new Date();
@@ -1095,6 +1104,78 @@
     updateSaeyUI();
     renderLessons('all');
     renderPlaces('all');
-  </script>
+  
+
+    // ==========================================
+    // المرحلة 1: التنبيه الصوتي والاهتزاز وحساب المسافة
+    // ==========================================
+
+    // 1. تشغيل نغمة تنبيه واهتزاز عند وصول تعميم جديد
+    function playBroadcastAlert() {
+      try {
+        if ('vibrate' in navigator) {
+          navigator.vibrate([200, 100, 200, 100, 400]);
+        }
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+          osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.5);
+        }
+      } catch (e) {
+        console.log('Audio alert error:', e);
+      }
+    }
+
+    // 2. حساب المسافة المباشرة (معادلة Haversine)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3; // نصف قطر الأرض بالمتر
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round(R * c); // المسافة بالأمتار
+    }
+
+    // 3. تحديث مسافة الفندق في واجهة المعتمر
+    function updateHotelDistance(userLat, userLng) {
+      const distElem = document.getElementById('hotel-distance-val');
+      if (!distElem) return;
+
+      const citySelect = document.getElementById('user-hotel-city');
+      const city = citySelect ? citySelect.value : 'مكة';
+      const hotel = serverHotels[city] || serverHotels['مكة'];
+
+      if (!hotel || !hotel.lat || !hotel.lng) {
+        distElem.innerText = 'غير محدد بعد';
+        return;
+      }
+
+      const meters = calculateDistance(userLat, userLng, hotel.lat, hotel.lng);
+      const minutes = Math.max(1, Math.round(meters / 80)); // معدل المشي 80م/دقيقة
+
+      if (meters < 1000) {
+        distElem.innerHTML = `${meters} متر (~${minutes} د مشياً)`;
+      } else {
+        const km = (meters / 1000).toFixed(1);
+        distElem.innerHTML = `${km} كم (~${minutes} د)`;
+      }
+    }
+
+</script>
 </body>
 </html>
