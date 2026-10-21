@@ -1322,39 +1322,66 @@ function startActualScanner() {
 }
 
 
+
 function handleQrFile(input) {
-  if (input.files && input.files[0]) {
-    const file = input.files[0];
-    if (html5QrCodeScanner) {
-      html5QrCodeScanner.scanFile(file, true)
-        .then(decodedText => {
-          let grpName = decodedText;
-          if (grpName.startsWith('OMRAH_GROUP:')) {
-            grpName = grpName.replace('OMRAH_GROUP:', '');
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+
+  // إنشاء كائن القارئ مباشرة لفك الصورة
+  const fileScanner = new Html5Qrcode("qr-reader-box");
+
+  fileScanner.scanFile(file, true)
+    .then(decodedText => {
+      let grpName = decodedText.trim();
+      
+      // تفكيك النص سواء كان رابطاً أو نصاً صريحاً
+      if (grpName.includes('group=')) {
+        try {
+          const match = grpName.match(/[?&]group=([^&]+)/);
+          if (match && match[1]) {
+            grpName = decodeURIComponent(match[1]);
           }
-          const select = document.getElementById('user-group-select');
-          if (select) {
-            let found = false;
-            for (let i = 0; i < select.options.length; i++) {
-              if (select.options[i].value === grpName) { found = true; break; }
-            }
-            if (!found) {
-              const opt = document.createElement('option');
-              opt.value = grpName;
-              opt.innerText = grpName;
-              select.appendChild(opt);
-            }
-            select.value = grpName;
+        } catch(e) {}
+      } else if (grpName.startsWith('OMRAH_GROUP:')) {
+        grpName = grpName.replace('OMRAH_GROUP:', '');
+      }
+
+      // ضبط الفوج المختار في القائمة
+      const select = document.getElementById('user-group-select');
+      if (select) {
+        let found = false;
+        for (let i = 0; i < select.options.length; i++) {
+          if (select.options[i].value === grpName) {
+            select.selectedIndex = i;
+            found = true;
+            break;
           }
-          alert('✅ تم تحديد ' + grpName + ' بنجاح!');
-          closeCameraScanner();
-        })
-        .catch(err => {
-          alert('لم يتم التعرف على الرمز، يرجى تصوير الـ QR بوضوح');
-        });
-    }
-  }
+        }
+        if (!found) {
+          const opt = document.createElement('option');
+          opt.value = grpName;
+          opt.innerText = grpName;
+          select.appendChild(opt);
+          select.value = grpName;
+        }
+      }
+
+      // إغلاق النافذة المنبثقة فوراً
+      closeCameraScanner();
+      
+      // إشعار المستخدم بالنجاح
+      alert('✅ تم مسح الرمز وتحديد: ' + grpName);
+    })
+    .catch(err => {
+      console.log("Scan err:", err);
+      alert('لم يتم العثور على رمز QR واضح في الصورة المختارة، يرجى إعادة المحاولة.');
+    })
+    .finally(() => {
+      // تفريغ المدخل لإمكانية اختيار نفس الملف مجدداً
+      input.value = '';
+    });
 }
+
 
 function closeCameraScanner() {
   if (html5QrCodeScanner) {
