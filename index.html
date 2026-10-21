@@ -1203,56 +1203,42 @@
     // قراءة الرابط تلقائياً عند فتح المعتمر للتطبيق من الـ QR
     
     // قراءة رابط التطبيق المباشر omrah:// أو الروابط العادية
+    // نافذة توليد كود الـ QR للفوج لطباعته أو إرساله
+    
+    // قراءة رابط الانضمام للفوج تلقائياً
     function checkUrlParameters() {
       try {
-        let search = window.location.search;
+        var search = window.location.search;
           search = window.location.hash.substring(window.location.hash.indexOf('?'));
         }
-        const params = new URLSearchParams(search);
-        const groupParam = params.get('group');
-        if (groupParam) {
-          const groupSelect = document.getElementById('user-group-select');
-          if (groupSelect) {
-            let exists = false;
-            for (let i = 0; i < groupSelect.options.length; i++) {
-              if (groupSelect.options[i].value === groupParam) { exists = true; break; }
+        if (search) {
+          var params = new URLSearchParams(search);
+          var groupParam = params.get('group');
+          if (groupParam) {
+            var groupSelect = document.getElementById('user-group-select');
+            if (groupSelect) {
+              var exists = false;
+              for (var i = 0; i < groupSelect.options.length; i++) {
+                if (groupSelect.options[i].value === groupParam) { exists = true; break; }
+              }
+                var opt = document.createElement('option');
+                opt.value = groupParam;
+                opt.innerText = groupParam;
+                groupSelect.appendChild(opt);
+              }
+              groupSelect.value = groupParam;
             }
-              const opt = document.createElement('option');
-              opt.value = groupParam;
-              opt.innerText = groupParam;
-              groupSelect.appendChild(opt);
+            var authMsg = document.getElementById('auth-msg');
+            if (authMsg) {
+              authMsg.innerHTML = 'تم تحديد <strong style="color:#34d399;">' + groupParam + '</strong> تلقائياً! اكتب اسمك للدخول:';
             }
-            groupSelect.value = groupParam;
-          }
-          const authMsg = document.getElementById('auth-msg');
-          if (authMsg) {
-            authMsg.innerHTML = ;
           }
         }
-      } catch (e) {
-        console.log('Deep link parse error:', e);
+      } catch (err) {
+        console.log('Param parse error:', err);
       }
     }
 
-            if (!exists) {
-              const opt = document.createElement('option');
-              opt.value = groupParam;
-              opt.innerText = groupParam;
-              groupSelect.appendChild(opt);
-            }
-            groupSelect.value = groupParam;
-          }
-          const authMsg = document.getElementById('auth-msg');
-          if (authMsg) {
-            authMsg.innerHTML = `تم ربطك تلقائياً بـ <strong style="color:#34d399;">${groupParam}</strong>! اكتب اسمك فقط للدخول:`;
-          }
-        }
-      } catch (e) {
-        console.log('Error parsing URL params:', e);
-      }
-    }
-
-    // نافذة توليد كود الـ QR للفوج لطباعته أو إرساله
     window.generateGroupQRModal = function() {
       const select = document.getElementById('filter-group-select');
       let grp = select ? select.value : 'الفوج 1 (الرئيسي)';
