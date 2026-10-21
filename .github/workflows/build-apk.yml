@@ -16,7 +16,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 22
 
     - name: Setup Java JDK
       uses: actions/setup-java@v4
@@ -26,7 +26,7 @@ jobs:
 
     - name: Build Capacitor Android App
       run: |
-        npm install @capacitor/core @capacitor/cli @capacitor/android
+        npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/assets@latest
         mkdir -p www
         cp index.html www/
         cp -r duas.js content.js app.js www/ 2>/dev/null || true
@@ -39,6 +39,7 @@ jobs:
           fs.writeFileSync("capacitor.config.json", JSON.stringify(cfg, null, 2));
         '
         
+        npm install @capacitor/android@latest
         npx cap add android
 
     - name: Configure Android Permissions for Background Tracking
