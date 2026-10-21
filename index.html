@@ -865,6 +865,7 @@
         switchTab('sos');
         updateUserHotelView();
         syncWithServer();
+        if (!syncInterval) syncInterval = setInterval(syncWithServer, 5000);
       }
     }
 
