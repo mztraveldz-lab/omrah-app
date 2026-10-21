@@ -130,7 +130,10 @@
       <input type="tel" id="user-phone" class="auth-input" placeholder="رقم الهاتف">
       <div style="text-align: right; margin-bottom: 14px;">
         <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px;">اختر الفوج المخصص لك:</label>
-        <select id="user-group-select" class="auth-input" style="padding: 10px;"></select>
+        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+          <select id="user-group-select" class="auth-input" style="padding: 10px; margin-bottom: 0; flex: 1;"></select>
+          <button type="button" onclick="openCameraScanner()" style="background: #0284c7; color: white; border: none; border-radius: 8px; padding: 10px 14px; font-size: 1.15rem; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 42px;" title="مسح رمز الفوج">📷</button>
+        </div>
       </div>
       <button class="role-btn btn-pilgrim" onclick="setupProfile('pilgrim')">🟢 الدخول كـ (معتمر)</button>
       <button class="role-btn btn-guide" onclick="promptGuidePin()">🔒 الدخول كـ (مرشد الفوج)</button>
