@@ -1398,6 +1398,107 @@ function closeCameraScanner() {
     if (m) m.remove();
   }
 }
+
+
+    // ==========================================
+    // إدارة فنادق مكة والمدينة المستقلة وخريطة الساتلايت
+    // ==========================================
+    var hotelsData = {
+      makkah: {
+        name: localStorage.getItem('omrah_hotel_makkah_name') || 'فندق مكة المكرمة',
+        lat: parseFloat(localStorage.getItem('omrah_hotel_makkah_lat')) || 21.4225,
+        lng: parseFloat(localStorage.getItem('omrah_hotel_makkah_lng')) || 39.8262
+      },
+      madinah: {
+        name: localStorage.getItem('omrah_hotel_madinah_name') || 'فندق المدينة المنورة',
+        lat: parseFloat(localStorage.getItem('omrah_hotel_madinah_lat')) || 24.4672,
+        lng: parseFloat(localStorage.getItem('omrah_hotel_madinah_lng')) || 39.6111
+      }
+    };
+
+    var currentSelectedCity = 'makkah';
+
+    // عند تغيير نوع الفندق من القائمة المنسدلة
+    window.onHotelCityChange = function(city) {
+      currentSelectedCity = city;
+      var nameInput = document.getElementById('hotel-name-input');
+      if (nameInput) {
+        nameInput.value = hotelsData[city].name;
+      }
+      
+      // تحريك الخريطة فوراً إلى المدينة المختارة
+      if (typeof map !== 'undefined' && map) {
+        if (city === 'madinah') {
+          map.setView([hotelsData.madinah.lat, hotelsData.madinah.lng], 16);
+        } else {
+          map.setView([hotelsData.makkah.lat, hotelsData.makkah.lng], 16);
+        }
+      }
+      updatePilgrimHotelCard();
+    };
+
+    // حفظ الفندق المحدد
+    window.saveHotelLocation = function() {
+      var nameInput = document.getElementById('hotel-name-input');
+      var name = nameInput ? nameInput.value.trim() : '';
+      if (!name) name = (currentSelectedCity === 'madinah' ? 'فندق المدينة المنورة' : 'فندق مكة المكرمة');
+
+      hotelsData[currentSelectedCity].name = name;
+      localStorage.setItem('omrah_hotel_' + currentSelectedCity + '_name', name);
+      localStorage.setItem('omrah_hotel_' + currentSelectedCity + '_lat', hotelsData[currentSelectedCity].lat);
+      localStorage.setItem('omrah_hotel_' + currentSelectedCity + '_lng', hotelsData[currentSelectedCity].lng);
+
+      updatePilgrimHotelCard();
+      alert('✅ تم حفظ موقع وتسمية (' + name + ') بنجاح!');
+    };
+
+    // تحديث كرت الفندق عند المعتمر
+    window.updatePilgrimHotelCard = function() {
+      var select = document.getElementById('pilgrim-hotel-select');
+      var city = select ? select.value : currentSelectedCity;
+      var h = hotelsData[city] || hotelsData.makkah;
+
+      var nameEl = document.getElementById('hotel-display-name');
+      if (nameEl) nameEl.innerText = h.name;
+
+      var mapLink = document.getElementById('hotel-google-maps-btn');
+      if (mapLink) {
+        mapLink.onclick = function() {
+          window.open('https://www.google.com/maps/dir/?api=1&destination=' + h.lat + ',' + h.lng, '_system');
+        };
+      }
+
+      // حساب المسافة الحالية
+      if (typeof currentLat !== 'undefined' && currentLat && typeof getDistanceMetres === 'function') {
+        var dist = getDistanceMetres(currentLat, currentLng, h.lat, h.lng);
+        var distEl = document.getElementById('hotel-distance-text');
+        if (distEl) {
+          if (dist < 1000) {
+            distEl.innerText = dist + ' م';
+          } else {
+            distEl.innerText = (dist / 1000).toFixed(1) + ' كم';
+          }
+        }
+      }
+    };
+
+
+    var isSatellite = false;
+    window.toggleMapSatellite = function() {
+      if (typeof map === 'undefined' || !map) return;
+      if (!isSatellite) {
+        if (typeof streetLayer !== 'undefined') map.removeLayer(streetLayer);
+        if (typeof satLayer !== 'undefined') map.addLayer(satLayer);
+        isSatellite = true;
+        alert('🛰️ تم تفعيل نمط القمر الصناعي');
+      } else {
+        if (typeof satLayer !== 'undefined') map.removeLayer(satLayer);
+        if (typeof streetLayer !== 'undefined') map.addLayer(streetLayer);
+        isSatellite = false;
+        alert('🗺️ تم تفعيل الخريطة العادية');
+      }
+    };
+
 </script>
 
 </body>
