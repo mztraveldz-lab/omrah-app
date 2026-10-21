@@ -1247,9 +1247,13 @@ function openCameraScanner() {
   modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px;';
   modal.innerHTML = `
     <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:16px; width:100%; max-width:340px; text-align:center;">
-      <h3 style="color:#fff; margin-bottom:8px; font-size:1rem;">📷 وجّه الكاميرا نحو QR الفوج</h3>
+      <h3 style="color:#fff; margin-bottom:8px; font-size:1rem;">📷 مسح رمز الفوج</h3>
       <div id="qr-reader-box" style="width:100%; border-radius:10px; overflow:hidden; background:#000;"></div>
-      <button onclick="closeCameraScanner()" class="btn-sub" style="margin-top:12px; width:100%;">إلغاء</button>
+      <div style="margin-top: 10px;">
+        <label for="qr-file-input" style="display:block; background:#0284c7; color:#fff; padding:8px 12px; border-radius:8px; font-size:0.85rem; cursor:pointer;">📸 التقاط صورة أو اختيارها من المعرض</label>
+        <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleQrFile(this)">
+      </div>
+      <button onclick="closeCameraScanner()" class="btn-sub" style="margin-top:10px; width:100%;">إلغاء</button>
     </div>
   `;
   document.body.appendChild(modal);
@@ -1293,6 +1297,41 @@ function openCameraScanner() {
     alert('تعذر فتح الكاميرا: ' + err);
     closeCameraScanner();
   });
+}
+
+
+function handleQrFile(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    if (html5QrCodeScanner) {
+      html5QrCodeScanner.scanFile(file, true)
+        .then(decodedText => {
+          let grpName = decodedText;
+          if (grpName.startsWith('OMRAH_GROUP:')) {
+            grpName = grpName.replace('OMRAH_GROUP:', '');
+          }
+          const select = document.getElementById('user-group-select');
+          if (select) {
+            let found = false;
+            for (let i = 0; i < select.options.length; i++) {
+              if (select.options[i].value === grpName) { found = true; break; }
+            }
+            if (!found) {
+              const opt = document.createElement('option');
+              opt.value = grpName;
+              opt.innerText = grpName;
+              select.appendChild(opt);
+            }
+            select.value = grpName;
+          }
+          alert('✅ تم تحديد ' + grpName + ' بنجاح!');
+          closeCameraScanner();
+        })
+        .catch(err => {
+          alert('لم يتم التعرف على الرمز، يرجى تصوير الـ QR بوضوح');
+        });
+    }
+  }
 }
 
 function closeCameraScanner() {
