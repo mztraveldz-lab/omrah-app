@@ -195,22 +195,27 @@
       
       <!-- لوحة المرشد: ضبط الفندق لجميع المعتمرين -->
       <div style="background: #0f233a; border: 1px solid #0284c7; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-        <div style="font-size: 0.85rem; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">🏨 ضبط موقع الفندق ليظهر عند المعتمرين:</div>
-        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-          <select id="guide-hotel-city" class="auth-input" style="width: auto; padding: 6px; margin: 0; font-size: 0.8rem;">
-            <option value="مكة">فندق مكة</option>
-            <option value="المدينة">فندق المدينة</option>
-          </select>
-          <input type="text" id="guide-hotel-name" class="auth-input" style="margin: 0; padding: 6px; flex: 1;" placeholder="اسم الفندق (مثال: فندق أبراج الكسوة)">
-        </div>
-        <div style="display: flex; gap: 6px;">
-          <button onclick="pickHotelOnMap()" class="btn-main" style="flex: 1; background: #0284c7; color: white; font-weight: bold; padding: 8px;">📍 حدد الفندق من الخريطة</button>
-          <button onclick="saveManualHotel()" class="btn-main" style="flex: 0 0 auto; padding: 8px 12px; font-size: 0.8rem;">💾 حفظ الفندق</button>
-        </div>
-      </div>
+        <!-- بطاقة ضبط فنادق مكة والمدينة المستقلة وقمر صناعي -->
+        <div class="card" style="padding: 12px; margin-bottom: 12px; border: 1px solid #0284c7; background: #131c31; border-radius: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="color: #38bdf8; margin: 0; font-size: 0.95rem;">🏨 ضبط فنادق الإقامة:</h4>
+            <button type="button" onclick="toggleMapSatellite()" class="btn-main" style="background: #475569; padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;">🛰️ قمر صناعي</button>
+          </div>
 
-      <!-- إرسال تعميم فوري لجميع المعتمرين -->
-      <div style="background: #1e1b4b; border: 1px solid #6366f1; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <select id="guide-hotel-type" class="auth-input" style="flex: 1; padding: 7px; margin: 0;" onchange="onHotelSelectChanged(this.value)">
+              <option value="makkah">🕋 فندق مكة المكرمة</option>
+              <option value="madinah">🕌 فندق المدينة المنورة</option>
+            </select>
+          </div>
+
+          <input type="text" id="guide-hotel-name-input" class="auth-input" style="padding: 8px; font-size: 0.85rem; margin-bottom: 8px;" placeholder="اسم الفندق الفعلي" value="فندق مكة المكرمة" />
+
+          <div style="display: flex; gap: 8px;">
+            <button type="button" onclick="activatePickHotel()" class="btn-main" style="background: #0284c7; padding: 8px; font-size: 0.8rem; flex: 1;">📍 حدد الفندق بالخريطة</button>
+            <button type="button" onclick="saveSelectedHotel()" class="btn-main" style="background: #10b981; padding: 8px; font-size: 0.8rem; flex: 1;">💾 حفظ الفندق</button>
+          </div>
+        </div>
         <div style="font-size: 0.85rem; font-weight: bold; color: #a5b4fc; margin-bottom: 6px;">📢 إرسال تعميم عاجل للفوج:</div>
         <div style="display: flex; gap: 8px;">
           <input type="text" id="broadcast-input" class="auth-input" style="margin: 0; padding: 8px;" placeholder="اكتب التنبيه (مثال: التحرك للحرم بعد نصف ساعة)">
@@ -495,76 +500,27 @@
         }
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${hotel.lat},${hotel.lng}&travelmode=walking`, '_system');
       } else {
-        alert("لم يقم المرشد بضبط موقع الفندق بعد");
-      }
-    }
+        <!-- بطاقة ضبط فنادق مكة والمدينة المستقلة وقمر صناعي -->
+        <div class="card" style="padding: 12px; margin-bottom: 12px; border: 1px solid #0284c7; background: #131c31; border-radius: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="color: #38bdf8; margin: 0; font-size: 0.95rem;">🏨 ضبط فنادق الإقامة:</h4>
+            <button type="button" onclick="toggleMapSatellite()" class="btn-main" style="background: #475569; padding: 4px 10px; font-size: 0.75rem; border-radius: 6px;">🛰️ قمر صناعي</button>
+          </div>
 
-    // تحديد الفندق باللمس على الخريطة للمرشد
-    window.pickHotelOnMap = function() {
-      if (!mapInstance) {
-        alert('يرجى فتح الخريطة أولاً');
-        return;
-      }
-      const mapEl = document.getElementById('map');
-      if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <select id="guide-hotel-type" class="auth-input" style="flex: 1; padding: 7px; margin: 0;" onchange="onHotelSelectChanged(this.value)">
+              <option value="makkah">🕋 فندق مكة المكرمة</option>
+              <option value="madinah">🕌 فندق المدينة المنورة</option>
+            </select>
+          </div>
 
-      let toast = document.getElementById('hotel-pick-toast');
-      if (toast) toast.remove();
-      toast = document.createElement('div');
-      toast.id = 'hotel-pick-toast';
-      toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#0284c7; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.5); pointer-events:none;';
-      toast.innerHTML = '👆 المس الآن موقع الفندق على الخريطة لتثبيته';
-      document.body.appendChild(toast);
-      setTimeout(() => { if (toast) toast.remove(); }, 5000);
+          <input type="text" id="guide-hotel-name-input" class="auth-input" style="padding: 8px; font-size: 0.85rem; margin-bottom: 8px;" placeholder="اسم الفندق الفعلي" value="فندق مكة المكرمة" />
 
-      mapInstance.once('click', function(e) {
-        if (toast) toast.remove();
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-        const citySel = document.getElementById('guide-hotel-city');
-        const city = citySel ? citySel.value : 'مكة';
-        const nameInp = document.getElementById('guide-hotel-name');
-        
-        const finalName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : ('فندق الإقامة - ' + city);
-        if (nameInp) nameInp.value = finalName;
-
-        if (window.guideHotelMarker) mapInstance.removeLayer(window.guideHotelMarker);
-        window.guideHotelMarker = L.marker([lat, lng], {
-          icon: L.divIcon({
-            className: 'hotel-pin',
-            html: '<div style="background:#ef4444; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.6);">🏨</div>',
-            iconSize: [34, 34],
-            iconAnchor: [17, 34]
-          })
-        }).addTo(mapInstance).bindPopup(`<b>${finalName}</b><br>تم تثبيت الموقع`).openPopup();
-
-        serverHotels[city] = { name: finalName, lat: lat, lng: lng };
-        localStorage.setItem('omrah_guide_hotels', JSON.stringify(serverHotels));
-
-        fetch(`${VPS_API}/api/hotels/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ city, name: finalName, lat, lng })
-        }).catch(err => {});
-
-        alert(`✅ تم تثبيت موقع ${finalName} بنجاح وترسيمه لجميع المعتمرين!`);
-      });
-    };
-
-    function saveManualHotel() {
-      const city = document.getElementById('guide-hotel-city').value;
-      const name = document.getElementById('guide-hotel-name').value.trim();
-      if (!name) return alert("أدخل اسم الفندق أولاً");
-      if (serverHotels[city]) {
-        serverHotels[city].name = name;
-        fetch(`${VPS_API}/api/hotels/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ city, name, lat: serverHotels[city].lat, lng: serverHotels[city].lng })
-        }).then(() => alert(`تم تحديث اسم فندق ${city} إلى (${name})`));
-      }
-    }
-
+          <div style="display: flex; gap: 8px;">
+            <button type="button" onclick="activatePickHotel()" class="btn-main" style="background: #0284c7; padding: 8px; font-size: 0.8rem; flex: 1;">📍 حدد الفندق بالخريطة</button>
+            <button type="button" onclick="saveSelectedHotel()" class="btn-main" style="background: #10b981; padding: 8px; font-size: 0.8rem; flex: 1;">💾 حفظ الفندق</button>
+          </div>
+        </div>
     function sendBroadcast() {
       const input = document.getElementById('broadcast-input');
       const text = input.value.trim();
@@ -1499,6 +1455,134 @@ function closeCameraScanner() {
       }
     };
 
+</script>
+
+
+<script>
+// ==========================================
+// محرك فنادق مكة والمدينة المستقلة والقمر الصناعي
+// ==========================================
+var currentCity = 'makkah';
+var hotelStorage = {
+  makkah: {
+    name: localStorage.getItem('h_makkah_name') || 'فندق مكة المكرمة',
+    lat: parseFloat(localStorage.getItem('h_makkah_lat')) || 21.4225,
+    lng: parseFloat(localStorage.getItem('h_makkah_lng')) || 39.8262
+  },
+  madinah: {
+    name: localStorage.getItem('h_madinah_name') || 'فندق المدينة المنورة',
+    lat: parseFloat(localStorage.getItem('h_madinah_lat')) || 24.4672,
+    lng: parseFloat(localStorage.getItem('h_madinah_lng')) || 39.6111
+  }
+};
+
+var pickingHotel = false;
+var satelliteActive = false;
+var satTileLayer = null;
+
+function toggleMapSatellite() {
+  if (typeof map === 'undefined' || !map) return;
+  if (!satTileLayer) {
+    satTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Esri Satellite'
+    });
+  }
+
+  if (!satelliteActive) {
+    map.addLayer(satTileLayer);
+    satelliteActive = true;
+    alert('🛰️ تم تفعيل رؤية القمر الصناعي');
+  } else {
+    map.removeLayer(satTileLayer);
+    satelliteActive = false;
+    alert('🗺️ تم تفعيل الخريطة العادية');
+  }
+}
+
+function onHotelSelectChanged(val) {
+  currentCity = val;
+  var input = document.getElementById('guide-hotel-name-input');
+  if (input) {
+    input.value = hotelStorage[currentCity].name;
+  }
+  
+  if (typeof map !== 'undefined' && map) {
+    if (currentCity === 'madinah') {
+      map.flyTo([hotelStorage.madinah.lat, hotelStorage.madinah.lng], 16);
+    } else {
+      map.flyTo([hotelStorage.makkah.lat, hotelStorage.makkah.lng], 16);
+    }
+  }
+  renderHotelMarkersOnMap();
+}
+
+function activatePickHotel() {
+  pickingHotel = true;
+  alert('📍 انقر الآن على موقع فندق (' + (currentCity === 'madinah' ? 'المدينة' : 'مكة') + ') في الخريطة لتثبيته.');
+}
+
+function saveSelectedHotel() {
+  var input = document.getElementById('guide-hotel-name-input');
+  var name = input ? input.value.trim() : '';
+  if (!name) name = (currentCity === 'madinah' ? 'فندق المدينة' : 'فندق مكة');
+
+  hotelStorage[currentCity].name = name;
+  localStorage.setItem('h_' + currentCity + '_name', name);
+  localStorage.setItem('h_' + currentCity + '_lat', hotelStorage[currentCity].lat);
+  localStorage.setItem('h_' + currentCity + '_lng', hotelStorage[currentCity].lng);
+
+  renderHotelMarkersOnMap();
+  alert('✅ تم حفظ (' + name + ') وموقعه بنجاح!');
+}
+
+var makkahMarker = null;
+var madinahMarker = null;
+
+function renderHotelMarkersOnMap() {
+  if (typeof map === 'undefined' || !map) return;
+  if (makkahMarker) map.removeLayer(makkahMarker);
+  if (madinahMarker) map.removeLayer(madinahMarker);
+
+  var makkahIcon = L.divIcon({
+    className: 'custom-hotel-icon',
+    html: '<div style="background:#0284c7; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">🕋</div>',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+
+  var madinahIcon = L.divIcon({
+    className: 'custom-hotel-icon',
+    html: '<div style="background:#10b981; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">🕌</div>',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+
+  makkahMarker = L.marker([hotelStorage.makkah.lat, hotelStorage.makkah.lng], { icon: makkahIcon }).addTo(map)
+    .bindPopup('<b>' + hotelStorage.makkah.name + '</b><br>فندق مكة');
+
+  madinahMarker = L.marker([hotelStorage.madinah.lat, hotelStorage.madinah.lng], { icon: madinahIcon }).addTo(map)
+    .bindPopup('<b>' + hotelStorage.madinah.name + '</b><br>فندق المدينة');
+}
+
+// التقاط النقر على الخريطة لتثبيت الفندق
+window.addEventListener('DOMContentLoaded', function() {
+  var checkInterval = setInterval(function() {
+    if (typeof map !== 'undefined' && map) {
+      clearInterval(checkInterval);
+      renderHotelMarkersOnMap();
+      map.on('click', function(e) {
+        if (pickingHotel) {
+          hotelStorage[currentCity].lat = e.latlng.lat;
+          hotelStorage[currentCity].lng = e.latlng.lng;
+          pickingHotel = false;
+          renderHotelMarkersOnMap();
+          alert('📍 تم تحديد الإحداثيات! اضغط الآن زر (💾 حفظ الفندق) لتأكيد التسمية والموقع.');
+        }
+      });
+    }
+  }, 500);
+});
 </script>
 
 </body>
