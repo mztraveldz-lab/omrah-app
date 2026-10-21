@@ -22,14 +22,14 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: '21'
 
     - name: Build Capacitor Android App
       run: |
-        npm install @capacitor/core @capacitor/cli @capacitor/android
+        npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
         mkdir -p www
         cp index.html www/
-        cp duas.js content.js app.js www/ 2>/dev/null || true
+        cp -r duas.js content.js app.js www/ 2>/dev/null || true
         npx cap init "رفيق المعتمر" "com.mztravel.omrah" --web-dir "www"
         
         node -e '
