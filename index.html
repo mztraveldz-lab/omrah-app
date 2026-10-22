@@ -17,6 +17,7 @@
     .header-title { font-size: 1rem; font-weight: bold; color: #ffffff; }
     .role-badge { font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; font-weight: bold; background: #022c22; color: #6ee7b7; border: 1px solid #059669; }
     
+    #offline-status-bar { display: none; background: #b45309; color: #fff; text-align: center; padding: 6px 10px; font-size: 0.75rem; font-weight: bold; border-bottom: 1px solid #f59e0b; }
     #broadcast-banner { display: none; background: #b91c1c; color: white; padding: 10px 38px 10px 14px; font-size: 0.88rem; font-weight: bold; text-align: center; border-bottom: 2px solid #f87171; position: relative; }
     .banner-close-btn { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; font-size: 12px; line-height: 22px; }
 
@@ -69,41 +70,10 @@
     .bat-med { background: #78350f; color: #fde68a; border: 1px solid #b45309; }
     .bat-low { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
 
-    .dua-box { background: #131c31; border: 1px solid #25334d; border-radius: 16px; padding: 18px; margin-bottom: 14px; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
-    .dua-text { font-size: 1.15rem; line-height: 1.8; color: #fef3c7; text-align: center; margin: 12px 0; font-family: serif; }
-    
-    .info-box { background: rgba(120, 53, 15, 0.25); border: 1px solid #b45309; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
-    .info-title { color: #f59e0b; font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; }
-    .info-text { color: #fde68a; font-family: serif; font-size: 1.05rem; line-height: 1.8; text-align: justify; }
-
-    .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
-    .filter-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #2d3b55; background: #131c31; color: #94a3b8; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
-    .filter-btn.active { background: #064e3b; color: #34d399; border-color: #10b981; }
-
-    .item-card { background: #131c31; border: 1px solid #25334d; border-radius: 14px; padding: 16px; margin-bottom: 14px; text-align: right; }
-    .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .badge { font-size: 0.72rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; }
-    .badge-green { background: #064e3b; color: #a7f3d0; }
-    .badge-amber { background: #78350f; color: #fde68a; }
-    .badge-rose { background: #881337; color: #fecdd3; }
-    .badge-blue { background: #1e3a8a; color: #bfdbfe; }
-    .badge-purple { background: #4c1d95; color: #ddd6fe; }
-    .tag-time { font-size: 0.72rem; color: #94a3b8; }
-    .item-title { color: #ffffff; font-weight: bold; font-size: 1.05rem; margin-bottom: 8px; }
-    .item-content { font-size: 0.95rem; color: #e2e8f0; line-height: 1.8; background: #080e1e; padding: 14px; border-radius: 10px; border-right: 4px solid #10b981; text-align: justify; }
-
-    .acc-item { background: #131c31; border: 1px solid #25334d; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
-    .acc-btn { width: 100%; padding: 14px; text-align: right; background: none; border: none; color: #f8fafc; font-weight: bold; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .acc-body { display: none; padding: 14px; background: #080e1e; border-top: 1px solid #25334d; font-size: 0.9rem; line-height: 1.7; color: #cbd5e1; }
-    .acc-body.active { display: block; }
-  
-    /* تنسيق وميض الخروج من النطاق الآمن */
     .geofence-alert-badge { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; animation: alertBlink 1.2s infinite; }
     @keyframes alertBlink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.97); } }
     .alert-marker-pin { background: #dc2626; color: #fff; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; font-size: 16px; box-shadow: 0 0 12px #ef4444; animation: alertBlink 1s infinite; }
 
-  
-    /* تنسيقات البوصلة الذكية */
     .compass-disc {
       width: 220px;
       height: 220px;
@@ -145,17 +115,41 @@
       z-index: 10;
     }
 
+    .dua-box { background: #131c31; border: 1px solid #25334d; border-radius: 16px; padding: 18px; margin-bottom: 14px; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
+    .dua-text { font-size: 1.15rem; line-height: 1.8; color: #fef3c7; text-align: center; margin: 12px 0; font-family: serif; }
+    
+    .info-box { background: rgba(120, 53, 15, 0.25); border: 1px solid #b45309; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+    .info-title { color: #f59e0b; font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; }
+    .info-text { color: #fde68a; font-family: serif; font-size: 1.05rem; line-height: 1.8; text-align: justify; }
+
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+    .filter-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #2d3b55; background: #131c31; color: #94a3b8; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
+    .filter-btn.active { background: #064e3b; color: #34d399; border-color: #10b981; }
+
+    .item-card { background: #131c31; border: 1px solid #25334d; border-radius: 14px; padding: 16px; margin-bottom: 14px; text-align: right; }
+    .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .badge { font-size: 0.72rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; }
+    .badge-green { background: #064e3b; color: #a7f3d0; }
+    .badge-amber { background: #78350f; color: #fde68a; }
+    .badge-purple { background: #4c1d95; color: #ddd6fe; }
+    .tag-time { font-size: 0.72rem; color: #94a3b8; }
+    .item-title { color: #ffffff; font-weight: bold; font-size: 1.05rem; margin-bottom: 8px; }
+    .item-content { font-size: 0.95rem; color: #e2e8f0; line-height: 1.8; background: #080e1e; padding: 14px; border-radius: 10px; border-right: 4px solid #10b981; text-align: justify; }
+
+    .acc-item { background: #131c31; border: 1px solid #25334d; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+    .acc-btn { width: 100%; padding: 14px; text-align: right; background: none; border: none; color: #f8fafc; font-weight: bold; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .acc-body { display: none; padding: 14px; background: #080e1e; border-top: 1px solid #25334d; font-size: 0.9rem; line-height: 1.7; color: #cbd5e1; }
+    .acc-body.active { display: block; }
   </style>
 </head>
 <body>
 
-  <!-- شريط التعميمات والتنبيهات العاجلة -->
-  
   <!-- تنبيه انقطاع الإنترنت الهادئ -->
-  <div id="offline-status-bar" style="display:none; background:#b45309; color:#fff; text-align:center; padding:6px 10px; font-size:0.75rem; font-weight:bold; border-bottom:1px solid #f59e0b;">
+  <div id="offline-status-bar">
     📶 وضع عدم الاتصال: الأدعية، البوصلة، ومواقع الفنادق والحافلة المحفوظة تعمل بكفاءة.
   </div>
 
+  <!-- شريط التعميمات والتنبيهات العاجلة -->
   <div id="broadcast-banner">
     <button class="banner-close-btn" onclick="dismissCurrentBroadcast()">✕</button>
     📢 <span id="broadcast-text"></span>
@@ -228,8 +222,7 @@
         <div style="color: #34d399;">⏱️ الوقت مشياً: <strong id="live-walk-time">--</strong></div>
       </div>
 
-      
-      <button type="button" onclick="openCompassModal()" class="btn-sub" style="width: 100%; margin-top: 8px; padding: 10px; font-weight: bold; background: #0c4a6e; color: #7dd3fc; border: 1px solid #0284c7; border-radius: 10px; font-size: 0.88rem;">🧭 فتح بوصلة القبلة والفندق المباشرة</button>
+      <button type="button" onclick="openCompassModal()" class="btn-sub" style="width: 100%; margin-bottom: 8px; padding: 10px; font-weight: bold; background: #0c4a6e; color: #7dd3fc; border: 1px solid #0284c7; border-radius: 10px; font-size: 0.88rem;">🧭 فتح بوصلة القبلة والفندق المباشرة</button>
       <button onclick="navigateHotel()" class="btn-main" style="background: #0284c7; width: 100%; padding: 12px; border-radius: 12px; font-size: 0.95rem;">🧭 خذني إلى فندقي (خرائط Google)</button>
     </div>
 
@@ -289,7 +282,7 @@
         </div>
       </div>
 
-      <!-- ضبط وتثبيت موقف الحافلة (المرشد) -->
+      <!-- لوحة ضبط وتثبيت موقف الحافلة (المرشد) -->
       <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <span style="font-size: 0.88rem; font-weight: bold; color: #fbbf24;">🚌 موقف حافلة الفوج:</span>
@@ -317,10 +310,10 @@
       <div class="group-manager">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <span style="font-size: 0.85rem; font-weight: bold; color: #f1f5f9;">📁 تصفية وإدارة الأفواج:</span>
-          <div style="display:flex; gap:6px; flex-wrap: wrap;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
             <button type="button" onclick="openHeadcountModal()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #d97706; color: #fff; font-weight: bold;">📊 إحصاء الحضور</button>
-            <button type="button" onclick="generateGroupQRModal()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #0284c7; color: #fff;">📲 ملصق QR</button>
-            <button type="button" onclick="createNewGroup()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #064e3b; color: #a7f3d0;">+ فوج</button>
+            <button onclick="generateGroupQRModal()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #0284c7; color: #fff;">📲 ملصق QR للفوج</button>
+            <button onclick="createNewGroup()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #064e3b; color: #a7f3d0;">+ إنشاء فوج</button>
           </div>
         </div>
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -328,7 +321,7 @@
             <option value="all">كل الأفواج (عرض شامل)</option>
           </select>
           <button type="button" onclick="resetAllTestDataConfirm()" class="btn-danger-sm" style="padding: 4px 8px; font-size: 0.72rem; background: #991b1b; color: #fecaca; border: 1px solid #ef4444;">🧹 تفريغ بيانات التجربة</button>
-          <button onclick="deleteCurrentFilteredGroup()" class="btn-danger-sm" style="padding: 6px 10px;">🗑️ مسح الفوج المحدد</button>
+          <button onclick="deleteCurrentFilteredGroup()" class="btn-danger-sm" style="padding: 6px 10px;">🗑️ مسح الفوج</button>
         </div>
       </div>
 
@@ -522,7 +515,7 @@
     let makkahMapPin = null;
     let madinahMapPin = null;
 
-    // موقع الحافلة
+    // موقع الحافلة (يُحدث محلياً وسحابياً)
     let busLocation = null;
     let busMarkerInstance = null;
     try {
@@ -537,7 +530,7 @@
       return (stored && stored.trim()) ? stored.trim() : DEFAULT_AGENCY_PHONE;
     }
 
-    // استخراج الإحداثيات الشامل من أي رابط خرائط أو إحداثيات مباشرة
+    // استخراج الإحداثيات الشامل من أي رابط خرائط أو أرقام مباشرة
     function extractCoordsFromText(rawText) {
       if (!rawText) return null;
       let t = rawText.trim();
@@ -643,7 +636,6 @@
       }
     }
 
-    // تحديث واجهة الفندق للمعتمر
     function updatePilgrimHotelView() {
       const citySelect = document.getElementById('user-hotel-city');
       const city = citySelect ? citySelect.value : 'مكة';
@@ -665,14 +657,30 @@
     }
 
     // ==========================================
-    // منطق الحافلة المتكامل
+    // منطق الحافلة المتكامل والمربوط بالسيرفر
     // ==========================================
+    function syncBusToServer(locationData) {
+      busLocation = locationData;
+      if (locationData) {
+        localStorage.setItem('omrah_bus_location', JSON.stringify(locationData));
+      } else {
+        localStorage.removeItem('omrah_bus_location');
+      }
+      updateBusUI();
+
+      fetch(`${VPS_API}/api/bus/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(locationData || {})
+      }).catch(err => {});
+    }
+
     function updateBusUI() {
       const distEl = document.getElementById('bus-dist-val');
       const nameEl = document.getElementById('bus-name-display');
 
       if (busLocation && busLocation.lat && busLocation.lng) {
-        if (nameEl) nameEl.innerText = busLocation.name || 'موقف الحافلة محدد';
+        if (nameEl) nameEl.innerText = busLocation.name || 'موقف حافلة الفوج (محدد)';
         if (distEl) {
           const dist = calculateDistance(userCurrentLat, userCurrentLng, busLocation.lat, busLocation.lng);
           distEl.innerText = (dist < 1000) ? `${dist} م` : `${(dist / 1000).toFixed(1)} كم`;
@@ -704,11 +712,10 @@
     function setBusCurrentLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
-          busLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, name: "موقف الحافلة (موقع المرشد)" };
-          localStorage.setItem('omrah_bus_location', JSON.stringify(busLocation));
-          updateBusUI();
-          if (mapInstance) mapInstance.flyTo([busLocation.lat, busLocation.lng], 17);
-          alert('✅ تم تثبيت موقع الحافلة بنجاح!');
+          const bData = { lat: pos.coords.latitude, lng: pos.coords.longitude, name: "موقف الحافلة (موقع المرشد)" };
+          syncBusToServer(bData);
+          if (mapInstance) mapInstance.flyTo([bData.lat, bData.lng], 17);
+          alert('✅ تم تثبيت ونشر موقع الحافلة لجميع المعتمرين بنجاح!');
         }, () => alert('تعذر جلب موقع GPS'));
       }
     }
@@ -729,35 +736,31 @@
 
       mapInstance.once('click', function(e) {
         if (toast) toast.remove();
-        busLocation = { lat: e.latlng.lat, lng: e.latlng.lng, name: "موقف حافلة الفوج" };
-        localStorage.setItem('omrah_bus_location', JSON.stringify(busLocation));
-        updateBusUI();
-        if (mapInstance) mapInstance.flyTo([busLocation.lat, busLocation.lng], 17);
-        alert('✅ تم تثبيت موقع الحافلة على الخريطة بنجاح!');
+        const bData = { lat: e.latlng.lat, lng: e.latlng.lng, name: "موقف حافلة الفوج" };
+        syncBusToServer(bData);
+        if (mapInstance) mapInstance.flyTo([bData.lat, bData.lng], 17);
+        alert('✅ تم تثبيت ونشر موقع الحافلة على الخريطة لجميع المعتمرين!');
       });
     };
 
     function setBusFromGmapsPrompt() {
-      const input = prompt('الصق رابط خرائط Google أو الإحداثيات مباشرة:');
+      const input = prompt('الصق رابط خرائط Google أو الإحداثيات (مثال: 21.42, 39.82):');
       if (!input) return;
       const coords = extractCoordsFromText(input);
       if (coords) {
-        busLocation = { lat: coords.lat, lng: coords.lng, name: "موقف حافلة الفوج" };
-        localStorage.setItem('omrah_bus_location', JSON.stringify(busLocation));
-        updateBusUI();
+        const bData = { lat: coords.lat, lng: coords.lng, name: "موقف حافلة الفوج" };
+        syncBusToServer(bData);
         if (mapInstance) mapInstance.flyTo([coords.lat, coords.lng], 17);
-        alert('✅ تم تثبيت موقف الحافلة بنجاح!');
+        alert('✅ تم تثبيت ونشر موقف الحافلة بنجاح!');
       } else {
-        alert('تعذر استخراج الإحداثيات من هذا الرابط. يُفضل استخدام زر (👆 لمس على الخريطة) لتحديده بنقرة واحدة.');
+        alert('تعذر استخراج الإحداثيات من هذا الرابط. يُفضل استخدام زر (👆 لمس على الخريطة) لتحديده بلمسة واحدة.');
       }
     }
 
     function clearBusLocation() {
-      if (confirm('هل تريد إلغاء تحديد موقف الحافلة؟')) {
-        busLocation = null;
-        localStorage.removeItem('omrah_bus_location');
+      if (confirm('هل تريد إلغاء تحديد موقف الحافلة لجميع المعتمرين؟')) {
+        syncBusToServer(null);
         if (busMarkerInstance && mapInstance) mapInstance.removeLayer(busMarkerInstance);
-        updateBusUI();
         alert('تم إلغاء موقف الحافلة');
       }
     }
@@ -770,7 +773,6 @@
       }
     }
 
-    
     // ==========================================
     // البوصلة المباشرة الذكية للقبلة والفندق
     // ==========================================
@@ -793,7 +795,6 @@
       const city = citySelect ? citySelect.value : 'مكة';
       const hotel = serverHotels[city] || serverHotels['مكة'];
 
-      // إحداثيات الكعبة المشرفة
       const kaabaCoords = { lat: 21.4225, lng: 39.8262 };
       const qiblaBearing = calculateBearing(userCurrentLat, userCurrentLng, kaabaCoords.lat, kaabaCoords.lng);
       const hotelBearing = hotel ? calculateBearing(userCurrentLat, userCurrentLng, hotel.lat, hotel.lng) : 0;
@@ -833,8 +834,6 @@
         </div>
       `;
       document.body.appendChild(modal);
-
-      // تشغيل مستشعر دوران الهاتف
       startCompassSensor(qiblaBearing, hotelBearing);
     };
 
@@ -854,7 +853,6 @@
 
       if (!disc || !nKaaba || !nHotel) return;
 
-      // ضبط زاوية الأسهم المبدئية
       nKaaba.style.transform = `rotate(${qiblaBearing}deg)`;
       nHotel.style.transform = `rotate(${hotelBearing}deg)`;
 
@@ -862,19 +860,121 @@
         compassOrientationHandler = function(event) {
           let heading = 0;
           if (event.webkitCompassHeading) {
-            heading = event.webkitCompassHeading; // لأجهزة آبل
+            heading = event.webkitCompassHeading;
           } else if (event.alpha !== null) {
-            heading = 360 - event.alpha; // لأجهزة أندرويد
+            heading = 360 - event.alpha;
           }
-
-          if (disc) {
-            disc.style.transform = `rotate(${-heading}deg)`;
-          }
+          if (disc) disc.style.transform = `rotate(${-heading}deg)`;
         };
-
         window.addEventListener('deviceorientation', compassOrientationHandler, false);
       }
     }
+
+    // ==========================================
+    // ميزة إحصاء وحصر الحضور اللحظي (Headcount)
+    // ==========================================
+    window.openHeadcountModal = function() {
+      const old = document.getElementById('headcount-modal-view');
+      if (old) old.remove();
+
+      const filterSelect = document.getElementById('filter-group-select');
+      const selectedGroup = filterSelect ? filterSelect.value : 'all';
+
+      let list = serverPilgrims || [];
+      if (selectedGroup !== 'all') list = list.filter(p => p.group === selectedGroup);
+      if (list.length === 0) return alert('لا يوجد معتمرون مسجلون في هذا الفوج حالياً لإحصائهم.');
+
+      const citySelect = document.getElementById('user-hotel-city');
+      const city = citySelect ? citySelect.value : 'مكة';
+      const hotel = serverHotels[city] || serverHotels['مكة'];
+
+      const makkahHaram = { lat: 21.4225, lng: 39.8262 };
+      const madinahHaram = { lat: 24.4672, lng: 39.6108 };
+      const currentHaram = (city === 'المدينة') ? madinahHaram : makkahHaram;
+
+      let atHotelOrBus = [];
+      let atHaram = [];
+      let outside = [];
+
+      list.forEach(p => {
+        let distHotel = hotel ? calculateDistance(p.lat, p.lng, hotel.lat, hotel.lng) : 999999;
+        let distBus = (busLocation && busLocation.lat) ? calculateDistance(p.lat, p.lng, busLocation.lat, busLocation.lng) : 999999;
+        let distHaram = calculateDistance(p.lat, p.lng, currentHaram.lat, currentHaram.lng);
+
+        if (distHotel <= 300 || distBus <= 300) {
+          atHotelOrBus.push({ ...p, dist: Math.min(distHotel, distBus), spot: (distBus <= 300 ? 'عند الحافلة' : 'في الفندق') });
+        } else if (distHaram <= 1000) {
+          atHaram.push({ ...p, dist: distHaram, spot: 'في محيط الحرم' });
+        } else {
+          outside.push({ ...p, dist: distHotel, spot: 'بعيد / في الطريق' });
+        }
+      });
+
+      function renderPilgrimListGroup(arr, badgeColor) {
+        if (arr.length === 0) return '<div style="color:#64748b; font-size:0.75rem; padding:4px 0;">لا يوجد أحد</div>';
+        return arr.map(p => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#0b1329; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:0.8rem;">
+            <div>
+              <strong style="color:#fff;">👤 ${p.name}</strong>
+              <span style="font-size:0.7rem; color:#94a3b8; margin-right:4px;">(${p.spot} - ${p.dist < 1000 ? p.dist + 'م' : (p.dist/1000).toFixed(1) + 'كم'})</span>
+            </div>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <span class="battery-pill ${p.battery < 20 ? 'bat-low' : p.battery < 50 ? 'bat-med' : 'bat-high'}">🔋 ${p.battery || 100}%</span>
+              <button onclick="document.getElementById('headcount-modal-view').remove(); focusOnMap(${p.lat}, ${p.lng});" class="btn-sub" style="padding:2px 6px; font-size:0.7rem;">📍</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const modal = document.createElement('div');
+      modal.id = 'headcount-modal-view';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999999; display:flex; align-items:center; justify-content:center; padding:14px;';
+      modal.innerHTML = `
+        <div style="background:#131c31; border:2px solid #d97706; border-radius:16px; width:100%; max-width:400px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; text-align:right;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid #25334d; background:#0b1329;">
+            <h4 style="color:#fbbf24; margin:0; font-size:0.95rem;">📊 إحصاء الحضور (${selectedGroup === 'all' ? 'جميع الأفواج' : selectedGroup})</h4>
+            <button onclick="document.getElementById('headcount-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:6px; width:26px; height:26px; cursor:pointer; font-weight:bold;">✕</button>
+          </div>
+          
+          <div style="padding:12px 14px; overflow-y:auto; flex:1;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; text-align:center; margin-bottom:12px;">
+              <div style="background:#064e3b; border:1px solid #059669; padding:8px 4px; border-radius:8px;">
+                <div style="font-size:1.15rem; font-weight:bold; color:#a7f3d0;">${atHotelOrBus.length}</div>
+                <div style="font-size:0.7rem; color:#6ee7b7;">فندق / باص</div>
+              </div>
+              <div style="background:#1e3a8a; border:1px solid #2563eb; padding:8px 4px; border-radius:8px;">
+                <div style="font-size:1.15rem; font-weight:bold; color:#bfdbfe;">${atHaram.length}</div>
+                <div style="font-size:0.7rem; color:#93c5fd;">في الحرم</div>
+              </div>
+              <div style="background:#78350f; border:1px solid #b45309; padding:8px 4px; border-radius:8px;">
+                <div style="font-size:1.15rem; font-weight:bold; color:#fde68a;">${outside.length}</div>
+                <div style="font-size:0.7rem; color:#fcd34d;">بعيد / خارج</div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;">
+              <div style="font-size:0.8rem; font-weight:bold; color:#34d399; margin-bottom:4px;">🏨 متواجدون في الفندق أو الحافلة (${atHotelOrBus.length}):</div>
+              ${renderPilgrimListGroup(atHotelOrBus, '#10b981')}
+            </div>
+
+            <div style="margin-bottom:10px;">
+              <div style="font-size:0.8rem; font-weight:bold; color:#38bdf8; margin-bottom:4px;">🕋 متواجدون في الحرم الشريف (${atHaram.length}):</div>
+              ${renderPilgrimListGroup(atHaram, '#0284c7')}
+            </div>
+
+            <div style="margin-bottom:10px;">
+              <div style="font-size:0.8rem; font-weight:bold; color:#f59e0b; margin-bottom:4px;">🚶 خارج النطاق أو في الطريق (${outside.length}):</div>
+              ${renderPilgrimListGroup(outside, '#f59e0b')}
+            </div>
+          </div>
+
+          <div style="padding:8px 14px; border-top:1px solid #25334d; background:#0b1329;">
+            <button onclick="document.getElementById('headcount-modal-view').remove()" class="btn-sub" style="width:100%;">إغلاق النافذة</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    };
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
       const R = 6371e3;
@@ -898,8 +998,70 @@
     }
 
     // ==========================================
-    // وضع توفير الطاقة الذكي
+    // وضع عدم الاتصال + توفير الطاقة + التصفير
     // ==========================================
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+
+    function updateNetworkStatus() {
+      const bar = document.getElementById('offline-status-bar');
+      if (!bar) return;
+      if (!navigator.onLine) {
+        bar.style.display = 'block';
+      } else {
+        bar.style.display = 'none';
+        syncWithServer();
+      }
+    }
+
+    function saveOfflineCache(data) {
+      try {
+        if (data) localStorage.setItem('omrah_last_server_cache', JSON.stringify(data));
+      } catch(e) {}
+    }
+
+    function loadOfflineCache() {
+      try {
+        const cached = localStorage.getItem('omrah_last_server_cache');
+        if (cached) {
+          const data = JSON.parse(cached);
+          if (data.groups) serverGroups = data.groups;
+          if (data.hotels) {
+            serverHotels["مكة"] = Object.assign(serverHotels["مكة"], data.hotels["مكة"] || {});
+            serverHotels["المدينة"] = Object.assign(serverHotels["المدينة"], data.hotels["المدينة"] || {});
+          }
+          if (data.busLocation) {
+            busLocation = data.busLocation;
+          }
+          updateGroupsDropdowns();
+          updatePilgrimHotelView();
+          updateBusUI();
+        }
+      } catch(e) {}
+    }
+
+    window.resetAllTestDataConfirm = function() {
+      const ans = prompt("⚠️ تحذير: هذا الإجراء سيمسح قائمة المعتمرين التجريبيين وسجل التتبع من السيرفر لبدء الرحلة الحقيقية.\\n\\nلتأكيد المسح، اكتب كلمة: مسح");
+      if (ans && ans.trim() === 'مسح') {
+        fetch(`${VPS_API}/api/reset-test-data`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: GUIDE_SECRET_PIN })
+        })
+        .then(res => res.json())
+        .then(res => {
+          localStorage.removeItem('omrah_broadcast_archive_data');
+          localStorage.removeItem('omrah_bus_location');
+          busLocation = null;
+          if (busMarkerInstance && mapInstance) mapInstance.removeLayer(busMarkerInstance);
+          updateBusUI();
+          syncWithServer();
+          alert('✅ تم تصفير بيانات التجربة بنجاح! السيرفر والتطبيق الآن نظيفان وجاهزان للمعتمرين.');
+        })
+        .catch(err => alert('تعذر تصفير السيرفر، تحقق من اتصال الخادم.'));
+      }
+    };
+
     async function checkBatteryOptimization() {
       const bat = await getBatteryLevel();
       const statusElem = document.getElementById('auto-gps-text');
@@ -943,74 +1105,12 @@
       } catch (e) {}
     }
 
-    
-    // ==========================================
-    // تأمين عدم الاتصال + تفريغ بيانات التجارب
-    // ==========================================
-    window.addEventListener('online', updateNetworkStatus);
-    window.addEventListener('offline', updateNetworkStatus);
-
-    function updateNetworkStatus() {
-      const bar = document.getElementById('offline-status-bar');
-      if (!bar) return;
-      if (!navigator.onLine) {
-        bar.style.display = 'block';
-      } else {
-        bar.style.display = 'none';
-        syncWithServer();
-      }
-    }
-
-    // حفظ واسترجاع كاش السيرفر محلياً
-    function saveOfflineCache(data) {
-      try {
-        if (data) localStorage.setItem('omrah_last_server_cache', JSON.stringify(data));
-      } catch(e) {}
-    }
-
-    function loadOfflineCache() {
-      try {
-        const cached = localStorage.getItem('omrah_last_server_cache');
-        if (cached) {
-          const data = JSON.parse(cached);
-          if (data.groups) serverGroups = data.groups;
-          if (data.hotels) {
-            serverHotels["مكة"] = Object.assign(serverHotels["مكة"], data.hotels["مكة"] || {});
-            serverHotels["المدينة"] = Object.assign(serverHotels["المدينة"], data.hotels["المدينة"] || {});
-          }
-          updateGroupsDropdowns();
-          updatePilgrimHotelView();
-        }
-      } catch(e) {}
-    }
-
-    window.resetAllTestDataConfirm = function() {
-      const ans = prompt("⚠️ تحذير: هذا الإجراء سيمسح قائمة المعتمرين التجريبيين وسجل التتبع من السيرفر لبدء الرحلة الحقيقية.\n\nلتأكيد المسح، اكتب كلمة: مسح");
-      if (ans && ans.trim() === 'مسح') {
-        fetch(`${VPS_API}/api/reset-test-data`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin: GUIDE_SECRET_PIN })
-        })
-        .then(res => res.json())
-        .then(res => {
-          localStorage.removeItem('omrah_broadcast_archive_data');
-          localStorage.removeItem('omrah_bus_location');
-          busLocation = null;
-          if (busMarkerInstance && mapInstance) mapInstance.removeLayer(busMarkerInstance);
-          updateBusUI();
-          syncWithServer();
-          alert('✅ تم تصفير بيانات التجربة بنجاح! السيرفر والتطبيق الآن نظيفان وجاهزان للمعتمرين.');
-        })
-        .catch(err => alert('تعذر تصفير السيرفر، تحقق من اتصال الخادم.'));
-      }
-    };
-
     function syncWithServer() {
       fetch(`${VPS_API}/api/sync`)
         .then(res => res.json())
-                .then(data => {
+        .then(data => {
           saveOfflineCache(data);
+
           if (data.groups && Array.isArray(data.groups)) {
             serverGroups = data.groups;
             updateGroupsDropdowns();
@@ -1024,6 +1124,15 @@
             serverHotels["المدينة"] = Object.assign(serverHotels["المدينة"], data.hotels["المدينة"] || {});
             updatePilgrimHotelView();
             renderMapHotelPins();
+          }
+          if (data.busLocation !== undefined) {
+            busLocation = data.busLocation;
+            if (busLocation) {
+              localStorage.setItem('omrah_bus_location', JSON.stringify(busLocation));
+            } else {
+              localStorage.removeItem('omrah_bus_location');
+            }
+            updateBusUI();
           }
           if (data.broadcasts && data.broadcasts.length > 0) {
             const b = data.broadcasts[0];
@@ -1126,121 +1235,6 @@
         syncWithServer();
       });
     }
-
-    
-    // ==========================================
-    // ميزة إحصاء وحصر الحضور اللحظي (Headcount)
-    // ==========================================
-    window.openHeadcountModal = function() {
-      const old = document.getElementById('headcount-modal-view');
-      if (old) old.remove();
-
-      const filterSelect = document.getElementById('filter-group-select');
-      const selectedGroup = filterSelect ? filterSelect.value : 'all';
-
-      let list = serverPilgrims || [];
-      if (selectedGroup !== 'all') {
-        list = list.filter(p => p.group === selectedGroup);
-      }
-
-      if (list.length === 0) {
-        return alert('لا يوجد معتمرون مسجلون في هذا الفوج حالياً لإحصائهم.');
-      }
-
-      // تحديد مركز الفندق المعتمد حالياً
-      const citySelect = document.getElementById('user-hotel-city');
-      const city = citySelect ? citySelect.value : 'مكة';
-      const hotel = serverHotels[city] || serverHotels['مكة'];
-
-      // إحداثيات الحرم المكي الشريف والمسجد النبوي
-      const makkahHaram = { lat: 21.4225, lng: 39.8262 };
-      const madinahHaram = { lat: 24.4672, lng: 39.6108 };
-      const currentHaram = (city === 'المدينة') ? madinahHaram : makkahHaram;
-
-      let atHotelOrBus = [];
-      let atHaram = [];
-      let outside = [];
-
-      list.forEach(p => {
-        let distHotel = hotel ? calculateDistance(p.lat, p.lng, hotel.lat, hotel.lng) : 999999;
-        let distBus = (busLocation && busLocation.lat) ? calculateDistance(p.lat, p.lng, busLocation.lat, busLocation.lng) : 999999;
-        let distHaram = calculateDistance(p.lat, p.lng, currentHaram.lat, currentHaram.lng);
-
-        if (distHotel <= 300 || distBus <= 300) {
-          atHotelOrBus.push({ ...p, dist: Math.min(distHotel, distBus), spot: (distBus <= 300 ? 'عند الحافلة' : 'في الفندق') });
-        } else if (distHaram <= 1000) {
-          atHaram.push({ ...p, dist: distHaram, spot: 'في محيط الحرم' });
-        } else {
-          outside.push({ ...p, dist: distHotel, spot: 'بعيد / في الطريق' });
-        }
-      });
-
-      function renderPilgrimListGroup(arr, badgeColor) {
-        if (arr.length === 0) return '<div style="color:#64748b; font-size:0.75rem; padding:4px 0;">لا يوجد أحد</div>';
-        return arr.map(p => `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#0b1329; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:0.8rem;">
-            <div>
-              <strong style="color:#fff;">👤 ${p.name}</strong>
-              <span style="font-size:0.7rem; color:#94a3b8; margin-right:4px;">(${p.spot} - ${p.dist < 1000 ? p.dist + 'م' : (p.dist/1000).toFixed(1) + 'كم'})</span>
-            </div>
-            <div style="display:flex; gap:4px; align-items:center;">
-              <span class="battery-pill ${p.battery < 20 ? 'bat-low' : p.battery < 50 ? 'bat-med' : 'bat-high'}">🔋 ${p.battery || 100}%</span>
-              <button onclick="document.getElementById('headcount-modal-view').remove(); focusOnMap(${p.lat}, ${p.lng});" class="btn-sub" style="padding:2px 6px; font-size:0.7rem;">📍</button>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      const modal = document.createElement('div');
-      modal.id = 'headcount-modal-view';
-      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999999; display:flex; align-items:center; justify-content:center; padding:14px;';
-      modal.innerHTML = `
-        <div style="background:#131c31; border:2px solid #d97706; border-radius:16px; width:100%; max-width:400px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; text-align:right;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid #25334d; background:#0b1329;">
-            <h4 style="color:#fbbf24; margin:0; font-size:0.95rem;">📊 إحصاء الحضور (${selectedGroup === 'all' ? 'جميع الأفواج' : selectedGroup})</h4>
-            <button onclick="document.getElementById('headcount-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:6px; width:26px; height:26px; cursor:pointer; font-weight:bold;">✕</button>
-          </div>
-          
-          <div style="padding:12px 14px; overflow-y:auto; flex:1;">
-            <!-- ملخص الإحصاء الكلي -->
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; text-align:center; margin-bottom:12px;">
-              <div style="background:#064e3b; border:1px solid #059669; padding:8px 4px; border-radius:8px;">
-                <div style="font-size:1.15rem; font-weight:bold; color:#a7f3d0;">${atHotelOrBus.length}</div>
-                <div style="font-size:0.7rem; color:#6ee7b7;">فندق / باص</div>
-              </div>
-              <div style="background:#1e3a8a; border:1px solid #2563eb; padding:8px 4px; border-radius:8px;">
-                <div style="font-size:1.15rem; font-weight:bold; color:#bfdbfe;">${atHaram.length}</div>
-                <div style="font-size:0.7rem; color:#93c5fd;">في الحرم</div>
-              </div>
-              <div style="background:#78350f; border:1px solid #b45309; padding:8px 4px; border-radius:8px;">
-                <div style="font-size:1.15rem; font-weight:bold; color:#fde68a;">${outside.length}</div>
-                <div style="font-size:0.7rem; color:#fcd34d;">بعيد / خارج</div>
-              </div>
-            </div>
-
-            <div style="margin-bottom:10px;">
-              <div style="font-size:0.8rem; font-weight:bold; color:#34d399; margin-bottom:4px;">🏨 متواجدون في الفندق أو الحافلة (${atHotelOrBus.length}):</div>
-              ${renderPilgrimListGroup(atHotelOrBus, '#10b981')}
-            </div>
-
-            <div style="margin-bottom:10px;">
-              <div style="font-size:0.8rem; font-weight:bold; color:#38bdf8; margin-bottom:4px;">🕋 متواجدون في الحرم الشريف (${atHaram.length}):</div>
-              ${renderPilgrimListGroup(atHaram, '#0284c7')}
-            </div>
-
-            <div style="margin-bottom:10px;">
-              <div style="font-size:0.8rem; font-weight:bold; color:#f59e0b; margin-bottom:4px;">🚶 خارج النطاق أو في الطريق (${outside.length}):</div>
-              ${renderPilgrimListGroup(outside, '#f59e0b')}
-            </div>
-          </div>
-
-          <div style="padding:8px 14px; border-top:1px solid #25334d; background:#0b1329;">
-            <button onclick="document.getElementById('headcount-modal-view').remove()" class="btn-sub" style="width:100%;">إغلاق النافذة</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    };
 
     function generateGroupQRModal() {
       const select = document.getElementById('filter-group-select');
@@ -1403,7 +1397,6 @@
         return;
       }
 
-      // تحديد مراكز النطاق الآمن (الفندق المعتمد والحرم)
       const citySelect = document.getElementById('user-hotel-city');
       const city = citySelect ? citySelect.value : 'مكة';
       const hotel = serverHotels[city] || serverHotels['مكة'];
@@ -1416,7 +1409,6 @@
         let distHaram = calculateDistance(p.lat, p.lng, haramCoords.lat, haramCoords.lng);
         let minSafeDist = Math.min(distH, distHaram);
 
-        // النطاق الآمن: 3500 متر (3.5 كم)
         const isOutOfZone = (minSafeDist > 3500);
         if (isOutOfZone) hasOutOfZonePilgrim = true;
 
@@ -1531,9 +1523,7 @@
         closePinModal();
         currentUser = { name: 'مرشد الفوج', phone: '', role: 'guide', group: 'إدارة الأفواج' };
         localStorage.setItem('omrah_user', JSON.stringify(currentUser));
-        loadOfflineCache();
-      updateNetworkStatus();
-      applyRoleUI();
+        applyRoleUI();
       } else {
         document.getElementById('pin-error').innerText = "❌ الرمز السري غير صحيح!";
       }
@@ -1545,9 +1535,7 @@
         const name = prompt("أدخل اسم المعتمر للتحويل إلى وضع المعتمر:") || "معتمر";
         currentUser = { name: name, phone: '', role: 'pilgrim', group: serverGroups[0] || 'الفوج 1 (الرئيسي)' };
         localStorage.setItem('omrah_user', JSON.stringify(currentUser));
-        loadOfflineCache();
-      updateNetworkStatus();
-      applyRoleUI();
+        applyRoleUI();
       } else {
         promptGuidePin();
       }
@@ -1566,8 +1554,6 @@
       localStorage.setItem('omrah_user_group', group);
 
       if (role === 'pilgrim') sendLiveLocation();
-      loadOfflineCache();
-      updateNetworkStatus();
       applyRoleUI();
     }
 
@@ -1828,7 +1814,7 @@
       }
     }
 
-    // بدء التشغيل واسترجاع الحساب
+    // بدء التشغيل
     window.addEventListener('load', function() {
       try {
         const pInput = document.getElementById('user-phone');
