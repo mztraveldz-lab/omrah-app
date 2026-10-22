@@ -157,6 +157,17 @@
       <span id="auto-gps-text">تتبع GPS التلقائي نشط: جاري الاتصال بالسيرفر...</span>
     </div>
 
+    
+    <!-- بطاقة موقع حافلة الفوج (للمعتمر) -->
+    <div id="bus-card-pilgrim" class="card" style="display:none; padding: 12px; margin-bottom: 14px; border: 1px solid #f59e0b; background: #1c1917; border-radius: 16px; text-align: right;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-weight: bold; color: #fbbf24; font-size: 0.95rem;">🚌 موقف حافلة الفوج:</span>
+        <span id="bus-dist-val" style="color: #fde68a; font-size: 0.8rem; font-weight: bold;">--</span>
+      </div>
+      <div id="bus-name-display" style="color: white; font-size: 1rem; margin-bottom: 8px;">موقف الحافلة محدد</div>
+      <button onclick="navigateBusLocation()" class="btn-main" style="background: #d97706; width: 100%; padding: 10px; border-radius: 10px; font-size: 0.9rem;">🧭 خذني إلى الحافلة (Google Maps)</button>
+    </div>
+
     <!-- بطاقة الفندق للمعتمر -->
     <div class="card" style="padding: 14px; margin-bottom: 14px; border: 1px solid #0284c7; background: #0f1c30; border-radius: 16px; text-align: right;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -556,6 +567,102 @@
     }
 
     // 3. تحديث واجهة الفندق عند المعتمر وحساب المسافة ووقت المشي
+    
+    // ==========================================
+    // إدارة موقع حافلة الفوج
+    // ==========================================
+    let busLocation = null;
+    let busMarkerInstance = null;
+
+    try {
+      const savedBus = localStorage.getItem('omrah_bus_location');
+      if (savedBus) busLocation = JSON.parse(savedBus);
+    } catch(e) {}
+
+    function updateBusUI() {
+      const bCard = document.getElementById('bus-card-pilgrim');
+      if (!bCard) return;
+
+      if (busLocation && busLocation.lat && busLocation.lng) {
+        bCard.style.display = 'block';
+        const dist = calculateDistance(userCurrentLat, userCurrentLng, busLocation.lat, busLocation.lng);
+        const distEl = document.getElementById('bus-dist-val');
+        if (distEl) {
+          distEl.innerText = (dist < 1000) ? `${dist} م` : `${(dist / 1000).toFixed(1)} كم`;
+        }
+      } else {
+        bCard.style.display = 'none';
+      }
+
+      renderBusMarker();
+    }
+
+    function renderBusMarker() {
+      if (!mapInstance) return;
+      if (busMarkerInstance) mapInstance.removeLayer(busMarkerInstance);
+
+      if (busLocation && busLocation.lat && busLocation.lng) {
+        const bIcon = L.divIcon({
+          className: 'bus-pin',
+          html: '<div style="background:#f59e0b; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px; box-shadow:0 2px 6px rgba(0,0,0,0.5);">🚌</div>',
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+        busMarkerInstance = L.marker([busLocation.lat, busLocation.lng], { icon: bIcon }).addTo(mapInstance)
+          .bindPopup(`<b>موقف حافلة الفوج 🚌</b><br>تم التحديد بواسطة المرشد`);
+      }
+    }
+
+    function setBusCurrentLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          busLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, name: "موقف حافلة الفوج" };
+          localStorage.setItem('omrah_bus_location', JSON.stringify(busLocation));
+          updateBusUI();
+          if (mapInstance) mapInstance.flyTo([busLocation.lat, busLocation.lng], 17);
+          alert('✅ تم تثبيت موقع الحافلة بنجاح وترسيمه لجميع المعتمرين!');
+        }, () => alert('تعذر جلب موقع GPS'));
+      }
+    }
+
+    function setBusFromGmapsPrompt() {
+      const link = prompt('الصق رابط Google Maps لموقف الحافلة:');
+      if (!link) return;
+      let lat = null, lng = null;
+      const atMatch = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (atMatch) { lat = parseFloat(atMatch[1]); lng = parseFloat(atMatch[2]); }
+      else {
+        const qMatch = link.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (qMatch) { lat = parseFloat(qMatch[1]); lng = parseFloat(qMatch[2]); }
+      }
+
+      if (lat && lng) {
+        busLocation = { lat, lng, name: "موقف حافلة الفوج" };
+        localStorage.setItem('omrah_bus_location', JSON.stringify(busLocation));
+        updateBusUI();
+        if (mapInstance) mapInstance.flyTo([lat, lng], 17);
+        alert('✅ تم تثبيت موقع الحافلة من الرابط بنجاح!');
+      } else {
+        alert('تعذر استخراج الإحداثيات من الرابط.');
+      }
+    }
+
+    function clearBusLocation() {
+      if (confirm('هل تريد إلغاء تحديد موقف الحافلة؟')) {
+        busLocation = null;
+        localStorage.removeItem('omrah_bus_location');
+        if (busMarkerInstance && mapInstance) mapInstance.removeLayer(busMarkerInstance);
+        updateBusUI();
+        alert('تم إلغاء موقف الحافلة');
+      }
+    }
+
+    function navigateBusLocation() {
+      if (busLocation && busLocation.lat && busLocation.lng) {
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${busLocation.lat},${busLocation.lng}&travelmode=walking`, '_system');
+      }
+    }
+
     function updatePilgrimHotelView() {
       const citySelect = document.getElementById('user-hotel-city');
       const city = citySelect ? citySelect.value : 'مكة';
