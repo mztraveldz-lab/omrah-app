@@ -102,6 +102,49 @@
     @keyframes alertBlink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.97); } }
     .alert-marker-pin { background: #dc2626; color: #fff; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; font-size: 16px; box-shadow: 0 0 12px #ef4444; animation: alertBlink 1s infinite; }
 
+  
+    /* تنسيقات البوصلة الذكية */
+    .compass-disc {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #0f1c30 0%, #080e1e 100%);
+      border: 4px solid #38bdf8;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3), inset 0 0 15px rgba(0,0,0,0.8);
+      position: relative;
+      margin: 16px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s ease-out;
+    }
+    .compass-needle-kaaba {
+      position: absolute;
+      width: 6px;
+      height: 90px;
+      background: linear-gradient(to top, transparent 50%, #10b981 50%);
+      transform-origin: bottom center;
+      bottom: 50%;
+      border-radius: 3px;
+    }
+    .compass-needle-hotel {
+      position: absolute;
+      width: 4px;
+      height: 80px;
+      background: linear-gradient(to top, transparent 50%, #38bdf8 50%);
+      transform-origin: bottom center;
+      bottom: 50%;
+      border-radius: 2px;
+    }
+    .compass-center-dot {
+      width: 14px;
+      height: 14px;
+      background: #f8fafc;
+      border-radius: 50%;
+      border: 2px solid #0f172a;
+      z-index: 10;
+    }
+
   </style>
 </head>
 <body>
@@ -179,6 +222,8 @@
         <div style="color: #34d399;">⏱️ الوقت مشياً: <strong id="live-walk-time">--</strong></div>
       </div>
 
+      
+      <button type="button" onclick="openCompassModal()" class="btn-sub" style="width: 100%; margin-top: 8px; padding: 10px; font-weight: bold; background: #0c4a6e; color: #7dd3fc; border: 1px solid #0284c7; border-radius: 10px; font-size: 0.88rem;">🧭 فتح بوصلة القبلة والفندق المباشرة</button>
       <button onclick="navigateHotel()" class="btn-main" style="background: #0284c7; width: 100%; padding: 12px; border-radius: 12px; font-size: 0.95rem;">🧭 خذني إلى فندقي (خرائط Google)</button>
     </div>
 
@@ -715,6 +760,112 @@
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${busLocation.lat},${busLocation.lng}&travelmode=walking`, '_system');
       } else {
         alert('لم يقم المرشد بتحديد موقف الحافلة بعد');
+      }
+    }
+
+    
+    // ==========================================
+    // البوصلة المباشرة الذكية للقبلة والفندق
+    // ==========================================
+    let compassOrientationHandler = null;
+
+    function calculateBearing(lat1, lon1, lat2, lon2) {
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+      const y = Math.sin(Δλ) * Math.cos(φ2);
+      const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+      return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    }
+
+    window.openCompassModal = function() {
+      const old = document.getElementById('compass-modal-view');
+      if (old) old.remove();
+
+      const citySelect = document.getElementById('user-hotel-city');
+      const city = citySelect ? citySelect.value : 'مكة';
+      const hotel = serverHotels[city] || serverHotels['مكة'];
+
+      // إحداثيات الكعبة المشرفة
+      const kaabaCoords = { lat: 21.4225, lng: 39.8262 };
+      const qiblaBearing = calculateBearing(userCurrentLat, userCurrentLng, kaabaCoords.lat, kaabaCoords.lng);
+      const hotelBearing = hotel ? calculateBearing(userCurrentLat, userCurrentLng, hotel.lat, hotel.lng) : 0;
+      const hotelDist = hotel ? calculateDistance(userCurrentLat, userCurrentLng, hotel.lat, hotel.lng) : 0;
+
+      const modal = document.createElement('div');
+      modal.id = 'compass-modal-view';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;';
+      modal.innerHTML = `
+        <div style="background:#131c31; border:2px solid #0284c7; border-radius:18px; width:100%; max-width:340px; padding:16px; text-align:center;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h4 style="color:#38bdf8; margin:0; font-size:1rem;">🧭 بوصلة الوجهة الحية</h4>
+            <button onclick="closeCompassModal()" style="background:#ef4444; border:none; color:#fff; border-radius:6px; width:26px; height:26px; cursor:pointer; font-weight:bold;">✕</button>
+          </div>
+          
+          <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:6px;">وجّه هاتفك أفقياً، السهم يدور تلقائياً مع حركتك</div>
+
+          <div class="compass-disc" id="live-compass-disc">
+            <div class="compass-center-dot"></div>
+            <div class="compass-needle-kaaba" id="needle-kaaba" title="اتجاه الكعبة"></div>
+            <div class="compass-needle-hotel" id="needle-hotel" title="اتجاه الفندق"></div>
+            <div style="position:absolute; top:8px; font-size:0.75rem; font-weight:bold; color:#ef4444;">شمال N</div>
+          </div>
+
+          <div style="background:#080e1e; border-radius:10px; padding:10px; text-align:right; font-size:0.8rem; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+              <span style="color:#10b981; font-weight:bold;">🕋 اتجاه الكعبة (القبلة):</span>
+              <strong style="color:#fff;">${Math.round(qiblaBearing)}°</strong>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span style="color:#38bdf8; font-weight:bold;">🏨 اتجاه ${hotel ? hotel.name : 'الفندق'}:</span>
+              <strong style="color:#fff;">${hotelDist < 1000 ? hotelDist + 'م' : (hotelDist/1000).toFixed(1) + 'كم'}</strong>
+            </div>
+          </div>
+
+          <button onclick="closeCompassModal()" class="btn-sub" style="width:100%;">إغلاق البوصلة</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // تشغيل مستشعر دوران الهاتف
+      startCompassSensor(qiblaBearing, hotelBearing);
+    };
+
+    window.closeCompassModal = function() {
+      if (compassOrientationHandler) {
+        window.removeEventListener('deviceorientation', compassOrientationHandler, false);
+        compassOrientationHandler = null;
+      }
+      const modal = document.getElementById('compass-modal-view');
+      if (modal) modal.remove();
+    };
+
+    function startCompassSensor(qiblaBearing, hotelBearing) {
+      const disc = document.getElementById('live-compass-disc');
+      const nKaaba = document.getElementById('needle-kaaba');
+      const nHotel = document.getElementById('needle-hotel');
+
+      if (!disc || !nKaaba || !nHotel) return;
+
+      // ضبط زاوية الأسهم المبدئية
+      nKaaba.style.transform = `rotate(${qiblaBearing}deg)`;
+      nHotel.style.transform = `rotate(${hotelBearing}deg)`;
+
+      if (window.DeviceOrientationEvent) {
+        compassOrientationHandler = function(event) {
+          let heading = 0;
+          if (event.webkitCompassHeading) {
+            heading = event.webkitCompassHeading; // لأجهزة آبل
+          } else if (event.alpha !== null) {
+            heading = 360 - event.alpha; // لأجهزة أندرويد
+          }
+
+          if (disc) {
+            disc.style.transform = `rotate(${-heading}deg)`;
+          }
+        };
+
+        window.addEventListener('deviceorientation', compassOrientationHandler, false);
       }
     }
 
