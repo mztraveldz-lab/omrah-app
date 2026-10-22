@@ -150,22 +150,11 @@
 
   <nav id="nav-bar"></nav>
 
-  <!-- 1. شاشة المعتمر (للاطلاع البسيط فقط) -->
+  <!-- 1. شاشة المعتمر -->
   <main id="view-sos" class="view">
     <div class="tracking-status">
       <div class="pulse-dot"></div>
       <span id="auto-gps-text">تتبع GPS التلقائي نشط: جاري الاتصال بالسيرفر...</span>
-    </div>
-
-    
-    <!-- بطاقة موقع حافلة الفوج (للمعتمر) -->
-    <div id="bus-card-pilgrim" class="card" style="display:none; padding: 12px; margin-bottom: 14px; border: 1px solid #f59e0b; background: #1c1917; border-radius: 16px; text-align: right;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <span style="font-weight: bold; color: #fbbf24; font-size: 0.95rem;">🚌 موقف حافلة الفوج:</span>
-        <span id="bus-dist-val" style="color: #fde68a; font-size: 0.8rem; font-weight: bold;">--</span>
-      </div>
-      <div id="bus-name-display" style="color: white; font-size: 1rem; margin-bottom: 8px;">موقف الحافلة محدد</div>
-      <button onclick="navigateBusLocation()" class="btn-main" style="background: #d97706; width: 100%; padding: 10px; border-radius: 10px; font-size: 0.9rem;">🧭 خذني إلى الحافلة (Google Maps)</button>
     </div>
 
     <!-- بطاقة الفندق للمعتمر -->
@@ -179,13 +168,22 @@
       </div>
       <div id="hotel-name-display" style="color: white; font-size: 1.1rem; margin: 6px 0; font-weight: bold;">جاري جلب الفندق من السيرفر...</div>
       
-      <!-- عداد المسافة والوقت التقديري مشياً -->
       <div style="display: flex; justify-content: space-around; background: rgba(255,255,255,0.06); padding: 8px; border-radius: 8px; margin: 10px 0; font-size: 0.85rem; text-align: center;">
         <div style="color: #38bdf8;">📏 المسافة: <strong id="live-distance-val">--</strong></div>
         <div style="color: #34d399;">⏱️ الوقت مشياً: <strong id="live-walk-time">--</strong></div>
       </div>
 
       <button onclick="navigateHotel()" class="btn-main" style="background: #0284c7; width: 100%; padding: 12px; border-radius: 12px; font-size: 0.95rem;">🧭 خذني إلى فندقي (خرائط Google)</button>
+    </div>
+
+    <!-- بطاقة موقع حافلة الفوج (للمعتمر) -->
+    <div id="bus-card-pilgrim" class="card" style="padding: 14px; margin-bottom: 14px; border: 1px solid #f59e0b; background: #1c1917; border-radius: 16px; text-align: right;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-weight: bold; color: #fbbf24; font-size: 0.95rem;">🚌 موقف حافلة الفوج:</span>
+        <span id="bus-dist-val" style="color: #fde68a; font-size: 0.85rem; font-weight: bold;">--</span>
+      </div>
+      <div id="bus-name-display" style="color: white; font-size: 1rem; margin: 4px 0 10px 0;">موقف الحافلة المعتمد للزيارات</div>
+      <button onclick="navigateBusLocation()" class="btn-main" style="background: #d97706; width: 100%; padding: 11px; border-radius: 10px; font-size: 0.9rem;">🧭 خذني إلى الحافلة (خرائط Google)</button>
     </div>
 
     <div class="sos-container">
@@ -202,11 +200,11 @@
     </div>
   </main>
 
-  <!-- 2. شاشة تتبع المعتمرين والأفواج (خاصة بالمرشد للإدارة الكاملة) -->
+  <!-- 2. شاشة تتبع المعتمرين والأفواج (خاصة بالمرشد) -->
   <main id="view-map" class="view">
     <div class="card" style="text-align: right; padding: 14px;">
       
-      <!-- لوحة المرشد: ضبط الفندقين المستقلين بروابط جوجل والساتلايت -->
+      <!-- ضبط مقرات الإقامة المستقلة -->
       <div style="background: #0f233a; border: 1px solid #0284c7; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <h4 style="color: #38bdf8; margin: 0; font-size: 0.95rem;">🏨 ضبط مقرات الإقامة المستقلة:</h4>
@@ -234,17 +232,17 @@
         </div>
       </div>
 
-      
-      <!-- لوحة ضبط وتثبيت موقف الحافلة (المرشد) -->
+      <!-- ضبط وتثبيت موقف الحافلة (المرشد) -->
       <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 0.88rem; font-weight: bold; color: #fbbf24;">🚌 موقف حافلة الفوج (للمزارات والتنقل):</span>
+          <span style="font-size: 0.88rem; font-weight: bold; color: #fbbf24;">🚌 موقف حافلة الفوج:</span>
           <button type="button" onclick="clearBusLocation()" class="btn-danger-sm" style="padding: 3px 8px; font-size: 0.72rem;">إلغاء الموقف</button>
         </div>
-        <div style="display: flex; gap: 6px;">
-          <button type="button" onclick="setBusCurrentLocation()" class="btn-main" style="background: #d97706; padding: 8px; font-size: 0.8rem; flex: 1;">📍 تثبيت موقعي كـ موقف للحافلة</button>
-          <button type="button" onclick="setBusFromGmapsPrompt()" class="btn-sub" style="padding: 8px; font-size: 0.8rem;">🔗 الصق رابط خرائط</button>
+        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+          <button type="button" onclick="setBusCurrentLocation()" class="btn-main" style="background: #d97706; padding: 8px; font-size: 0.78rem; flex: 1;">📍 موقعي الحالي</button>
+          <button type="button" onclick="pickBusOnMap()" class="btn-main" style="background: #b45309; padding: 8px; font-size: 0.78rem; flex: 1;">👆 لمس على الخريطة</button>
         </div>
+        <button type="button" onclick="setBusFromGmapsPrompt()" class="btn-sub" style="width: 100%; padding: 7px; font-size: 0.78rem;">🔗 أو الصق رابط/إحداثيات Google Maps</button>
       </div>
 
       <!-- إرسال تعميم فوري لجميع المعتمرين -->
@@ -465,12 +463,35 @@
     let makkahMapPin = null;
     let madinahMapPin = null;
 
+    // موقع الحافلة
+    let busLocation = null;
+    let busMarkerInstance = null;
+    try {
+      const savedBus = localStorage.getItem('omrah_bus_location');
+      if (savedBus) busLocation = JSON.parse(savedBus);
+    } catch(e) {}
+
+    let isBatterySaverActive = false;
+
     function getAgencyPhone() {
       const stored = localStorage.getItem('omrah_agency_phone');
       return (stored && stored.trim()) ? stored.trim() : DEFAULT_AGENCY_PHONE;
     }
 
-    // 1. التبديل لنمط الساتلايت في الخريطة
+    // استخراج الإحداثيات الشامل من أي رابط خرائط أو إحداثيات مباشرة
+    function extractCoordsFromText(rawText) {
+      if (!rawText) return null;
+      let t = rawText.trim();
+      let direct = t.match(/(-?\d{1,2}\.\d+)[,\s]+(-?\d{1,3}\.\d+)/);
+      if (direct) return { lat: parseFloat(direct[1]), lng: parseFloat(direct[2]) };
+      let atMatch = t.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (atMatch) return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+      let qMatch = t.match(/[?&](?:q|ll|destination)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (qMatch) return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+      return null;
+    }
+
+    // التبديل لنمط الساتلايت في الخريطة
     function toggleMapSatelliteMode() {
       if (!mapInstance) return;
       if (!satTileLayerInstance) {
@@ -488,7 +509,7 @@
       }
     }
 
-    // 2. معالجة رابط خرائط Google واستخراج الإحداثيات وتثبيت الفندق
+    // معالجة رابط خرائط Google للفنادق
     function processHotelLink(city) {
       const isMakkah = (city === 'مكة');
       const linkBox = document.getElementById(isMakkah ? 'hotel-makkah-link' : 'hotel-madinah-link');
@@ -496,43 +517,27 @@
       
       const rawLink = linkBox ? linkBox.value.trim() : '';
       let nameVal = nameBox ? nameBox.value.trim() : '';
-      let lat = null, lng = null;
-
+      
       if (rawLink) {
-        const atMatch = rawLink.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-        if (atMatch) {
-          lat = parseFloat(atMatch[1]);
-          lng = parseFloat(atMatch[2]);
-        } else {
-          const qMatch = rawLink.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
-          if (qMatch) {
-            lat = parseFloat(qMatch[1]);
-            lng = parseFloat(qMatch[2]);
-          }
+        const coords = extractCoordsFromText(rawLink);
+        if (coords) {
+          serverHotels[city].lat = coords.lat;
+          serverHotels[city].lng = coords.lng;
+          localStorage.setItem(isMakkah ? 'om_h_makkah_lat' : 'om_h_madinah_lat', coords.lat);
+          localStorage.setItem(isMakkah ? 'om_h_makkah_lng' : 'om_h_madinah_lng', coords.lng);
         }
-
         if (!nameVal) {
           const pMatch = rawLink.match(/\/place\/([^\/@?]+)/);
-          if (pMatch && pMatch[1]) {
-            nameVal = decodeURIComponent(pMatch[1]).replace(/\+/g, ' ');
-          }
+          if (pMatch && pMatch[1]) nameVal = decodeURIComponent(pMatch[1]).replace(/\+/g, ' ');
         }
       }
 
       if (!nameVal) nameVal = (isMakkah ? 'فندق مكة المكرمة' : 'فندق المدينة المنورة');
 
-      if (lat && lng) {
-        serverHotels[city].lat = lat;
-        serverHotels[city].lng = lng;
-        localStorage.setItem(isMakkah ? 'om_h_makkah_lat' : 'om_h_madinah_lat', lat);
-        localStorage.setItem(isMakkah ? 'om_h_makkah_lng' : 'om_h_madinah_lng', lng);
-      }
-
       serverHotels[city].name = nameVal;
       localStorage.setItem(isMakkah ? 'om_h_makkah_name' : 'om_h_madinah_name', nameVal);
       if (nameBox) nameBox.value = nameVal;
 
-      // إرسال التحديث للسيرفر لتعميمه
       fetch(`${VPS_API}/api/hotels/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -579,32 +584,43 @@
       }
     }
 
-    // 3. تحديث واجهة الفندق عند المعتمر وحساب المسافة ووقت المشي
-    
-    // ==========================================
-    // إدارة موقع حافلة الفوج
-    // ==========================================
-    let busLocation = null;
-    let busMarkerInstance = null;
+    // تحديث واجهة الفندق للمعتمر
+    function updatePilgrimHotelView() {
+      const citySelect = document.getElementById('user-hotel-city');
+      const city = citySelect ? citySelect.value : 'مكة';
+      const hotel = serverHotels[city] || serverHotels['مكة'];
+      const disp = document.getElementById('hotel-name-display');
+      if (disp && hotel) disp.innerText = `${hotel.name}`;
 
-    try {
-      const savedBus = localStorage.getItem('omrah_bus_location');
-      if (savedBus) busLocation = JSON.parse(savedBus);
-    } catch(e) {}
+      if (hotel && hotel.lat && hotel.lng) {
+        const dist = calculateDistance(userCurrentLat, userCurrentLng, hotel.lat, hotel.lng);
+        const distElem = document.getElementById('live-distance-val');
+        const timeElem = document.getElementById('live-walk-time');
 
+        if (distElem) distElem.innerText = (dist < 1000) ? `${dist} م` : `${(dist / 1000).toFixed(1)} كم`;
+        if (timeElem) {
+          const mins = Math.max(1, Math.round(dist / 75));
+          timeElem.innerText = (mins < 60) ? `${mins} دقيقة` : `${Math.floor(mins / 60)} س و ${mins % 60} د`;
+        }
+      }
+    }
+
+    // ==========================================
+    // منطق الحافلة المتكامل
+    // ==========================================
     function updateBusUI() {
-      const bCard = document.getElementById('bus-card-pilgrim');
-      if (!bCard) return;
+      const distEl = document.getElementById('bus-dist-val');
+      const nameEl = document.getElementById('bus-name-display');
 
       if (busLocation && busLocation.lat && busLocation.lng) {
-        bCard.style.display = 'block';
-        const dist = calculateDistance(userCurrentLat, userCurrentLng, busLocation.lat, busLocation.lng);
-        const distEl = document.getElementById('bus-dist-val');
+        if (nameEl) nameEl.innerText = busLocation.name || 'موقف الحافلة محدد';
         if (distEl) {
+          const dist = calculateDistance(userCurrentLat, userCurrentLng, busLocation.lat, busLocation.lng);
           distEl.innerText = (dist < 1000) ? `${dist} م` : `${(dist / 1000).toFixed(1)} كم`;
         }
       } else {
-        bCard.style.display = 'none';
+        if (nameEl) nameEl.innerText = 'لم يحدد المرشد موقف الحافلة بعد';
+        if (distEl) distEl.innerText = '--';
       }
 
       renderBusMarker();
@@ -622,41 +638,58 @@
           iconAnchor: [16, 16]
         });
         busMarkerInstance = L.marker([busLocation.lat, busLocation.lng], { icon: bIcon }).addTo(mapInstance)
-          .bindPopup(`<b>موقف حافلة الفوج 🚌</b><br>تم التحديد بواسطة المرشد`);
+          .bindPopup(`<b>موقف حافلة الفوج 🚌</b><br>محدد للمعتمرين`);
       }
     }
 
     function setBusCurrentLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
-          busLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, name: "موقف حافلة الفوج" };
+          busLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, name: "موقف الحافلة (موقع المرشد)" };
           localStorage.setItem('omrah_bus_location', JSON.stringify(busLocation));
           updateBusUI();
           if (mapInstance) mapInstance.flyTo([busLocation.lat, busLocation.lng], 17);
-          alert('✅ تم تثبيت موقع الحافلة بنجاح وترسيمه لجميع المعتمرين!');
+          alert('✅ تم تثبيت موقع الحافلة بنجاح!');
         }, () => alert('تعذر جلب موقع GPS'));
       }
     }
 
-    function setBusFromGmapsPrompt() {
-      const link = prompt('الصق رابط Google Maps لموقف الحافلة:');
-      if (!link) return;
-      let lat = null, lng = null;
-      const atMatch = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (atMatch) { lat = parseFloat(atMatch[1]); lng = parseFloat(atMatch[2]); }
-      else {
-        const qMatch = link.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
-        if (qMatch) { lat = parseFloat(qMatch[1]); lng = parseFloat(qMatch[2]); }
-      }
+    window.pickBusOnMap = function() {
+      if (!mapInstance) return alert('يرجى فتح الخريطة أولاً');
+      const mapEl = document.getElementById('map');
+      if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
 
-      if (lat && lng) {
-        busLocation = { lat, lng, name: "موقف حافلة الفوج" };
+      let toast = document.getElementById('bus-pick-toast');
+      if (toast) toast.remove();
+      toast = document.createElement('div');
+      toast.id = 'bus-pick-toast';
+      toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#d97706; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.5); pointer-events:none;';
+      toast.innerHTML = '👆 المس الآن موقع موقف الحافلة على الخريطة لتثبيته';
+      document.body.appendChild(toast);
+      setTimeout(() => { if (toast) toast.remove(); }, 5000);
+
+      mapInstance.once('click', function(e) {
+        if (toast) toast.remove();
+        busLocation = { lat: e.latlng.lat, lng: e.latlng.lng, name: "موقف حافلة الفوج" };
         localStorage.setItem('omrah_bus_location', JSON.stringify(busLocation));
         updateBusUI();
-        if (mapInstance) mapInstance.flyTo([lat, lng], 17);
-        alert('✅ تم تثبيت موقع الحافلة من الرابط بنجاح!');
+        if (mapInstance) mapInstance.flyTo([busLocation.lat, busLocation.lng], 17);
+        alert('✅ تم تثبيت موقع الحافلة على الخريطة بنجاح!');
+      });
+    };
+
+    function setBusFromGmapsPrompt() {
+      const input = prompt('الصق رابط خرائط Google أو الإحداثيات مباشرة:');
+      if (!input) return;
+      const coords = extractCoordsFromText(input);
+      if (coords) {
+        busLocation = { lat: coords.lat, lng: coords.lng, name: "موقف حافلة الفوج" };
+        localStorage.setItem('omrah_bus_location', JSON.stringify(busLocation));
+        updateBusUI();
+        if (mapInstance) mapInstance.flyTo([coords.lat, coords.lng], 17);
+        alert('✅ تم تثبيت موقف الحافلة بنجاح!');
       } else {
-        alert('تعذر استخراج الإحداثيات من الرابط.');
+        alert('تعذر استخراج الإحداثيات من هذا الرابط. يُفضل استخدام زر (👆 لمس على الخريطة) لتحديده بنقرة واحدة.');
       }
     }
 
@@ -673,33 +706,8 @@
     function navigateBusLocation() {
       if (busLocation && busLocation.lat && busLocation.lng) {
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${busLocation.lat},${busLocation.lng}&travelmode=walking`, '_system');
-      }
-    }
-
-    function updatePilgrimHotelView() {
-      const citySelect = document.getElementById('user-hotel-city');
-      const city = citySelect ? citySelect.value : 'مكة';
-      const hotel = serverHotels[city] || serverHotels['مكة'];
-      const disp = document.getElementById('hotel-name-display');
-      if (disp && hotel) disp.innerText = `${hotel.name}`;
-
-      if (hotel && hotel.lat && hotel.lng) {
-        const dist = calculateDistance(userCurrentLat, userCurrentLng, hotel.lat, hotel.lng);
-        const distElem = document.getElementById('live-distance-val');
-        const timeElem = document.getElementById('live-walk-time');
-
-        if (distElem) {
-          distElem.innerText = (dist < 1000) ? `${dist} م` : `${(dist / 1000).toFixed(1)} كم`;
-        }
-
-        if (timeElem) {
-          const mins = Math.max(1, Math.round(dist / 75)); // 75 متر/دقيقة
-          if (mins < 60) {
-            timeElem.innerText = `${mins} دقيقة`;
-          } else {
-            timeElem.innerText = `${Math.floor(mins / 60)} س و ${mins % 60} د`;
-          }
-        }
+      } else {
+        alert('لم يقم المرشد بتحديد موقف الحافلة بعد');
       }
     }
 
@@ -724,7 +732,31 @@
       }
     }
 
-    // 4. نغمة واهتزاز التعاميم العاجلة
+    // ==========================================
+    // وضع توفير الطاقة الذكي
+    // ==========================================
+    async function checkBatteryOptimization() {
+      const bat = await getBatteryLevel();
+      const statusElem = document.getElementById('auto-gps-text');
+
+      if (bat <= 20 && !isBatterySaverActive) {
+        isBatterySaverActive = true;
+        if (autoTrackingInterval) {
+          clearInterval(autoTrackingInterval);
+          autoTrackingInterval = setInterval(sendLiveLocation, 60000);
+        }
+        if (statusElem) {
+          statusElem.innerHTML = `⚠️ <strong style="color:#fca5a5;">وضع توفير الطاقة نشط (${bat}%)</strong>: تم تقليل وتيرة التتبع لحفظ البطارية`;
+        }
+      } else if (bat > 20 && isBatterySaverActive) {
+        isBatterySaverActive = false;
+        if (autoTrackingInterval) {
+          clearInterval(autoTrackingInterval);
+          autoTrackingInterval = setInterval(sendLiveLocation, 15000);
+        }
+      }
+    }
+
     function playBroadcastAlert() {
       try {
         if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 400]);
@@ -746,7 +778,6 @@
       } catch (e) {}
     }
 
-    // 5. مزامنة السيرفر
     function syncWithServer() {
       fetch(`${VPS_API}/api/sync`)
         .then(res => res.json())
@@ -794,10 +825,7 @@
       }
     }
 
-    
-    // ==========================================
-    // نافذة أرشيف التعميمات للمرشد
-    // ==========================================
+    // أرشيف التعميمات
     window.openOmrahArchiveModal = function() {
       const oldModal = document.getElementById('archive-modal-view');
       if (oldModal) oldModal.remove();
@@ -805,14 +833,11 @@
       let historyData = [];
       try {
         historyData = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]');
-      } catch(e) {
-        historyData = [];
-      }
+      } catch(e) { historyData = []; }
 
       let itemsHtml = '<div style="color:#94a3b8; text-align:center; padding:20px; font-size:0.9rem;">لا توجد تعميمات سابقة مسجلة بالأرشيف.</div>';
-
       if (historyData.length > 0) {
-        itemsHtml = historyData.map((item, idx) => `
+        itemsHtml = historyData.map(item => `
           <div style="background:#080e1e; border-right:4px solid #0284c7; padding:10px 12px; border-radius:8px; margin-bottom:10px; text-align:right;">
             <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:6px;">
               <span>📅 ${item.date || 'اليوم'}</span>
@@ -832,9 +857,7 @@
             <h4 style="color:#38bdf8; margin:0; font-size:1rem;">📜 أرشيف تعميمات المرشد</h4>
             <button onclick="document.getElementById('archive-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:6px; width:28px; height:28px; cursor:pointer; font-weight:bold;">✕</button>
           </div>
-          <div style="padding:14px; overflow-y:auto; flex:1;">
-            ${itemsHtml}
-          </div>
+          <div style="padding:14px; overflow-y:auto; flex:1;">${itemsHtml}</div>
           <div style="padding:10px 14px; border-top:1px solid #25334d; display:flex; gap:8px;">
             <button onclick="clearArchiveHistory()" class="btn-danger-sm" style="flex:1; padding:8px;">🗑️ تفريغ الأرشيف</button>
             <button onclick="document.getElementById('archive-modal-view').remove()" class="btn-sub" style="flex:1;">إغلاق</button>
@@ -845,7 +868,7 @@
     };
 
     window.clearArchiveHistory = function() {
-      if (confirm('هل أنت متأكد من رغبتك في تفريغ سجل التعميمات؟')) {
+      if (confirm('هل أنت متأكد من تفريغ سجل التعميمات؟')) {
         localStorage.removeItem('omrah_broadcast_archive_data');
         openOmrahArchiveModal();
       }
@@ -860,7 +883,6 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, sender: 'مرشد الفوج' })
       }).then(() => {
-        // حفظ التعميم في الأرشيف المحلي تلقائياً
         try {
           let hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]');
           const now = new Date();
@@ -869,13 +891,13 @@
           if (hist.length > 50) hist.pop();
           localStorage.setItem('omrah_broadcast_archive_data', JSON.stringify(hist));
         } catch(e) {}
+
         alert("تم إرسال التعميم وحفظه في الأرشيف بنجاح!");
         input.value = '';
         syncWithServer();
       });
     }
 
-    // 6. توليد ملصق QR للفوج
     function generateGroupQRModal() {
       const select = document.getElementById('filter-group-select');
       const grp = (select && select.value !== 'all') ? select.value : 'الفوج 1 (الرئيسي)';
@@ -891,7 +913,7 @@
       modal.innerHTML = `
         <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:20px; width:100%; max-width:340px; text-align:center;">
           <h3 style="color:#fff; margin-bottom:6px; font-size:1.1rem;">📲 ملصق QR لـ (${grp})</h3>
-          <p style="color:#94a3b8; font-size:0.75rem; margin-bottom:12px;">احفظ الصورة أو اطبعها وعلقها بالحافلة؛ يمسحها المعتمر مباشرة من تطبيقه.</p>
+          <p style="color:#94a3b8; font-size:0.75rem; margin-bottom:12px;">اطبع الملصق أو اعرضه في الحافلة؛ يمسحه المعتمر مباشرة لتحديد فوجه آلياً.</p>
           <div style="background:#fff; padding:10px; border-radius:12px; display:inline-block; margin-bottom:14px;">
             <img src="${qrImgUrl}" style="width:200px; height:200px; display:block; border-radius:8px;" />
           </div>
@@ -901,7 +923,6 @@
       document.body.appendChild(modal);
     }
 
-    // 7. قارئ QR من المعرض للمعتمر
     function openQrPickerModal() {
       const old = document.getElementById('qr-picker-modal');
       if (old) old.remove();
@@ -924,10 +945,7 @@
     function readQrImageFromStorage(input) {
       if (!input.files || !input.files[0]) return;
       const file = input.files[0];
-      if (typeof Html5Qrcode === 'undefined') {
-        alert('جاري تهيئة قارئ الصور...');
-        return;
-      }
+      if (typeof Html5Qrcode === 'undefined') return alert('جاري تهيئة قارئ الصور...');
       const scanner = new Html5Qrcode("qr-scan-box-hidden");
       scanner.scanFile(file, true)
         .then(decodedText => {
@@ -960,7 +978,6 @@
         .finally(() => { input.value = ''; });
     }
 
-    // 8. دورة حياة المستخدم والدخول
     async function getBatteryLevel() {
       try {
         if ('getBattery' in navigator) {
@@ -973,6 +990,7 @@
 
     async function sendLiveLocation() {
       if (!currentUser || currentUser.role !== 'pilgrim') return;
+      await checkBatteryOptimization();
       const bat = await getBatteryLevel();
       const payload = {
         name: currentUser.name,
@@ -1009,8 +1027,9 @@
       .then(res => res.json())
       .then(data => {
         updatePilgrimHotelView();
+        updateBusUI();
         const statusElem = document.getElementById('auto-gps-text');
-        if (statusElem) {
+        if (statusElem && !isBatterySaverActive) {
           const d = new Date();
           statusElem.innerText = `📡 متصل بالسيرفر: تم إرسال موقعك وشحن بطاريتك (${payload.battery}%) في (${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')})`;
         }
@@ -1230,6 +1249,7 @@
         `;
         switchTab('sos');
         updatePilgrimHotelView();
+        updateBusUI();
         syncWithServer();
         if (!syncInterval) syncInterval = setInterval(syncWithServer, 5000);
       }
@@ -1242,6 +1262,7 @@
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
         }
         renderMapHotelPins();
+        renderBusMarker();
         renderPilgrimMarkers();
       }, 300);
     }
@@ -1421,7 +1442,7 @@
       }
     }
 
-    // بدء التشغيل واسترجاع الحساب المحفوظ
+    // بدء التشغيل واسترجاع الحساب
     window.addEventListener('load', function() {
       try {
         const pInput = document.getElementById('user-phone');
