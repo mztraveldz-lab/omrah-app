@@ -260,9 +260,10 @@
       <div class="group-manager">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <span style="font-size: 0.85rem; font-weight: bold; color: #f1f5f9;">📁 تصفية وإدارة الأفواج:</span>
-          <div style="display:flex; gap:6px;">
-            <button onclick="generateGroupQRModal()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #0284c7; color: #fff;">📲 ملصق QR للفوج</button>
-            <button onclick="createNewGroup()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #064e3b; color: #a7f3d0;">+ إنشاء فوج</button>
+          <div style="display:flex; gap:6px; flex-wrap: wrap;">
+            <button type="button" onclick="openHeadcountModal()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #d97706; color: #fff; font-weight: bold;">📊 إحصاء الحضور</button>
+            <button type="button" onclick="generateGroupQRModal()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #0284c7; color: #fff;">📲 ملصق QR</button>
+            <button type="button" onclick="createNewGroup()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #064e3b; color: #a7f3d0;">+ فوج</button>
           </div>
         </div>
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -897,6 +898,121 @@
         syncWithServer();
       });
     }
+
+    
+    // ==========================================
+    // ميزة إحصاء وحصر الحضور اللحظي (Headcount)
+    // ==========================================
+    window.openHeadcountModal = function() {
+      const old = document.getElementById('headcount-modal-view');
+      if (old) old.remove();
+
+      const filterSelect = document.getElementById('filter-group-select');
+      const selectedGroup = filterSelect ? filterSelect.value : 'all';
+
+      let list = serverPilgrims || [];
+      if (selectedGroup !== 'all') {
+        list = list.filter(p => p.group === selectedGroup);
+      }
+
+      if (list.length === 0) {
+        return alert('لا يوجد معتمرون مسجلون في هذا الفوج حالياً لإحصائهم.');
+      }
+
+      // تحديد مركز الفندق المعتمد حالياً
+      const citySelect = document.getElementById('user-hotel-city');
+      const city = citySelect ? citySelect.value : 'مكة';
+      const hotel = serverHotels[city] || serverHotels['مكة'];
+
+      // إحداثيات الحرم المكي الشريف والمسجد النبوي
+      const makkahHaram = { lat: 21.4225, lng: 39.8262 };
+      const madinahHaram = { lat: 24.4672, lng: 39.6108 };
+      const currentHaram = (city === 'المدينة') ? madinahHaram : makkahHaram;
+
+      let atHotelOrBus = [];
+      let atHaram = [];
+      let outside = [];
+
+      list.forEach(p => {
+        let distHotel = hotel ? calculateDistance(p.lat, p.lng, hotel.lat, hotel.lng) : 999999;
+        let distBus = (busLocation && busLocation.lat) ? calculateDistance(p.lat, p.lng, busLocation.lat, busLocation.lng) : 999999;
+        let distHaram = calculateDistance(p.lat, p.lng, currentHaram.lat, currentHaram.lng);
+
+        if (distHotel <= 300 || distBus <= 300) {
+          atHotelOrBus.push({ ...p, dist: Math.min(distHotel, distBus), spot: (distBus <= 300 ? 'عند الحافلة' : 'في الفندق') });
+        } else if (distHaram <= 1000) {
+          atHaram.push({ ...p, dist: distHaram, spot: 'في محيط الحرم' });
+        } else {
+          outside.push({ ...p, dist: distHotel, spot: 'بعيد / في الطريق' });
+        }
+      });
+
+      function renderPilgrimListGroup(arr, badgeColor) {
+        if (arr.length === 0) return '<div style="color:#64748b; font-size:0.75rem; padding:4px 0;">لا يوجد أحد</div>';
+        return arr.map(p => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#0b1329; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:0.8rem;">
+            <div>
+              <strong style="color:#fff;">👤 ${p.name}</strong>
+              <span style="font-size:0.7rem; color:#94a3b8; margin-right:4px;">(${p.spot} - ${p.dist < 1000 ? p.dist + 'م' : (p.dist/1000).toFixed(1) + 'كم'})</span>
+            </div>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <span class="battery-pill ${p.battery < 20 ? 'bat-low' : p.battery < 50 ? 'bat-med' : 'bat-high'}">🔋 ${p.battery || 100}%</span>
+              <button onclick="document.getElementById('headcount-modal-view').remove(); focusOnMap(${p.lat}, ${p.lng});" class="btn-sub" style="padding:2px 6px; font-size:0.7rem;">📍</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const modal = document.createElement('div');
+      modal.id = 'headcount-modal-view';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999999; display:flex; align-items:center; justify-content:center; padding:14px;';
+      modal.innerHTML = `
+        <div style="background:#131c31; border:2px solid #d97706; border-radius:16px; width:100%; max-width:400px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; text-align:right;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid #25334d; background:#0b1329;">
+            <h4 style="color:#fbbf24; margin:0; font-size:0.95rem;">📊 إحصاء الحضور (${selectedGroup === 'all' ? 'جميع الأفواج' : selectedGroup})</h4>
+            <button onclick="document.getElementById('headcount-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:6px; width:26px; height:26px; cursor:pointer; font-weight:bold;">✕</button>
+          </div>
+          
+          <div style="padding:12px 14px; overflow-y:auto; flex:1;">
+            <!-- ملخص الإحصاء الكلي -->
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; text-align:center; margin-bottom:12px;">
+              <div style="background:#064e3b; border:1px solid #059669; padding:8px 4px; border-radius:8px;">
+                <div style="font-size:1.15rem; font-weight:bold; color:#a7f3d0;">${atHotelOrBus.length}</div>
+                <div style="font-size:0.7rem; color:#6ee7b7;">فندق / باص</div>
+              </div>
+              <div style="background:#1e3a8a; border:1px solid #2563eb; padding:8px 4px; border-radius:8px;">
+                <div style="font-size:1.15rem; font-weight:bold; color:#bfdbfe;">${atHaram.length}</div>
+                <div style="font-size:0.7rem; color:#93c5fd;">في الحرم</div>
+              </div>
+              <div style="background:#78350f; border:1px solid #b45309; padding:8px 4px; border-radius:8px;">
+                <div style="font-size:1.15rem; font-weight:bold; color:#fde68a;">${outside.length}</div>
+                <div style="font-size:0.7rem; color:#fcd34d;">بعيد / خارج</div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;">
+              <div style="font-size:0.8rem; font-weight:bold; color:#34d399; margin-bottom:4px;">🏨 متواجدون في الفندق أو الحافلة (${atHotelOrBus.length}):</div>
+              ${renderPilgrimListGroup(atHotelOrBus, '#10b981')}
+            </div>
+
+            <div style="margin-bottom:10px;">
+              <div style="font-size:0.8rem; font-weight:bold; color:#38bdf8; margin-bottom:4px;">🕋 متواجدون في الحرم الشريف (${atHaram.length}):</div>
+              ${renderPilgrimListGroup(atHaram, '#0284c7')}
+            </div>
+
+            <div style="margin-bottom:10px;">
+              <div style="font-size:0.8rem; font-weight:bold; color:#f59e0b; margin-bottom:4px;">🚶 خارج النطاق أو في الطريق (${outside.length}):</div>
+              ${renderPilgrimListGroup(outside, '#f59e0b')}
+            </div>
+          </div>
+
+          <div style="padding:8px 14px; border-top:1px solid #25334d; background:#0b1329;">
+            <button onclick="document.getElementById('headcount-modal-view').remove()" class="btn-sub" style="width:100%;">إغلاق النافذة</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    };
 
     function generateGroupQRModal() {
       const select = document.getElementById('filter-group-select');
