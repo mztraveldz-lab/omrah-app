@@ -150,6 +150,12 @@
 <body>
 
   <!-- شريط التعميمات والتنبيهات العاجلة -->
+  
+  <!-- تنبيه انقطاع الإنترنت الهادئ -->
+  <div id="offline-status-bar" style="display:none; background:#b45309; color:#fff; text-align:center; padding:6px 10px; font-size:0.75rem; font-weight:bold; border-bottom:1px solid #f59e0b;">
+    📶 وضع عدم الاتصال: الأدعية، البوصلة، ومواقع الفنادق والحافلة المحفوظة تعمل بكفاءة.
+  </div>
+
   <div id="broadcast-banner">
     <button class="banner-close-btn" onclick="dismissCurrentBroadcast()">✕</button>
     📢 <span id="broadcast-text"></span>
@@ -321,6 +327,7 @@
           <select id="filter-group-select" class="auth-input" style="padding: 6px; margin: 0; flex: 1;" onchange="renderPilgrimMarkers()">
             <option value="all">كل الأفواج (عرض شامل)</option>
           </select>
+          <button type="button" onclick="resetAllTestDataConfirm()" class="btn-danger-sm" style="padding: 4px 8px; font-size: 0.72rem; background: #991b1b; color: #fecaca; border: 1px solid #ef4444;">🧹 تفريغ بيانات التجربة</button>
           <button onclick="deleteCurrentFilteredGroup()" class="btn-danger-sm" style="padding: 6px 10px;">🗑️ مسح الفوج المحدد</button>
         </div>
       </div>
@@ -936,10 +943,74 @@
       } catch (e) {}
     }
 
+    
+    // ==========================================
+    // تأمين عدم الاتصال + تفريغ بيانات التجارب
+    // ==========================================
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+
+    function updateNetworkStatus() {
+      const bar = document.getElementById('offline-status-bar');
+      if (!bar) return;
+      if (!navigator.onLine) {
+        bar.style.display = 'block';
+      } else {
+        bar.style.display = 'none';
+        syncWithServer();
+      }
+    }
+
+    // حفظ واسترجاع كاش السيرفر محلياً
+    function saveOfflineCache(data) {
+      try {
+        if (data) localStorage.setItem('omrah_last_server_cache', JSON.stringify(data));
+      } catch(e) {}
+    }
+
+    function loadOfflineCache() {
+      try {
+        const cached = localStorage.getItem('omrah_last_server_cache');
+        if (cached) {
+          const data = JSON.parse(cached);
+          if (data.groups) serverGroups = data.groups;
+          if (data.hotels) {
+            serverHotels["مكة"] = Object.assign(serverHotels["مكة"], data.hotels["مكة"] || {});
+            serverHotels["المدينة"] = Object.assign(serverHotels["المدينة"], data.hotels["المدينة"] || {});
+          }
+          updateGroupsDropdowns();
+          updatePilgrimHotelView();
+        }
+      } catch(e) {}
+    }
+
+    window.resetAllTestDataConfirm = function() {
+      const ans = prompt("⚠️ تحذير: هذا الإجراء سيمسح قائمة المعتمرين التجريبيين وسجل التتبع من السيرفر لبدء الرحلة الحقيقية.\n\nلتأكيد المسح، اكتب كلمة: مسح");
+      if (ans && ans.trim() === 'مسح') {
+        fetch(`${VPS_API}/api/reset-test-data`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: GUIDE_SECRET_PIN })
+        })
+        .then(res => res.json())
+        .then(res => {
+          localStorage.removeItem('omrah_broadcast_archive_data');
+          localStorage.removeItem('omrah_bus_location');
+          busLocation = null;
+          if (busMarkerInstance && mapInstance) mapInstance.removeLayer(busMarkerInstance);
+          updateBusUI();
+          syncWithServer();
+          alert('✅ تم تصفير بيانات التجربة بنجاح! السيرفر والتطبيق الآن نظيفان وجاهزان للمعتمرين.');
+        })
+        .catch(err => alert('تعذر تصفير السيرفر، تحقق من اتصال الخادم.'));
+      }
+    };
+
     function syncWithServer() {
       fetch(`${VPS_API}/api/sync`)
         .then(res => res.json())
-        .then(data => {
+                .then(data => {
+          saveOfflineCache(data);
           if (data.groups && Array.isArray(data.groups)) {
             serverGroups = data.groups;
             updateGroupsDropdowns();
@@ -1460,7 +1531,9 @@
         closePinModal();
         currentUser = { name: 'مرشد الفوج', phone: '', role: 'guide', group: 'إدارة الأفواج' };
         localStorage.setItem('omrah_user', JSON.stringify(currentUser));
-        applyRoleUI();
+        loadOfflineCache();
+      updateNetworkStatus();
+      applyRoleUI();
       } else {
         document.getElementById('pin-error').innerText = "❌ الرمز السري غير صحيح!";
       }
@@ -1472,7 +1545,9 @@
         const name = prompt("أدخل اسم المعتمر للتحويل إلى وضع المعتمر:") || "معتمر";
         currentUser = { name: name, phone: '', role: 'pilgrim', group: serverGroups[0] || 'الفوج 1 (الرئيسي)' };
         localStorage.setItem('omrah_user', JSON.stringify(currentUser));
-        applyRoleUI();
+        loadOfflineCache();
+      updateNetworkStatus();
+      applyRoleUI();
       } else {
         promptGuidePin();
       }
@@ -1491,6 +1566,8 @@
       localStorage.setItem('omrah_user_group', group);
 
       if (role === 'pilgrim') sendLiveLocation();
+      loadOfflineCache();
+      updateNetworkStatus();
       applyRoleUI();
     }
 
@@ -1772,6 +1849,8 @@
         if (madName) madName.value = serverHotels["المدينة"].name;
       } catch(e) {}
 
+      loadOfflineCache();
+      updateNetworkStatus();
       applyRoleUI();
       updateTawafUI();
       updateSaeyUI();
