@@ -42,6 +42,16 @@ jobs:
         npm install @capacitor/android@latest
         npx cap add android
 
+        # توليد الأيقونات لجميع مقاسات أندرويد
+        if [ -f "icon.png" ]; then
+          mkdir -p assets
+          cp icon.png assets/icon-only.png
+          cp icon.png assets/icon-foreground.png
+          cp icon.png assets/icon-background.png
+          cp icon.png assets/splash.png
+          npx @capacitor/assets generate --android || true
+        fi
+
     - name: Configure Android Permissions for Background Tracking
       run: |
         sed -i 's/<application /<application android:usesCleartextTraffic="true" /g' android/app/src/main/AndroidManifest.xml
