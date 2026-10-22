@@ -96,6 +96,12 @@
     .acc-btn { width: 100%; padding: 14px; text-align: right; background: none; border: none; color: #f8fafc; font-weight: bold; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .acc-body { display: none; padding: 14px; background: #080e1e; border-top: 1px solid #25334d; font-size: 0.9rem; line-height: 1.7; color: #cbd5e1; }
     .acc-body.active { display: block; }
+  
+    /* تنسيق وميض الخروج من النطاق الآمن */
+    .geofence-alert-badge { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; animation: alertBlink 1.2s infinite; }
+    @keyframes alertBlink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.97); } }
+    .alert-marker-pin { background: #dc2626; color: #fff; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; font-size: 16px; box-shadow: 0 0 12px #ef4444; animation: alertBlink 1s infinite; }
+
   </style>
 </head>
 <body>
@@ -1175,9 +1181,37 @@
         return;
       }
 
+      // تحديد مراكز النطاق الآمن (الفندق المعتمد والحرم)
+      const citySelect = document.getElementById('user-hotel-city');
+      const city = citySelect ? citySelect.value : 'مكة';
+      const hotel = serverHotels[city] || serverHotels['مكة'];
+      const haramCoords = (city === 'المدينة') ? { lat: 24.4672, lng: 39.6108 } : { lat: 21.4225, lng: 39.8262 };
+
+      let hasOutOfZonePilgrim = false;
+
       list.forEach(p => {
-        const marker = L.marker([p.lat, p.lng]).addTo(mapInstance)
-          .bindPopup(`<b>${p.name}</b><br>الفوج: ${p.group}<br>🔋 شحن الهاتف: ${p.battery || 100}%<br>آخر تحديث: ${p.time}`);
+        let distH = hotel ? calculateDistance(p.lat, p.lng, hotel.lat, hotel.lng) : 0;
+        let distHaram = calculateDistance(p.lat, p.lng, haramCoords.lat, haramCoords.lng);
+        let minSafeDist = Math.min(distH, distHaram);
+
+        // النطاق الآمن: 3500 متر (3.5 كم)
+        const isOutOfZone = (minSafeDist > 3500);
+        if (isOutOfZone) hasOutOfZonePilgrim = true;
+
+        let marker;
+        if (isOutOfZone) {
+          const alertIcon = L.divIcon({
+            className: 'alert-pin-wrapper',
+            html: '<div class="alert-marker-pin">🚨</div>',
+            iconSize: [34, 34],
+            iconAnchor: [17, 17]
+          });
+          marker = L.marker([p.lat, p.lng], { icon: alertIcon }).addTo(mapInstance)
+            .bindPopup(`<b>🚨 تنبيه خروج عن النطاق: ${p.name}</b><br>المسافة: ${(minSafeDist / 1000).toFixed(1)} كم عن الحرم/الفندق<br>🔋 البطارية: ${p.battery || 100}%<br>📞 ${p.phone}`);
+        } else {
+          marker = L.marker([p.lat, p.lng]).addTo(mapInstance)
+            .bindPopup(`<b>${p.name}</b><br>الفوج: ${p.group}<br>🔋 شحن الهاتف: ${p.battery || 100}%<br>آخر تحديث: ${p.time}`);
+        }
         mapMarkers.push(marker);
 
         const bat = p.battery !== undefined ? p.battery : 100;
@@ -1186,12 +1220,13 @@
         else if (bat < 50) batClass = 'bat-med';
 
         listContainer.innerHTML += `
-          <div class="pilgrim-item">
+          <div class="pilgrim-item" style="${isOutOfZone ? 'border: 1px solid #ef4444; background: rgba(127, 29, 29, 0.25);' : ''}">
             <div>
               <div style="font-weight: bold; color: white; font-size: 0.95rem;">
                 👤 ${p.name} 
                 <span class="battery-pill ${batClass}">🔋 ${bat}%</span>
                 <span style="font-size: 0.7rem; background: #064e3b; color: #6ee7b7; padding: 1px 6px; border-radius: 4px;">${p.group}</span>
+                ${isOutOfZone ? `<span class="geofence-alert-badge">⚠️ مبتعد (${(minSafeDist / 1000).toFixed(1)} كم)</span>` : ''}
               </div>
               <div style="font-size: 0.75rem; color: #94a3b8;">📞 ${p.phone} • آخر رصد: <span style="color: #34d399; font-weight: bold;">${p.time}</span></div>
             </div>
@@ -1202,6 +1237,13 @@
           </div>
         `;
       });
+
+      if (hasOutOfZonePilgrim && !window.lastGeofenceAlertTime) {
+        window.lastGeofenceAlertTime = Date.now();
+        playBroadcastAlert();
+      } else if (!hasOutOfZonePilgrim) {
+        window.lastGeofenceAlertTime = null;
+      }
     }
 
     function createNewGroup() {
