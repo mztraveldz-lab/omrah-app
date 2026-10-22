@@ -234,6 +234,19 @@
         </div>
       </div>
 
+      
+      <!-- لوحة ضبط وتثبيت موقف الحافلة (المرشد) -->
+      <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 0.88rem; font-weight: bold; color: #fbbf24;">🚌 موقف حافلة الفوج (للمزارات والتنقل):</span>
+          <button type="button" onclick="clearBusLocation()" class="btn-danger-sm" style="padding: 3px 8px; font-size: 0.72rem;">إلغاء الموقف</button>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" onclick="setBusCurrentLocation()" class="btn-main" style="background: #d97706; padding: 8px; font-size: 0.8rem; flex: 1;">📍 تثبيت موقعي كـ موقف للحافلة</button>
+          <button type="button" onclick="setBusFromGmapsPrompt()" class="btn-sub" style="padding: 8px; font-size: 0.8rem;">🔗 الصق رابط خرائط</button>
+        </div>
+      </div>
+
       <!-- إرسال تعميم فوري لجميع المعتمرين -->
       <div style="background: #1e1b4b; border: 1px solid #6366f1; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
         <div style="font-size: 0.85rem; font-weight: bold; color: #a5b4fc; margin-bottom: 6px;">📢 إرسال تعميم عاجل للفوج:</div>
