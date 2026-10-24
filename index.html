@@ -437,7 +437,7 @@
     </div>
   </main>
 
-  <!-- 6. حقيبة دروس الحافلة كاملة -->
+  <!-- 6. حقيبة دروس الحافلة كاملة (خاصة بالمرشدين) -->
   <main id="view-dourous" class="view">
     <div id="add-lesson-box" style="display:none; background:#131c31; border:1px solid #38bdf8; border-radius:12px; padding:12px; margin-bottom:14px; text-align:right;">
       <div style="font-size:0.85rem; font-weight:bold; color:#38bdf8; margin-bottom:6px;">➕ إضافة درس جديد للحافلة:</div>
@@ -463,7 +463,7 @@
     <div id="lessons-list"></div>
   </main>
 
-  <!-- 7. موسوعة المزارات الكبرى كاملة -->
+  <!-- 7. موسوعة المزارات الكبرى كاملة (خاصة بالمرشدين) -->
   <main id="view-ziyarat" class="view">
     <div id="add-place-box" style="display:none; background:#131c31; border:1px solid #10b981; border-radius:12px; padding:12px; margin-bottom:14px; text-align:right;">
       <div style="font-size:0.85rem; font-weight:bold; color:#10b981; margin-bottom:6px;">➕ إضافة قصة أو مزار جديد:</div>
@@ -499,7 +499,6 @@
     let serverGroups = ["الفوج 1 (الرئيسي)", "فوج 14 نوفمبر"];
     let serverPilgrims = [];
     
-    // بيانات الفندقين المستقلين
     let serverHotels = {
       "مكة": {
         name: localStorage.getItem('om_h_makkah_name') || "فندق مكة المكرمة",
@@ -523,7 +522,6 @@
     let makkahMapPin = null;
     let madinahMapPin = null;
 
-    // موقع الحافلة (يُحدث محلياً وسحابياً)
     let busLocation = null;
     let busMarkerInstance = null;
     try {
@@ -538,7 +536,6 @@
       return (stored && stored.trim()) ? stored.trim() : DEFAULT_AGENCY_PHONE;
     }
 
-    // استخراج الإحداثيات الشامل من أي رابط خرائط أو أرقام مباشرة
     function extractCoordsFromText(rawText) {
       if (!rawText) return null;
       let t = rawText.trim();
@@ -551,7 +548,6 @@
       return null;
     }
 
-    // التبديل لنمط الساتلايت في الخريطة
     function toggleMapSatelliteMode() {
       if (!mapInstance) return;
       if (!satTileLayerInstance) {
@@ -569,7 +565,6 @@
       }
     }
 
-    // معالجة رابط خرائط Google للفنادق
     function processHotelLink(city) {
       const isMakkah = (city === 'مكة');
       const linkBox = document.getElementById(isMakkah ? 'hotel-makkah-link' : 'hotel-madinah-link');
@@ -664,9 +659,7 @@
       }
     }
 
-    // ==========================================
-    // منطق الحافلة المتكامل والمربوط بالسيرفر
-    // ==========================================
+    // مزامنة موقع الحافلة سحابياً
     function syncBusToServer(locationData) {
       busLocation = locationData;
       if (locationData) {
@@ -752,7 +745,7 @@
     };
 
     function setBusFromGmapsPrompt() {
-      const input = prompt('الصق رابط خرائط Google أو الإحداثيات (مثال: 21.42, 39.82):');
+      const input = prompt('الصق رابط خرائط Google أو الإحداثيات مباشرة:');
       if (!input) return;
       const coords = extractCoordsFromText(input);
       if (coords) {
@@ -761,7 +754,7 @@
         if (mapInstance) mapInstance.flyTo([coords.lat, coords.lng], 17);
         alert('✅ تم تثبيت ونشر موقف الحافلة بنجاح!');
       } else {
-        alert('تعذر استخراج الإحداثيات من هذا الرابط. يُفضل استخدام زر (👆 لمس على الخريطة) لتحديده بلمسة واحدة.');
+        alert('تعذر استخراج الإحداثيات من هذا الرابط.');
       }
     }
 
@@ -781,9 +774,7 @@
       }
     }
 
-    // ==========================================
-    // البوصلة المباشرة الذكية للقبلة والفندق
-    // ==========================================
+    // البوصلة الذكية
     let compassOrientationHandler = null;
 
     function calculateBearing(lat1, lon1, lat2, lon2) {
@@ -878,9 +869,7 @@
       }
     }
 
-    // ==========================================
-    // ميزة إحصاء وحصر الحضور اللحظي (Headcount)
-    // ==========================================
+    // إحصاء الحضور
     window.openHeadcountModal = function() {
       const old = document.getElementById('headcount-modal-view');
       if (old) old.remove();
@@ -918,7 +907,7 @@
         }
       });
 
-      function renderPilgrimListGroup(arr, badgeColor) {
+      function renderPilgrimListGroup(arr) {
         if (arr.length === 0) return '<div style="color:#64748b; font-size:0.75rem; padding:4px 0;">لا يوجد أحد</div>';
         return arr.map(p => `
           <div style="display:flex; justify-content:space-between; align-items:center; background:#0b1329; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:0.8rem;">
@@ -962,17 +951,17 @@
 
             <div style="margin-bottom:10px;">
               <div style="font-size:0.8rem; font-weight:bold; color:#34d399; margin-bottom:4px;">🏨 متواجدون في الفندق أو الحافلة (${atHotelOrBus.length}):</div>
-              ${renderPilgrimListGroup(atHotelOrBus, '#10b981')}
+              ${renderPilgrimListGroup(atHotelOrBus)}
             </div>
 
             <div style="margin-bottom:10px;">
               <div style="font-size:0.8rem; font-weight:bold; color:#38bdf8; margin-bottom:4px;">🕋 متواجدون في الحرم الشريف (${atHaram.length}):</div>
-              ${renderPilgrimListGroup(atHaram, '#0284c7')}
+              ${renderPilgrimListGroup(atHaram)}
             </div>
 
             <div style="margin-bottom:10px;">
               <div style="font-size:0.8rem; font-weight:bold; color:#f59e0b; margin-bottom:4px;">🚶 خارج النطاق أو في الطريق (${outside.length}):</div>
-              ${renderPilgrimListGroup(outside, '#f59e0b')}
+              ${renderPilgrimListGroup(outside)}
             </div>
           </div>
 
@@ -1005,9 +994,7 @@
       }
     }
 
-    // ==========================================
-    // وضع عدم الاتصال + توفير الطاقة + التصفير
-    // ==========================================
+    // إدارة عدم الاتصال والتصفير
     window.addEventListener('online', updateNetworkStatus);
     window.addEventListener('offline', updateNetworkStatus);
 
@@ -1049,7 +1036,7 @@
     }
 
     window.resetAllTestDataConfirm = function() {
-      const ans = prompt("⚠️ تحذير: هذا الإجراء سيمسح قائمة المعتمرين التجريبيين وسجل التتبع من السيرفر لبدء الرحلة الحقيقية.\\n\\nلتأكيد المسح، اكتب كلمة: مسح");
+      const ans = prompt("⚠️ تحذير: هذا الإجراء سيمسح قائمة المعتمرين التجريبيين وسجل التتبع من السيرفر لبدء الرحلة الحقيقية.\n\nلتأكيد المسح، اكتب كلمة: مسح");
       if (ans && ans.trim() === 'مسح') {
         fetch(`${VPS_API}/api/reset-test-data`, {
           method: 'POST',
@@ -1142,6 +1129,21 @@
             }
             updateBusUI();
           }
+
+          // مزامنة الدروس والمزارات السحابية خاصة بالمرشدين فقط
+          if (currentUser && currentUser.role === 'guide') {
+            if (data.customLessons && Array.isArray(data.customLessons) && data.customLessons.length > 0) {
+              activeLessons = data.customLessons;
+              localStorage.setItem('omrah_custom_lessons', JSON.stringify(activeLessons));
+              renderLessons(currentLessonFilter);
+            }
+            if (data.customPlaces && Array.isArray(data.customPlaces) && data.customPlaces.length > 0) {
+              activePlaces = data.customPlaces;
+              localStorage.setItem('omrah_custom_places', JSON.stringify(activePlaces));
+              renderPlaces(currentPlaceFilter);
+            }
+          }
+
           if (data.broadcasts && data.broadcasts.length > 0) {
             const b = data.broadcasts[0];
             const banner = document.getElementById('broadcast-banner');
@@ -1730,9 +1732,8 @@
     function nextSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx + 1) % allSaiDuas.length; renderSaeyDua(); }
     function prevSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx - 1 + allSaiDuas.length) % allSaiDuas.length; renderSaeyDua(); }
 
-    
     // ==========================================
-    // إدارة وحفظ الدروس والمزارات في الذاكرة الدائمة
+    // حقيبة الدروس والمزارات المحفوظة سحابياً للمرشدين
     // ==========================================
     function getStoredLessons() {
       try {
@@ -1748,6 +1749,14 @@
         if (stored) return JSON.parse(stored);
       } catch(e) {}
       return (typeof ziyaratData !== 'undefined') ? ziyaratData : [];
+    }
+
+    function syncContentToServer() {
+      fetch(`${VPS_API}/api/lessons/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessons: activeLessons, places: activePlaces })
+      }).catch(err => {});
     }
 
     let activeLessons = getStoredLessons();
@@ -1792,8 +1801,7 @@
       const catEl = document.getElementById('new-lesson-category');
       const cat = catEl ? catEl.value : 'أخلاق';
       const t = document.getElementById('new-lesson-title').value.trim();
-      const b = document.getElementById('new-lesson-content').value.trim().replace(/
-/g, '<br>');
+      const b = document.getElementById('new-lesson-content').value.trim().replace(/\n/g, '<br>');
       if (!t || !b) return alert('يرجى كتابة العنوان والمحتوى');
 
       const badgeMap = {
@@ -1812,11 +1820,13 @@
       });
 
       localStorage.setItem('omrah_custom_lessons', JSON.stringify(activeLessons));
+      syncContentToServer();
+
       document.getElementById('new-lesson-title').value = '';
       document.getElementById('new-lesson-content').value = '';
       
       filterLessons(cat);
-      alert('✅ تم حفظ الدرس وتصنيفه بنجاح في الذاكرة الدائمة!');
+      alert('✅ تم حفظ الدرس وتصنيفه بنجاح في السيرفر والهاتف!');
     }
 
     function deleteLesson(idx) {
@@ -1824,6 +1834,7 @@
         const target = (currentLessonFilter === 'all') ? activeLessons[idx] : activeLessons.filter(l => l.category === currentLessonFilter)[idx];
         activeLessons = activeLessons.filter(l => l !== target);
         localStorage.setItem('omrah_custom_lessons', JSON.stringify(activeLessons));
+        syncContentToServer();
         renderLessons(currentLessonFilter);
       }
     }
@@ -1863,18 +1874,18 @@
     function addNewPlace() {
       const c = document.getElementById('new-place-city').value;
       const t = document.getElementById('new-place-title').value.trim();
-      const s = document.getElementById('new-place-story').value.trim().replace(/
-/g, '<br>');
+      const s = document.getElementById('new-place-story').value.trim().replace(/\n/g, '<br>');
       if (!t || !s) return alert('يرجى ملء اسم المزار والقصة');
 
       activePlaces.unshift({ city: c, title: t, story: s });
       localStorage.setItem('omrah_custom_places', JSON.stringify(activePlaces));
+      syncContentToServer();
       
       document.getElementById('new-place-title').value = '';
       document.getElementById('new-place-story').value = '';
       
       filterPlaces(c);
-      alert('✅ تم حفظ المزار بنجاح في الذاكرة الدائمة!');
+      alert('✅ تم حفظ المزار بنجاح في السيرفر والهاتف!');
     }
 
     function deletePlace(idx) {
@@ -1882,10 +1893,10 @@
         const target = (currentPlaceFilter === 'all') ? activePlaces[idx] : activePlaces.filter(p => p.city === currentPlaceFilter)[idx];
         activePlaces = activePlaces.filter(p => p !== target);
         localStorage.setItem('omrah_custom_places', JSON.stringify(activePlaces));
+        syncContentToServer();
         renderPlaces(currentPlaceFilter);
       }
     }
-
 
     // بدء التشغيل
     window.addEventListener('load', function() {
