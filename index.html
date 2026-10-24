@@ -441,7 +441,15 @@
   <main id="view-dourous" class="view">
     <div id="add-lesson-box" style="display:none; background:#131c31; border:1px solid #38bdf8; border-radius:12px; padding:12px; margin-bottom:14px; text-align:right;">
       <div style="font-size:0.85rem; font-weight:bold; color:#38bdf8; margin-bottom:6px;">➕ إضافة درس جديد للحافلة:</div>
-      <input type="text" id="new-lesson-title" class="auth-input" style="padding:8px; margin-bottom:8px;" placeholder="عنوان الدرس...">
+      <div style="display:flex; gap:6px; margin-bottom:8px;">
+        <select id="new-lesson-category" class="auth-input" style="width:auto; padding:6px; margin:0; font-size:0.85rem;">
+          <option value="أخلاق">الأخلاق واللحمة 🤝</option>
+          <option value="تنظيم">المطار والتسكين 🧳</option>
+          <option value="صلاة">الصلاة والجنائز 🤲</option>
+          <option value="عمرة">دروس النسك 🕋</option>
+        </select>
+        <input type="text" id="new-lesson-title" class="auth-input" style="margin:0; padding:6px; flex:1;" placeholder="عنوان الدرس...">
+      </div>
       <textarea id="new-lesson-content" class="auth-input" rows="3" style="padding:8px; margin-bottom:8px;" placeholder="نص الدرس كاملاً..."></textarea>
       <button onclick="addNewLesson()" class="btn-main" style="padding:8px; font-size:0.85rem;">نشر وحفظ الدرس 📢</button>
     </div>
@@ -1722,21 +1730,49 @@
     function nextSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx + 1) % allSaiDuas.length; renderSaeyDua(); }
     function prevSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx - 1 + allSaiDuas.length) % allSaiDuas.length; renderSaeyDua(); }
 
-    // حقيبة الدروس والمزارات
-    let activeLessons = (typeof lessonsData !== 'undefined') ? lessonsData : [];
-    let activePlaces = (typeof ziyaratData !== 'undefined') ? ziyaratData : [];
+    
+    // ==========================================
+    // إدارة وحفظ الدروس والمزارات في الذاكرة الدائمة
+    // ==========================================
+    function getStoredLessons() {
+      try {
+        const stored = localStorage.getItem('omrah_custom_lessons');
+        if (stored) return JSON.parse(stored);
+      } catch(e) {}
+      return (typeof lessonsData !== 'undefined') ? lessonsData : [];
+    }
+
+    function getStoredPlaces() {
+      try {
+        const stored = localStorage.getItem('omrah_custom_places');
+        if (stored) return JSON.parse(stored);
+      } catch(e) {}
+      return (typeof ziyaratData !== 'undefined') ? ziyaratData : [];
+    }
+
+    let activeLessons = getStoredLessons();
+    let activePlaces = getStoredPlaces();
+    let currentLessonFilter = 'all';
+    let currentPlaceFilter = 'all';
 
     function renderLessons(filter = 'all') {
+      currentLessonFilter = filter;
       const c = document.getElementById('lessons-list');
       if (!c) return;
+      
       const list = filter === 'all' ? activeLessons : activeLessons.filter(l => l.category === filter);
       const isGuide = currentUser && currentUser.role === 'guide';
+
+      if (list.length === 0) {
+        c.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8; font-size:0.85rem;">لا توجد دروس متوفرة في هذا القسم حالياً.</div>';
+        return;
+      }
 
       c.innerHTML = list.map((l, idx) => `
         <div class="item-card">
           <div class="item-header">
             <span class="badge ${l.badge || 'badge-purple'}">${l.category}</span>
-            <span class="tag-time">${l.time || ''}</span>
+            <span class="tag-time">${l.time || '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق'}</span>
           </div>
           <div class="item-title">${l.title}</div>
           <div class="item-content">${l.content}</div>
@@ -1753,28 +1789,57 @@
     }
 
     function addNewLesson() {
+      const catEl = document.getElementById('new-lesson-category');
+      const cat = catEl ? catEl.value : 'أخلاق';
       const t = document.getElementById('new-lesson-title').value.trim();
-      const b = document.getElementById('new-lesson-content').value.trim().replace(/\n/g, '<br>');
+      const b = document.getElementById('new-lesson-content').value.trim().replace(/
+/g, '<br>');
       if (!t || !b) return alert('يرجى كتابة العنوان والمحتوى');
-      activeLessons.unshift({ title: t, content: b, category: 'أخلاق', badge: 'badge-purple', time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق' });
+
+      const badgeMap = {
+        'أخلاق': 'badge-purple',
+        'تنظيم': 'badge-amber',
+        'صلاة': 'badge-green',
+        'عمرة': 'badge-green'
+      };
+
+      activeLessons.unshift({
+        title: t,
+        content: b,
+        category: cat,
+        badge: badgeMap[cat] || 'badge-purple',
+        time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق'
+      });
+
+      localStorage.setItem('omrah_custom_lessons', JSON.stringify(activeLessons));
       document.getElementById('new-lesson-title').value = '';
       document.getElementById('new-lesson-content').value = '';
-      renderLessons('all');
-      alert('تم نشر الدرس بنجاح!');
+      
+      filterLessons(cat);
+      alert('✅ تم حفظ الدرس وتصنيفه بنجاح في الذاكرة الدائمة!');
     }
 
     function deleteLesson(idx) {
       if (confirm('حذف هذا الدرس نهائياً؟')) {
-        activeLessons.splice(idx, 1);
-        renderLessons('all');
+        const target = (currentLessonFilter === 'all') ? activeLessons[idx] : activeLessons.filter(l => l.category === currentLessonFilter)[idx];
+        activeLessons = activeLessons.filter(l => l !== target);
+        localStorage.setItem('omrah_custom_lessons', JSON.stringify(activeLessons));
+        renderLessons(currentLessonFilter);
       }
     }
 
     function renderPlaces(filter = 'all') {
+      currentPlaceFilter = filter;
       const c = document.getElementById('places-list');
       if (!c) return;
+      
       const list = filter === 'all' ? activePlaces : activePlaces.filter(p => p.city === filter);
       const isGuide = currentUser && currentUser.role === 'guide';
+
+      if (list.length === 0) {
+        c.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8; font-size:0.85rem;">لا توجد مزارات متوفرة في هذا القسم حالياً.</div>';
+        return;
+      }
 
       c.innerHTML = list.map((p, idx) => `
         <div class="item-card">
@@ -1798,21 +1863,29 @@
     function addNewPlace() {
       const c = document.getElementById('new-place-city').value;
       const t = document.getElementById('new-place-title').value.trim();
-      const s = document.getElementById('new-place-story').value.trim().replace(/\n/g, '<br>');
+      const s = document.getElementById('new-place-story').value.trim().replace(/
+/g, '<br>');
       if (!t || !s) return alert('يرجى ملء اسم المزار والقصة');
+
       activePlaces.unshift({ city: c, title: t, story: s });
+      localStorage.setItem('omrah_custom_places', JSON.stringify(activePlaces));
+      
       document.getElementById('new-place-title').value = '';
       document.getElementById('new-place-story').value = '';
-      renderPlaces('all');
-      alert('تم حفظ المزار بنجاح!');
+      
+      filterPlaces(c);
+      alert('✅ تم حفظ المزار بنجاح في الذاكرة الدائمة!');
     }
 
     function deletePlace(idx) {
       if (confirm('حذف هذا المزار نهائياً؟')) {
-        activePlaces.splice(idx, 1);
-        renderPlaces('all');
+        const target = (currentPlaceFilter === 'all') ? activePlaces[idx] : activePlaces.filter(p => p.city === currentPlaceFilter)[idx];
+        activePlaces = activePlaces.filter(p => p !== target);
+        localStorage.setItem('omrah_custom_places', JSON.stringify(activePlaces));
+        renderPlaces(currentPlaceFilter);
       }
     }
+
 
     // بدء التشغيل
     window.addEventListener('load', function() {
