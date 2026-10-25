@@ -613,6 +613,19 @@
     let mediaRecorder = null;
     let audioChunks = [];
     let isPttRecording = false;
+
+    let wakeLockSentinel = null;
+    async function requestAppWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLockSentinel = await navigator.wakeLock.request('screen');
+        }
+      } catch(e) {}
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestAppWakeLock();
+    });
+
     let lastPlayedPttId = 0;
     let currentPttTarget = 'all';
     let lastReceivedAudioUrl = null;
@@ -1189,21 +1202,46 @@
       } catch(e) {}
     }
 
+    // حفظ واسترجاع نداءات اللاسلكي من الذاكرة الدائمة
+    function getStoredPttCards() {
+      try {
+        const raw = localStorage.getItem('omrah_saved_ptt_logs');
+        return raw ? JSON.parse(raw) : [];
+      } catch(e) { return []; }
+    }
+
+    function savePttCardsToStorage(cards) {
+      try {
+        localStorage.setItem('omrah_saved_ptt_logs', JSON.stringify(cards.slice(0, 50)));
+      } catch(e) {}
+    }
+
     function clearGuideAudioLog() {
+      localStorage.removeItem('omrah_saved_ptt_logs');
       const log = document.getElementById('guide-audio-log');
-      if (log) {
-        log.innerHTML = '<div style="color:#94a3b8; font-size:0.75rem; text-align:center;">تم تفريغ السجل. في انتظار النداءات...</div>';
+      if (log) log.innerHTML = '<div style="color:#94a3b8; font-size:0.75rem; text-align:center;">تم تفريغ السجل يدوياً.</div>';
+    }
+
+    function removePttCard(btn, id) {
+      const card = btn.closest('.ptt-call-card');
+      if (card) card.remove();
+      let saved = getStoredPttCards();
+      saved = saved.filter(c => c.id !== id);
+      savePttCardsToStorage(saved);
+      const log = document.getElementById('guide-audio-log');
+      if (log && log.querySelectorAll('.ptt-call-card').length === 0) {
+        log.innerHTML = '<div style="color:#94a3b8; font-size:0.75rem; text-align:center;">في انتظار رسائل المعتمرين الصوتية...</div>';
       }
     }
 
-    function removePttCard(btn) {
-      const card = btn.closest('.ptt-call-card');
-      if (card) {
-        card.remove();
-        const log = document.getElementById('guide-audio-log');
-        if (log && log.querySelectorAll('.ptt-call-card').length === 0) {
-          log.innerHTML = '<div style="color:#94a3b8; font-size:0.75rem; text-align:center;">في انتظار رسائل المعتمرين الصوتية...</div>';
-        }
+    function renderStoredPttCards() {
+      const log = document.getElementById('guide-audio-log');
+      if (!log) return;
+      const cards = getStoredPttCards();
+      if (cards.length === 0) return;
+      log.innerHTML = '';
+      cards.forEach(c => appendPttCardToDOM(c, false));
+    }
       }
     }
 
@@ -1375,6 +1413,63 @@
       }
     }
 
+    
+    function appendPttCardToDOM(latest, shouldSave = true) {
+      const log = document.getElementById('guide-audio-log');
+      if (!log) return;
+      const cleanName = String(latest.sender || 'معتمر').replace(/[^a-zA-Z0-9؀-ۿ\s]/g, '');
+      const emptyTxt = log.querySelector('div');
+      if (emptyTxt && emptyTxt.innerText.includes('انتظار')) log.innerHTML = '';
+
+      if (shouldSave) {
+        let saved = getStoredPttCards();
+        if (!saved.some(c => c.id === latest.id)) {
+          saved.unshift({ id: latest.id, sender: cleanName, time: latest.time, audioData: latest.audioData });
+          savePttCardsToStorage(saved);
+        }
+      }
+
+      const card = document.createElement('div');
+      card.className = 'ptt-call-card';
+      card.style.cssText = 'background:#132342; border-right:4px solid #38bdf8; padding:8px 10px; border-radius:8px; margin-bottom:8px;';
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">
+          <strong style="color:#fff;">📢 نداء من: <span style="color:#38bdf8;">${cleanName}</span></strong>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span>⏱ ${latest.time}</span>
+            <button type="button" onclick="removePttCard(this, ${latest.id})" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer;" title="حذف">✕</button>
+          </div>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center; margin-top:6px;">
+          <button type="button" onclick="new Audio('${latest.audioData}').play()" class="btn-sub" style="padding:4px 8px; font-size:0.75rem;">▶️ استماع</button>
+          <button type="button" id="reply-btn-${latest.id}" class="btn-main" style="background:#0284c7; padding:4px 10px; font-size:0.75rem; flex:1; user-select:none; touch-action:none;" oncontextmenu="return false;">🎙️ اضغط مطولاً للرد</button>
+        </div>
+      `;
+      log.prepend(card);
+
+      setTimeout(() => {
+        const rBtn = document.getElementById(`reply-btn-${latest.id}`);
+        if (rBtn) {
+          rBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            currentPttTarget = cleanName;
+            rBtn.style.background = '#dc2626';
+            rBtn.innerText = `🔴 تحدث للرد على ${cleanName}`;
+            startPttRecording(rBtn, null);
+          });
+          const stopHandler = (e) => {
+            e.preventDefault();
+            rBtn.style.background = '#0284c7';
+            rBtn.innerText = `🎙️ اضغط مطولاً للرد`;
+            stopPttRecording(rBtn, null);
+            currentPttTarget = 'all';
+          };
+          rBtn.addEventListener('pointerup', stopHandler);
+          rBtn.addEventListener('pointercancel', stopHandler);
+        }
+      }, 100);
+    }
+
     function handleIncomingPttAudio(pttMessages) {
       if (!pttMessages || pttMessages.length === 0) return;
       const latest = pttMessages[pttMessages.length - 1];
@@ -1391,62 +1486,21 @@
         if (isGuide && latest.role !== 'guide') {
           playWalkieBeep();
           new Audio(latest.audioData).play().catch(() => {});
-
-          const log = document.getElementById('guide-audio-log');
-          if (log) {
-            const safeName = String(latest.sender || 'معتمر').replace(/[^\u0600-\u06FFa-zA-Z0-9\s]/g, '');
-            const emptyNotice = log.querySelector('div');
-            if (emptyNotice && emptyNotice.innerText.includes('انتظار')) {
-              log.innerHTML = '';
-            }
-
-            const card = document.createElement('div');
-            card.className = 'ptt-call-card';
-            card.style.cssText = 'background:#132342; border-right:4px solid #38bdf8; padding:10px 12px; border-radius:10px; margin-bottom:8px; text-align:right;';
-            card.innerHTML = `
-              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:6px;">
-                <strong style="color:#fff;">📢 نداء من: <span style="color:#38bdf8; font-size:0.85rem;">${safeName}</span></strong>
-                <div style="display:flex; gap:6px; align-items:center;">
-                  <span>⏱ ${latest.time}</span>
-                  <button type="button" onclick="removePttCard(this)" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer;" title="حذف">✕</button>
-                </div>
-              </div>
-              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                <button type="button" onclick="new Audio('${latest.audioData}').play()" class="btn-sub" style="padding:6px 10px; font-size:0.75rem;">▶️ استماع</button>
-                <button type="button" id="reply-btn-${latest.id}" class="btn-main" style="background:#0284c7; padding:6px 12px; font-size:0.78rem; flex:1; user-select:none; touch-action:none;" oncontextmenu="return false;">
-                  🎙️ اضغط مطولاً للرد على ${safeName}
-                </button>
-              </div>
-            `;
-            log.prepend(card);
-
-            setTimeout(() => {
-              const rBtn = document.getElementById(`reply-btn-${latest.id}`);
-              if (rBtn) {
-                rBtn.addEventListener('pointerdown', (e) => {
-                  e.preventDefault();
-                  currentPttTarget = safeName;
-                  rBtn.style.background = '#dc2626';
-                  rBtn.innerText = `🔴 تحدث للرد على ${safeName}`;
-                  startPttRecording(rBtn, null, 'pilgrim');
-                });
-                const stopReply = (e) => {
-                  e.preventDefault();
-                  rBtn.style.background = '#0284c7';
-                  rBtn.innerText = `🎙️ اضغط مطولاً للرد على ${safeName}`;
-                  stopPttRecording(rBtn, null);
-                  currentPttTarget = 'all';
-                };
-                rBtn.addEventListener('pointerup', stopReply);
-                rBtn.addEventListener('pointercancel', stopReply);
-              }
-            }, 100);
-          }
+          appendPttCardToDOM(latest, true);
         } else if (!isGuide && latest.role === 'guide') {
           if (latest.targetPilgrim === 'all' || latest.targetPilgrim === currentUser.name) {
             playWalkieBeep();
             lastReceivedAudioUrl = latest.audioData;
-            new Audio(latest.audioData).play().catch(() => {});
+            const liveAudio = new Audio(latest.audioData);
+            liveAudio.play().catch(() => {});
+
+            // حفظ آخر توجيه صوتي للمعتمر في الذاكرة الدائمة
+            try {
+              localStorage.setItem('omrah_last_pilgrim_audio', JSON.stringify({
+                time: latest.time,
+                audioData: latest.audioData
+              }));
+            } catch(e) {}
 
             const pStatus = document.getElementById('ptt-live-status');
             if (pStatus) {
@@ -2198,6 +2252,29 @@
       updateSaeyUI();
       renderLessons('all');
       renderPlaces('all');
+
+      // استرجاع سجلات اللاسلكي المحفوظة للمرشد والمعتمر
+      try {
+        requestAppWakeLock();
+        if (currentUser && currentUser.role === 'guide') {
+          renderStoredPttCards();
+        } else if (currentUser && currentUser.role === 'pilgrim') {
+          const savedP = localStorage.getItem('omrah_last_pilgrim_audio');
+          if (savedP) {
+            const pData = JSON.parse(savedP);
+            lastReceivedAudioUrl = pData.audioData;
+            const pBox = document.getElementById('pilgrim-last-audio-box');
+            const pReplay = document.getElementById('btn-replay-pilgrim');
+            const pInfo = document.getElementById('pilgrim-last-audio-info');
+            if (pBox && pReplay) {
+              pBox.style.display = 'block';
+              if (pInfo) pInfo.innerText = `🔊 آخر نداء من المرشد (${pData.time})`;
+              pReplay.onclick = () => { new Audio(lastReceivedAudioUrl).play().catch(()=>{}); };
+            }
+          }
+        }
+      } catch(e) {}
+
     });
   </script>
 </body>
