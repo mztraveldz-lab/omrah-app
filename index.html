@@ -140,6 +140,13 @@
     .acc-btn { width: 100%; padding: 14px; text-align: right; background: none; border: none; color: #f8fafc; font-weight: bold; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .acc-body { display: none; padding: 14px; background: #080e1e; border-top: 1px solid #25334d; font-size: 0.9rem; line-height: 1.7; color: #cbd5e1; }
     .acc-body.active { display: block; }
+  
+    /* اللاسلكي PTT النظيف */
+    .ptt-widget { background: #0f1c30; border: 2px solid #38bdf8; border-radius: 16px; padding: 14px; margin-bottom: 14px; text-align: center; }
+    .ptt-btn { width: 95px; height: 95px; border-radius: 50%; background: radial-gradient(circle, #0284c7 0%, #0369a1 100%); border: 3px solid #38bdf8; color: white; font-size: 2rem; display: flex; align-items: center; justify-content: center; margin: 8px auto; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none; }
+    .ptt-btn.recording { background: radial-gradient(circle, #ef4444 0%, #b91c1c 100%) !important; border-color: #fca5a5 !important; transform: scale(1.05); }
+    .ptt-guide-inbox { background: #080e1e; border: 1px solid #1e3a8a; border-radius: 10px; padding: 8px; margin-top: 8px; text-align: right; }
+
   </style>
 </head>
 <body>
@@ -206,6 +213,19 @@
       <span id="auto-gps-text">تتبع GPS التلقائي نشط: جاري الاتصال بالسيرفر...</span>
     </div>
 
+    
+    <!-- لاسلكي التواصل المباشر مع المرشد -->
+    <div class="ptt-widget">
+      <div style="font-weight: bold; color: #38bdf8; font-size: 0.95rem;">📻 لاسلكي الفوج (اضغط وتحدث للمرشد)</div>
+      <div style="font-size: 0.72rem; color: #94a3b8; margin: 4px 0 8px;">اضغط باستمرار للتكلم، وارفع يدك للإرسال فوراً</div>
+      <div id="pilgrim-ptt-btn" class="ptt-btn" oncontextmenu="return false;">🎙️</div>
+      <div id="ptt-live-status" style="font-size: 0.8rem; font-weight: bold; color: #6ee7b7; min-height: 18px;">جاهز للتحدث</div>
+      <div id="pilgrim-reply-box" style="display:none; margin-top:8px; background:#080e1e; border:1px solid #0284c7; border-radius:8px; padding:6px 10px;">
+        <span id="pilgrim-reply-text" style="font-size:0.75rem; color:#38bdf8; display:block; margin-bottom:4px;"></span>
+        <button type="button" id="btn-replay-audio" class="btn-main" style="background:#0284c7; padding:4px 10px; font-size:0.75rem;">▶️ إعادة الاستماع</button>
+      </div>
+    </div>
+
     <!-- بطاقة الفندق للمعتمر -->
     <div class="card" style="padding: 14px; margin-bottom: 14px; border: 1px solid #0284c7; background: #0f1c30; border-radius: 16px; text-align: right;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -254,6 +274,20 @@
   <main id="view-map" class="view">
     <div class="card" style="text-align: right; padding: 14px;">
       
+      
+      <!-- لاسلكي المرشد -->
+      <div class="ptt-widget" style="border-color:#10b981;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:bold; color:#34d399; font-size:0.9rem;">📻 لاسلكي الطوارئ والمحادثات:</span>
+          <button type="button" onclick="clearGuideAudioLog()" class="btn-danger-sm" style="padding:2px 8px; font-size:0.7rem;">🧹 مسح</button>
+        </div>
+        <div id="guide-ptt-btn" class="ptt-btn" style="width:70px; height:70px; font-size:1.5rem; background:radial-gradient(circle, #059669 0%, #047857 100%); border-color:#10b981;" oncontextmenu="return false;">🎙️</div>
+        <div style="font-size:0.72rem; color:#a7f3d0; margin-bottom:6px;">اضغط مطولاً لبث نداء صوتي عام للفوج</div>
+        <div id="guide-audio-log" class="ptt-guide-inbox">
+          <div style="color:#94a3b8; font-size:0.75rem; text-align:center;">في انتظار رسائل المعتمرين الصوتية...</div>
+        </div>
+      </div>
+
       <!-- ضبط مقرات الإقامة المستقلة -->
       <div style="background: #0f233a; border: 1px solid #0284c7; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -1079,6 +1113,236 @@
       }
     }
 
+    
+    // ==========================================
+    // رصد GPS الدقيق واللاسلكي النظيف
+    // ==========================================
+    let gpsWatchId = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isPttRecording = false;
+    let lastPlayedPttId = 0;
+    let currentPttTarget = 'all';
+    let lastPilgrimAudioUrl = null;
+
+    function playWalkieBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.15);
+      } catch(e) {}
+    }
+
+    function startAutoGpsTracking() {
+      if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
+      if (autoTrackingInterval) clearInterval(autoTrackingInterval);
+
+      if ("geolocation" in navigator) {
+        gpsWatchId = navigator.geolocation.watchPosition(
+          pos => {
+            userCurrentLat = pos.coords.latitude;
+            userCurrentLng = pos.coords.longitude;
+            sendLiveLocation(pos.coords.accuracy);
+          },
+          err => {},
+          { enableHighAccuracy: true, maximumAge: 4000, timeout: 10000 }
+        );
+      }
+      autoTrackingInterval = setInterval(() => sendLiveLocation(), 15000);
+    }
+
+    async function sendLiveLocation(acc = null) {
+      if (!currentUser || currentUser.role !== 'pilgrim') return;
+      if (!userCurrentLat || !userCurrentLng) return;
+      await checkBatteryOptimization();
+      const bat = await getBatteryLevel();
+
+      const payload = {
+        name: currentUser.name,
+        phone: currentUser.phone || 'غير مسجل',
+        group: currentUser.group || 'الفوج 1 (الرئيسي)',
+        lat: userCurrentLat,
+        lng: userCurrentLng,
+        accuracy: acc ? Math.round(acc) : null,
+        battery: bat
+      };
+      postToServer(payload);
+    }
+
+    function clearGuideAudioLog() {
+      const log = document.getElementById('guide-audio-log');
+      if (log) log.innerHTML = '<div style="color:#94a3b8; font-size:0.75rem; text-align:center;">تم تفريغ السجل.</div>';
+    }
+
+    function removePttCard(btn) {
+      const card = btn.closest('.ptt-call-card');
+      if (card) card.remove();
+    }
+
+    async function startPttRecording(btn, statusEl) {
+      if (isPttRecording) return;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          stream.getTracks().forEach(t => t.stop());
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          if (audioBlob.size > 1000) sendPttAudioToServer(audioBlob, statusEl);
+        };
+        mediaRecorder.start();
+        isPttRecording = true;
+        playWalkieBeep();
+        if (btn) btn.classList.add('recording');
+        if (statusEl) statusEl.innerText = '🔴 جاري التسجيل.. تحدث الآن...';
+      } catch(err) {
+        alert('يرجى منح إذن الميكروفون للتحدث.');
+      }
+    }
+
+    function stopPttRecording(btn, statusEl) {
+      if (!isPttRecording) return;
+      isPttRecording = false;
+      playWalkieBeep();
+      if (btn) btn.classList.remove('recording');
+      if (statusEl) statusEl.innerText = '⏳ جاري الإرسال...';
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    }
+
+    function sendPttAudioToServer(blob, statusEl) {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64data = reader.result;
+        const now = new Date();
+        const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        const isGuide = currentUser && currentUser.role === 'guide';
+        const target = isGuide ? currentPttTarget : 'guide';
+
+        fetch(`${VPS_API}/api/ptt/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sender: currentUser ? currentUser.name : 'معتمر',
+            role: currentUser ? currentUser.role : 'pilgrim',
+            group: currentUser ? currentUser.group : 'عام',
+            targetPilgrim: target,
+            audioData: base64data,
+            time: timeStr
+          })
+        })
+        .then(res => res.json())
+        .then(() => {
+          if (statusEl) statusEl.innerText = '✅ تم الإرسال بنجاح!';
+          setTimeout(() => { if (statusEl) statusEl.innerText = 'جاهز للتحدث'; }, 2500);
+        })
+        .catch(() => { if (statusEl) statusEl.innerText = 'تعذر الإرسال!'; });
+      };
+    }
+
+    function setupPttButtons() {
+      const pBtn = document.getElementById('pilgrim-ptt-btn');
+      const pStatus = document.getElementById('ptt-live-status');
+      if (pBtn) {
+        pBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); currentPttTarget = 'guide'; startPttRecording(pBtn, pStatus); });
+        pBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopPttRecording(pBtn, pStatus); });
+        pBtn.addEventListener('pointercancel', (e) => { e.preventDefault(); stopPttRecording(pBtn, pStatus); });
+      }
+
+      const gBtn = document.getElementById('guide-ptt-btn');
+      if (gBtn) {
+        gBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); currentPttTarget = 'all'; startPttRecording(gBtn, null); });
+        gBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopPttRecording(gBtn, null); });
+        gBtn.addEventListener('pointercancel', (e) => { e.preventDefault(); stopPttRecording(gBtn, null); });
+      }
+    }
+
+    function handleIncomingPttAudio(pttMessages) {
+      if (!pttMessages || pttMessages.length === 0) return;
+      const latest = pttMessages[pttMessages.length - 1];
+
+      if (latest.id > lastPlayedPttId) {
+        if (!lastPlayedPttId) { lastPlayedPttId = latest.id; return; }
+        lastPlayedPttId = latest.id;
+
+        const isGuide = currentUser && currentUser.role === 'guide';
+
+        if (isGuide && latest.role !== 'guide') {
+          playWalkieBeep();
+          new Audio(latest.audioData).play().catch(() => {});
+          const log = document.getElementById('guide-audio-log');
+          if (log) {
+            const cleanName = String(latest.sender || 'معتمر').replace(/[^a-zA-Z0-9؀-ۿ\s]/g, '');
+            const emptyTxt = log.querySelector('div');
+            if (emptyTxt && emptyTxt.innerText.includes('انتظار')) log.innerHTML = '';
+
+            const card = document.createElement('div');
+            card.className = 'ptt-call-card';
+            card.style.cssText = 'background:#132342; border-right:4px solid #38bdf8; padding:8px 10px; border-radius:8px; margin-bottom:8px;';
+            card.innerHTML = `
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">
+                <strong style="color:#fff;">📢 نداء من: <span style="color:#38bdf8;">${cleanName}</span></strong>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <span>⏱ ${latest.time}</span>
+                  <button type="button" onclick="removePttCard(this)" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer;">✕</button>
+                </div>
+              </div>
+              <div style="display:flex; gap:6px; align-items:center; margin-top:6px;">
+                <button type="button" onclick="new Audio('${latest.audioData}').play()" class="btn-sub" style="padding:4px 8px; font-size:0.75rem;">▶️ استماع</button>
+                <button type="button" id="reply-btn-${latest.id}" class="btn-main" style="background:#0284c7; padding:4px 10px; font-size:0.75rem; flex:1; user-select:none; touch-action:none;" oncontextmenu="return false;">🎙️ اضغط مطولاً للرد</button>
+              </div>
+            `;
+            log.prepend(card);
+
+            setTimeout(() => {
+              const rBtn = document.getElementById(`reply-btn-${latest.id}`);
+              if (rBtn) {
+                rBtn.addEventListener('pointerdown', (e) => {
+                  e.preventDefault();
+                  currentPttTarget = cleanName;
+                  rBtn.style.background = '#dc2626';
+                  rBtn.innerText = `🔴 تحدث للرد على ${cleanName}`;
+                  startPttRecording(rBtn, null);
+                });
+                const stopHandler = (e) => {
+                  e.preventDefault();
+                  rBtn.style.background = '#0284c7';
+                  rBtn.innerText = `🎙️ اضغط مطولاً للرد`;
+                  stopPttRecording(rBtn, null);
+                  currentPttTarget = 'all';
+                };
+                rBtn.addEventListener('pointerup', stopHandler);
+                rBtn.addEventListener('pointercancel', stopHandler);
+              }
+            }, 100);
+          }
+        } else if (!isGuide && latest.role === 'guide') {
+          if (latest.targetPilgrim === 'all' || latest.targetPilgrim === currentUser.name) {
+            playWalkieBeep();
+            lastPilgrimAudioUrl = latest.audioData;
+            new Audio(latest.audioData).play().catch(() => {});
+            const rBox = document.getElementById('pilgrim-reply-box');
+            const rTxt = document.getElementById('pilgrim-reply-text');
+            const rBtn = document.getElementById('btn-replay-audio');
+            if (rBox && rBtn) {
+              rBox.style.display = 'block';
+              if (rTxt) rTxt.innerText = `🔊 وصلك توجيه صوتي من المرشد (${latest.time})`;
+              rBtn.onclick = () => { if (lastPilgrimAudioUrl) new Audio(lastPilgrimAudioUrl).play(); };
+            }
+          }
+        }
+      }
+    }
+
     function playBroadcastAlert() {
       try {
         if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 400]);
@@ -1120,6 +1384,7 @@
             updatePilgrimHotelView();
             renderMapHotelPins();
           }
+          if (data.pttMessages) { handleIncomingPttAudio(data.pttMessages); }
           if (data.busLocation !== undefined) {
             busLocation = data.busLocation;
             if (busLocation) {
@@ -1926,6 +2191,7 @@
       updateSaeyUI();
       renderLessons('all');
       renderPlaces('all');
+      setupPttButtons();
     });
   </script>
 </body>
