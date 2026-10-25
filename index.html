@@ -182,6 +182,7 @@
       text-align: right;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -1377,9 +1378,18 @@
 
       const gBtn = document.getElementById('guide-ptt-btn');
       if (gBtn) {
-        gBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); startPttRecording(gBtn, null, 'all'); });
-        gBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopPttRecording(gBtn, null); });
-        gBtn.addEventListener('pointercancel', (e) => { e.preventDefault(); stopPttRecording(gBtn, null); });
+        gBtn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          gBtn.style.background = '#dc2626';
+          startPttRecording(gBtn, null, 'all');
+        });
+        const stopGeneralPtt = (e) => {
+          e.preventDefault();
+          gBtn.style.background = 'radial-gradient(circle, #059669 0%, #047857 100%)';
+          stopPttRecording(gBtn, null);
+        };
+        gBtn.addEventListener('pointerup', stopGeneralPtt);
+        gBtn.addEventListener('pointercancel', stopGeneralPtt);
       }
     }
 
@@ -1663,10 +1673,8 @@
 
     function generateGroupQRModal() {
       const select = document.getElementById('filter-group-select');
-      const grp = (select && select.value !== 'all') ? select.value : 'الفوج 1 (الرئيسي)';
-      const qrData = 'OMRAH_GROUP:' + encodeURIComponent(grp);
-      const qrImgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + qrData + '&margin=10';
-
+      let grp = (select && select.value !== 'all') ? select.value : (serverGroups[0] || 'الفوج 1 (الرئيسي)');
+      
       const old = document.getElementById('group-qr-modal');
       if (old) old.remove();
 
@@ -1674,16 +1682,36 @@
       modal.id = 'group-qr-modal';
       modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;';
       modal.innerHTML = `
-        <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:20px; width:100%; max-width:340px; text-align:center;">
+        <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:20px; width:100%; max-width:320px; text-align:center;">
           <h3 style="color:#fff; margin-bottom:6px; font-size:1.1rem;">📲 ملصق QR لـ (${grp})</h3>
-          <p style="color:#94a3b8; font-size:0.75rem; margin-bottom:12px;">اطبع الملصق أو اعرضه في الحافلة؛ يمسحه المعتمر مباشرة لتحديد فوجه آلياً.</p>
-          <div style="background:#fff; padding:10px; border-radius:12px; display:inline-block; margin-bottom:14px;">
-            <img src="${qrImgUrl}" style="width:200px; height:200px; display:block; border-radius:8px;" />
+          <p style="color:#94a3b8; font-size:0.75rem; margin-bottom:14px;">اطبع الملصق أو اعرضه في الحافلة؛ يمسحه المعتمر بكاميرا التطبيق ليحدد فوجه آلياً.</p>
+          <div style="background:#fff; padding:14px; border-radius:12px; display:inline-flex; justify-content:center; align-items:center; margin:0 auto 16px auto;">
+            <div id="local-qrcode-canvas"></div>
           </div>
           <button type="button" onclick="document.getElementById('group-qr-modal').remove()" class="btn-sub" style="width:100%;">إغلاق</button>
         </div>
       `;
       document.body.appendChild(modal);
+
+      setTimeout(() => {
+        const qrContainer = document.getElementById('local-qrcode-canvas');
+        if (qrContainer) {
+          qrContainer.innerHTML = '';
+          const qrText = 'OMRAH_GROUP:' + encodeURIComponent(grp);
+          if (typeof QRCode !== 'undefined') {
+            new QRCode(qrContainer, {
+              text: qrText,
+              width: 190,
+              height: 190,
+              colorDark: "#000000",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.M
+            });
+          } else {
+            qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=${encodeURIComponent(qrText)}" style="display:block; width:190px; height:190px;" />`;
+          }
+        }
+      }, 100);
     }
 
     function openQrPickerModal() {
@@ -1806,29 +1834,55 @@
       }
     }
 
-    function deleteCurrentFilteredGroup() {
-      const select = document.getElementById('filter-group-select');
-      const groupToDelete = select.value;
-      if (groupToDelete === 'all') return alert("يرجى اختيار فوج محدد من القائمة لحذفه.");
-      if (confirm(`حذف فوج (${groupToDelete}) ومعتمريه نهائياً من السيرفر؟`)) {
-        fetch(`${VPS_API}/api/groups/delete`, {
+    function deletePilgrim(name) {
+      if (confirm(`حذف المعتمر (${name}) من السيرفر نهائياً؟`)) {
+        fetch(`${VPS_API}/api/pilgrims/delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ groupName: groupToDelete })
-        }).then(() => {
-          select.value = 'all';
+          body: JSON.stringify({ name: name.trim() })
+        })
+        .then(res => res.json())
+        .then(() => {
+          serverPilgrims = serverPilgrims.filter(p => p.name.trim().toLowerCase() !== name.trim().toLowerCase());
+          renderPilgrimMarkers();
           syncWithServer();
+          alert(`✅ تم حذف المعتمر (${name}) بنجاح`);
+        })
+        .catch(err => {
+          serverPilgrims = serverPilgrims.filter(p => p.name.trim().toLowerCase() !== name.trim().toLowerCase());
+          renderPilgrimMarkers();
         });
       }
     }
 
-    function deletePilgrim(name) {
-      if (confirm(`حذف المعتمر (${name}) من السيرفر؟`)) {
-        fetch(`${VPS_API}/api/pilgrims/delete`, {
+    function deleteCurrentFilteredGroup() {
+      const select = document.getElementById('filter-group-select');
+      let grp = select ? select.value : 'all';
+      
+      if (grp === 'all') {
+        grp = prompt("اكتب اسم الفوج الذي تريد حذفه من السيرفر:");
+      }
+      
+      if (!grp || grp === 'all' || !grp.trim()) return alert("يرجى تحديد أو كتابة اسم الفوج لحذفه.");
+
+      if (confirm(`هل أنت متأكد من حذف فوج (${grp}) وحذف جميع المعتمرين المسجلين فيه؟`)) {
+        fetch(`${VPS_API}/api/groups/delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name })
-        }).then(() => syncWithServer());
+          body: JSON.stringify({ groupName: grp.trim() })
+        })
+        .then(res => res.json())
+        .then(() => {
+          serverGroups = serverGroups.filter(g => g.trim().toLowerCase() !== grp.trim().toLowerCase());
+          serverPilgrims = serverPilgrims.filter(p => (p.group || '').trim().toLowerCase() !== grp.trim().toLowerCase());
+          updateGroupsDropdowns();
+          renderPilgrimMarkers();
+          syncWithServer();
+          alert(`✅ تم حذف فوج (${grp}) ومعتمريه بنجاح`);
+        })
+        .catch(err => {
+          syncWithServer();
+        });
       }
     }
 
