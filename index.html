@@ -1476,9 +1476,30 @@
           if (target === 'all' || target === myName) {
             playWalkieBeep();
             lastReceivedAudioUrl = latest.audioData;
-            new Audio(latest.audioData).play().catch(() => {});
 
-            if ('vibrate' in navigator) navigator.vibrate([300, 150, 300, 150, 500]);
+            // تشغيل الصوت بقوة ورفع الصوت عبر مسار الوسائط المفتوح
+            try {
+              const voiceAudio = new Audio(latest.audioData);
+              voiceAudio.volume = 1.0;
+              voiceAudio.play().catch(e => console.log('Audio autoplay retry:', e));
+            } catch(e) {}
+
+            // اهتزاز ثلاثي قوي لإيقاظ الهاتف في الجيب
+            if ('vibrate' in navigator) {
+              navigator.vibrate([500, 200, 500, 200, 800]);
+            }
+
+            // إشعار نظام أندرويد العاجل
+            if ('Notification' in window && Notification.permission === 'granted') {
+              try {
+                new Notification(target === 'all' ? '📢 نداء عام من المرشد' : '🎙️ رد صوتي خاص من المرشد', {
+                  body: 'اضغط للاستماع للتوجيه الصوتي فوراً',
+                  icon: 'icon.png',
+                  tag: 'omrah-voice-incoming',
+                  renotify: true
+                });
+              } catch(e) {}
+            }
 
             const pStatus = document.getElementById('ptt-live-status');
             if (pStatus) {
@@ -1936,6 +1957,9 @@
 
     function setupProfile(role) {
       initBackgroundAudioKeeper();
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
       const nameInput = document.getElementById('user-name');
       const phoneInput = document.getElementById('user-phone');
       const groupSelect = document.getElementById('user-group-select');
