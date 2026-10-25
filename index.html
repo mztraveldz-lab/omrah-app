@@ -70,54 +70,54 @@
     .bat-med { background: #78350f; color: #fde68a; border: 1px solid #b45309; }
     .bat-low { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; }
 
-    .geofence-alert-badge { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; animation: alertBlink 1.2s infinite; }
-    @keyframes alertBlink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.97); } }
-    .alert-marker-pin { background: #dc2626; color: #fff; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; font-size: 16px; box-shadow: 0 0 12px #ef4444; animation: alertBlink 1s infinite; }
+    .geofence-alert-badge { background: #7f1d1d; color: #fca5a5; border: 1px solid #ef4444; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
 
-    .compass-disc {
-      width: 220px;
-      height: 220px;
+    /* تنسيقات اللاسلكي PTT */
+    .ptt-widget {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 2px solid #38bdf8;
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 16px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+    }
+    .ptt-btn {
+      width: 105px;
+      height: 105px;
       border-radius: 50%;
-      background: radial-gradient(circle, #0f1c30 0%, #080e1e 100%);
+      background: radial-gradient(circle, #0284c7 0%, #0369a1 100%);
       border: 4px solid #38bdf8;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3), inset 0 0 15px rgba(0,0,0,0.8);
-      position: relative;
-      margin: 16px auto;
+      color: white;
+      font-size: 2.2rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.1s ease-out;
+      margin: 10px auto;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+      transition: all 0.1s ease;
     }
-    .compass-needle-kaaba {
-      position: absolute;
-      width: 6px;
-      height: 90px;
-      background: linear-gradient(to top, transparent 50%, #10b981 50%);
-      transform-origin: bottom center;
-      bottom: 50%;
-      border-radius: 3px;
+    .ptt-btn.recording {
+      background: radial-gradient(circle, #ef4444 0%, #b91c1c 100%) !important;
+      border-color: #fca5a5 !important;
+      transform: scale(1.08);
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.8) !important;
     }
-    .compass-needle-hotel {
-      position: absolute;
-      width: 4px;
-      height: 80px;
-      background: linear-gradient(to top, transparent 50%, #38bdf8 50%);
-      transform-origin: bottom center;
-      bottom: 50%;
-      border-radius: 2px;
-    }
-    .compass-center-dot {
-      width: 14px;
-      height: 14px;
-      background: #f8fafc;
-      border-radius: 50%;
-      border: 2px solid #0f172a;
-      z-index: 10;
+    .ptt-guide-inbox {
+      background: #0b1329;
+      border: 1px solid #1e3a8a;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+      text-align: right;
     }
 
     .dua-box { background: #131c31; border: 1px solid #25334d; border-radius: 16px; padding: 18px; margin-bottom: 14px; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
     .dua-text { font-size: 1.15rem; line-height: 1.8; color: #fef3c7; text-align: center; margin: 12px 0; font-family: serif; }
-    
     .info-box { background: rgba(120, 53, 15, 0.25); border: 1px solid #b45309; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
     .info-title { color: #f59e0b; font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; }
     .info-text { color: #fde68a; font-family: serif; font-size: 1.05rem; line-height: 1.8; text-align: justify; }
@@ -125,7 +125,6 @@
     .filter-bar { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
     .filter-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #2d3b55; background: #131c31; color: #94a3b8; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
     .filter-btn.active { background: #064e3b; color: #34d399; border-color: #10b981; }
-
     .item-card { background: #131c31; border: 1px solid #25334d; border-radius: 14px; padding: 16px; margin-bottom: 14px; text-align: right; }
     .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .badge { font-size: 0.72rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; }
@@ -140,23 +139,14 @@
     .acc-btn { width: 100%; padding: 14px; text-align: right; background: none; border: none; color: #f8fafc; font-weight: bold; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .acc-body { display: none; padding: 14px; background: #080e1e; border-top: 1px solid #25334d; font-size: 0.9rem; line-height: 1.7; color: #cbd5e1; }
     .acc-body.active { display: block; }
-  
-    /* اللاسلكي PTT النظيف */
-    .ptt-widget { background: #0f1c30; border: 2px solid #38bdf8; border-radius: 16px; padding: 14px; margin-bottom: 14px; text-align: center; }
-    .ptt-btn { width: 95px; height: 95px; border-radius: 50%; background: radial-gradient(circle, #0284c7 0%, #0369a1 100%); border: 3px solid #38bdf8; color: white; font-size: 2rem; display: flex; align-items: center; justify-content: center; margin: 8px auto; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none; }
-    .ptt-btn.recording { background: radial-gradient(circle, #ef4444 0%, #b91c1c 100%) !important; border-color: #fca5a5 !important; transform: scale(1.05); }
-    .ptt-guide-inbox { background: #080e1e; border: 1px solid #1e3a8a; border-radius: 10px; padding: 8px; margin-top: 8px; text-align: right; }
-
   </style>
 </head>
 <body>
 
-  <!-- تنبيه انقطاع الإنترنت الهادئ -->
   <div id="offline-status-bar">
     📶 وضع عدم الاتصال: الأدعية، البوصلة، ومواقع الفنادق والحافلة المحفوظة تعمل بكفاءة.
   </div>
 
-  <!-- شريط التعميمات والتنبيهات العاجلة -->
   <div id="broadcast-banner">
     <button class="banner-close-btn" onclick="dismissCurrentBroadcast()">✕</button>
     📢 <span id="broadcast-text"></span>
@@ -190,8 +180,8 @@
           <button type="button" onclick="openQrPickerModal()" style="background:#0284c7; color:#fff; border:none; border-radius:8px; padding:10px 14px; font-size:1.15rem; cursor:pointer;" title="مسح رمز الفوج من المعرض">📷</button>
         </div>
       </div>
-      <button class="role-btn btn-pilgrim" onclick="setupProfile('pilgrim')">🟢 الدخول كـ (معتمر)</button>
-      <button class="role-btn btn-guide" onclick="promptGuidePin()">🔒 الدخول كـ (مرشد الفوج)</button>
+      <button type="button" class="role-btn btn-pilgrim" onclick="setupProfile('pilgrim')">🟢 الدخول كـ (معتمر)</button>
+      <button type="button" class="role-btn btn-guide" onclick="promptGuidePin()">🔒 الدخول كـ (مرشد الفوج)</button>
     </div>
   </div>
 
@@ -210,19 +200,22 @@
   <main id="view-sos" class="view">
     <div class="tracking-status">
       <div class="pulse-dot"></div>
-      <span id="auto-gps-text">تتبع GPS التلقائي نشط: جاري الاتصال بالسيرفر...</span>
+      <span id="auto-gps-text">تتبع GPS نشط: جاري التقاط الأقمار الصناعية...</span>
     </div>
 
-    
-    <!-- لاسلكي التواصل المباشر مع المرشد -->
+    <!-- لاسلكي التواصل الفوري مع المرشد PTT -->
     <div class="ptt-widget">
-      <div style="font-weight: bold; color: #38bdf8; font-size: 0.95rem;">📻 لاسلكي الفوج (اضغط وتحدث للمرشد)</div>
-      <div style="font-size: 0.72rem; color: #94a3b8; margin: 4px 0 8px;">اضغط باستمرار للتكلم، وارفع يدك للإرسال فوراً</div>
-      <div id="pilgrim-ptt-btn" class="ptt-btn" oncontextmenu="return false;">🎙️</div>
-      <div id="ptt-live-status" style="font-size: 0.8rem; font-weight: bold; color: #6ee7b7; min-height: 18px;">جاهز للتحدث</div>
-      <div id="pilgrim-reply-box" style="display:none; margin-top:8px; background:#080e1e; border:1px solid #0284c7; border-radius:8px; padding:6px 10px;">
-        <span id="pilgrim-reply-text" style="font-size:0.75rem; color:#38bdf8; display:block; margin-bottom:4px;"></span>
-        <button type="button" id="btn-replay-audio" class="btn-main" style="background:#0284c7; padding:4px 10px; font-size:0.75rem;">▶️ إعادة الاستماع</button>
+      <div style="font-weight: bold; color: #38bdf8; font-size: 0.95rem;">📻 لاسلكي الفوج السريع (اضغط وتحدث)</div>
+      <div style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 10px;">اضغط باستمرار للتكلم، وارفع يدك للإرسال فوراً للمرشد</div>
+      
+      <div id="pilgrim-ptt-btn" class="ptt-btn" oncontextmenu="return false;">
+        <span>🎙️</span>
+      </div>
+      
+      <div id="ptt-live-status" style="font-size: 0.82rem; font-weight: bold; color: #6ee7b7; min-height: 20px;">جاهز للتحدث</div>
+      <div id="pilgrim-last-audio-box" style="display:none; margin-top:10px; background:#080e1e; border:1px solid #0284c7; border-radius:10px; padding:8px 12px; text-align:center;">
+        <span id="pilgrim-last-audio-info" style="font-size:0.78rem; color:#38bdf8; display:block; margin-bottom:6px;">🔊 نداء صوتي من المرشد</span>
+        <button type="button" id="btn-replay-pilgrim" class="btn-main" style="background:#0284c7; padding:6px 14px; font-size:0.8rem; margin:0 auto;">▶️ إعادة سماع التوجيه</button>
       </div>
     </div>
 
@@ -242,18 +235,7 @@
         <div style="color: #34d399;">⏱️ الوقت مشياً: <strong id="live-walk-time">--</strong></div>
       </div>
 
-      <button type="button" onclick="openCompassModal()" class="btn-sub" style="width: 100%; margin-bottom: 8px; padding: 10px; font-weight: bold; background: #0c4a6e; color: #7dd3fc; border: 1px solid #0284c7; border-radius: 10px; font-size: 0.88rem;">🧭 فتح بوصلة القبلة والفندق المباشرة</button>
       <button onclick="navigateHotel()" class="btn-main" style="background: #0284c7; width: 100%; padding: 12px; border-radius: 12px; font-size: 0.95rem;">🧭 خذني إلى فندقي (خرائط Google)</button>
-    </div>
-
-    <!-- بطاقة موقع حافلة الفوج (للمعتمر) -->
-    <div id="bus-card-pilgrim" class="card" style="padding: 14px; margin-bottom: 14px; border: 1px solid #f59e0b; background: #1c1917; border-radius: 16px; text-align: right;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <span style="font-weight: bold; color: #fbbf24; font-size: 0.95rem;">🚌 موقف حافلة الفوج:</span>
-        <span id="bus-dist-val" style="color: #fde68a; font-size: 0.85rem; font-weight: bold;">--</span>
-      </div>
-      <div id="bus-name-display" style="color: white; font-size: 1rem; margin: 4px 0 10px 0;">موقف الحافلة المعتمد للزيارات</div>
-      <button onclick="navigateBusLocation()" class="btn-main" style="background: #d97706; width: 100%; padding: 11px; border-radius: 10px; font-size: 0.9rem;">🧭 خذني إلى الحافلة (خرائط Google)</button>
     </div>
 
     <div class="sos-container">
@@ -264,9 +246,6 @@
         <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.95;">إرسال موقعي الحالي لواتساب الوكالة فوراً</span>
       </button>
       <div id="sos-status" style="font-size: 0.88rem; color: #34d399; font-weight: bold; margin-top: 12px; min-height: 22px;"></div>
-      <div style="margin-top: 10px; font-size: 0.78rem; color: #94a3b8;">
-        رقم طوارئ الوكالة: <strong id="sos-display-phone" style="color: #6ee7b7; direction: ltr; display: inline-block;">+213795353719</strong>
-      </div>
     </div>
   </main>
 
@@ -274,88 +253,38 @@
   <main id="view-map" class="view">
     <div class="card" style="text-align: right; padding: 14px;">
       
-      
-      <!-- لاسلكي المرشد -->
-      <div class="ptt-widget" style="border-color:#10b981;">
+      <!-- صندوق نداء اللاسلكي الخاص بالمرشد -->
+      <div class="ptt-widget" style="border-color: #10b981;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-weight:bold; color:#34d399; font-size:0.9rem;">📻 لاسلكي الطوارئ والمحادثات:</span>
-          <button type="button" onclick="clearGuideAudioLog()" class="btn-danger-sm" style="padding:2px 8px; font-size:0.7rem;">🧹 مسح</button>
+          <span style="font-weight:bold; color:#34d399; font-size:0.95rem;">📻 لاسلكي الطوارئ والمحادثات المباشرة:</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button type="button" onclick="clearGuideAudioLog()" class="btn-danger-sm" style="padding:2px 8px; font-size:0.7rem;">🧹 مسح السجل</button>
+            <span id="ptt-guide-indicator" style="font-size:0.75rem; color:#94a3b8;">🟢</span>
+          </div>
         </div>
-        <div id="guide-ptt-btn" class="ptt-btn" style="width:70px; height:70px; font-size:1.5rem; background:radial-gradient(circle, #059669 0%, #047857 100%); border-color:#10b981;" oncontextmenu="return false;">🎙️</div>
-        <div style="font-size:0.72rem; color:#a7f3d0; margin-bottom:6px;">اضغط مطولاً لبث نداء صوتي عام للفوج</div>
+        
+        <div id="guide-ptt-btn" class="ptt-btn" style="width:75px; height:75px; font-size:1.5rem; background:radial-gradient(circle, #059669 0%, #047857 100%); border-color:#10b981;" oncontextmenu="return false;">
+          <span>🎙️</span>
+        </div>
+        <div style="font-size:0.75rem; color:#a7f3d0; margin-bottom:8px;">اضغط وتكلم لإرسال نداء صوتي لجميع المعتمرين</div>
+
         <div id="guide-audio-log" class="ptt-guide-inbox">
           <div style="color:#94a3b8; font-size:0.75rem; text-align:center;">في انتظار رسائل المعتمرين الصوتية...</div>
         </div>
       </div>
 
-      <!-- ضبط مقرات الإقامة المستقلة -->
-      <div style="background: #0f233a; border: 1px solid #0284c7; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <h4 style="color: #38bdf8; margin: 0; font-size: 0.95rem;">🏨 ضبط مقرات الإقامة المستقلة:</h4>
-          <button type="button" onclick="toggleMapSatelliteMode()" class="btn-main" style="background: #475569; padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; flex: 0 0 auto;">🛰️ قمر صناعي</button>
-        </div>
-
-        <!-- فندق مكة -->
-        <div style="background: rgba(2, 132, 199, 0.12); border: 1px solid #0284c7; border-radius: 8px; padding: 8px; margin-bottom: 8px;">
-          <span style="color: #38bdf8; font-weight: bold; font-size: 0.82rem;">🕋 فندق مكة المكرمة:</span>
-          <input type="text" id="hotel-makkah-name" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 6px 0;" placeholder="اسم فندق مكة" />
-          <div style="display: flex; gap: 6px;">
-            <input type="text" id="hotel-makkah-link" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 0; flex: 1;" placeholder="الصق رابط Google Maps لفندق مكة" />
-            <button type="button" onclick="processHotelLink('مكة')" class="btn-main" style="background: #0284c7; padding: 6px 10px; font-size: 0.8rem; flex: 0 0 auto;">تثبيت مكة</button>
-          </div>
-        </div>
-
-        <!-- فندق المدينة -->
-        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid #10b981; border-radius: 8px; padding: 8px;">
-          <span style="color: #34d399; font-weight: bold; font-size: 0.82rem;">🕌 فندق المدينة المنورة:</span>
-          <input type="text" id="hotel-madinah-name" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 6px 0;" placeholder="اسم فندق المدينة" />
-          <div style="display: flex; gap: 6px;">
-            <input type="text" id="hotel-madinah-link" class="auth-input" style="padding: 6px; font-size: 0.8rem; margin: 0; flex: 1;" placeholder="الصق رابط Google Maps لفندق المدينة" />
-            <button type="button" onclick="processHotelLink('المدينة')" class="btn-main" style="background: #10b981; padding: 6px 10px; font-size: 0.8rem; flex: 0 0 auto;">تثبيت المدينة</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- لوحة ضبط وتثبيت موقف الحافلة (المرشد) -->
-      <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 0.88rem; font-weight: bold; color: #fbbf24;">🚌 موقف حافلة الفوج:</span>
-          <button type="button" onclick="clearBusLocation()" class="btn-danger-sm" style="padding: 3px 8px; font-size: 0.72rem;">إلغاء الموقف</button>
-        </div>
-        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-          <button type="button" onclick="setBusCurrentLocation()" class="btn-main" style="background: #d97706; padding: 8px; font-size: 0.78rem; flex: 1;">📍 موقعي الحالي</button>
-          <button type="button" onclick="pickBusOnMap()" class="btn-main" style="background: #b45309; padding: 8px; font-size: 0.78rem; flex: 1;">👆 لمس على الخريطة</button>
-        </div>
-        <button type="button" onclick="setBusFromGmapsPrompt()" class="btn-sub" style="width: 100%; padding: 7px; font-size: 0.78rem;">🔗 أو الصق رابط/إحداثيات Google Maps</button>
-      </div>
-
-      <!-- إرسال تعميم فوري لجميع المعتمرين -->
-      <div style="background: #1e1b4b; border: 1px solid #6366f1; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-        <div style="font-size: 0.85rem; font-weight: bold; color: #a5b4fc; margin-bottom: 6px;">📢 إرسال تعميم عاجل للفوج:</div>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="broadcast-input" class="auth-input" style="margin: 0; padding: 8px;" placeholder="اكتب التنبيه (مثال: التحرك للحرم بعد نصف ساعة)">
-          <button onclick="sendBroadcast()" class="btn-main" style="background: #4f46e5; flex: 0 0 auto; padding: 8px 12px; font-size: 0.8rem;">🚀 تعميم</button>
-        </div>
-      </div>
-
-      <div style="font-weight: bold; color: #34d399; font-size: 0.95rem; margin-bottom: 8px;">🗺️ خريطة الأفواج وتتبع بطاريات الهواتف:</div>
+      <div style="font-weight: bold; color: #34d399; font-size: 0.95rem; margin-bottom: 8px;">🗺️ خريطة تتبع المعتمرين الحية:</div>
       <div id="map"></div>
 
       <div class="group-manager">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 0.85rem; font-weight: bold; color: #f1f5f9;">📁 تصفية وإدارة الأفواج:</span>
-          <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button type="button" onclick="openHeadcountModal()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #d97706; color: #fff; font-weight: bold;">📊 إحصاء الحضور</button>
-            <button onclick="generateGroupQRModal()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #0284c7; color: #fff;">📲 ملصق QR للفوج</button>
-            <button onclick="createNewGroup()" class="btn-sub" style="padding: 4px 8px; font-size: 0.72rem; background: #064e3b; color: #a7f3d0;">+ إنشاء فوج</button>
-          </div>
+          <span style="font-size: 0.85rem; font-weight: bold; color: #f1f5f9;">📁 تصفية الأفواج:</span>
+          <button type="button" onclick="resetAllTestDataConfirm()" class="btn-danger-sm" style="padding: 4px 8px; font-size: 0.72rem; background: #991b1b; color: #fecaca; border: 1px solid #ef4444;">🧹 تفريغ التجربة</button>
         </div>
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
           <select id="filter-group-select" class="auth-input" style="padding: 6px; margin: 0; flex: 1;" onchange="renderPilgrimMarkers()">
             <option value="all">كل الأفواج (عرض شامل)</option>
           </select>
-          <button type="button" onclick="resetAllTestDataConfirm()" class="btn-danger-sm" style="padding: 4px 8px; font-size: 0.72rem; background: #991b1b; color: #fecaca; border: 1px solid #ef4444;">🧹 تفريغ بيانات التجربة</button>
-          <button onclick="deleteCurrentFilteredGroup()" class="btn-danger-sm" style="padding: 6px 10px;">🗑️ مسح الفوج</button>
         </div>
       </div>
 
@@ -394,11 +323,6 @@
         <button onclick="nextDua()" class="btn-main" style="padding: 10px;">الدعاء التالي</button>
       </div>
     </div>
-
-    <div class="info-box">
-      <div class="info-title">⭐ يُسن بين الركن اليماني والحجر الأسود:</div>
-      <div class="info-text">"رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ"</div>
-    </div>
   </main>
 
   <!-- 4. شاشة السعي -->
@@ -419,7 +343,7 @@
     <div class="dua-box">
       <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #2dd4bf; font-weight: bold;">
         <span id="saey-dua-counter">دعاء السعي 1 من 15</span>
-        <span style="color: #94a3b8;">أدعية أثناء المشي بين العلمين</span>
+        <span style="color: #94a3b8;">أدعية أثناء المشي</span>
       </div>
       <p class="dua-text" id="active-saey-dua-text" style="color: #ccfbf1;"></p>
       <div class="btn-row">
@@ -427,20 +351,9 @@
         <button onclick="nextSaeyDua()" class="btn-main" style="background: #0f766e; padding: 10px;">الدعاء التالي</button>
       </div>
     </div>
-
-    <div class="info-box" style="background: rgba(15, 118, 110, 0.25); border: 2px solid #0d9488;">
-      <div class="info-title" style="color: #2dd4bf; font-size: 0.95rem;">📍 الذكر الثابت عند صعود الصفا والمروة:</div>
-      <div class="info-text" style="color: #e6fffa;">
-        يقرأ المعتمر في بداية الشوط الأول فقط عند دنوه من الصفا:<br>
-        <span style="color: #5eead4; font-weight: bold;">«نَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ، ﴿إِنَّ الصَّفَا وَالْمَرْوَةَ مِن شَعَائِرِ اللَّهِ ۖ فَمَنْ حَجَّ الْبَيْتَ أَوِ اعْتَمَرَ فَلَا جُنَاحَ عَلَيْهِ أَن يَطَّوَّفَ بِهِمَا ۚ وَمَن تَطَوَّعَ خَيْرًا فَإِنَّ اللَّهَ شَاكِرٌ عَلِيمٌ﴾»</span>.<br><br>
-        ثم يستقبل القبلة على الصفا والمروة ويرفع يديه ويوحد الله ويكبره قائلاً:<br>
-        <span style="color: #fef08a; font-weight: bold;">«اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الْأَحْزَابَ وَحْدَهُ»</span>.<br><br>
-        <span style="font-size: 0.9rem; color: #99f6e4;">يُردد هذا الذكر (3 مرات)، ويدعو بينها بما يشاء من خيري الدنيا والآخرة.</span>
-      </div>
-    </div>
   </main>
 
-  <!-- 5. شاشة فقه وأحكام العمرة -->
+  <!-- 5. فقه العمرة -->
   <main id="view-fiqh" class="view">
     <div class="acc-item">
       <button class="acc-btn" onclick="toggleAcc(this)">
@@ -452,69 +365,24 @@
         <strong>3. السعي:</strong> سبعة أشواط بين الصفا والمروة.
       </div>
     </div>
-    <div class="acc-item">
-      <button class="acc-btn" onclick="toggleAcc(this)">
-        <span>📌 2. واجبات العمرة (تُجبر بدم)</span><span>▼</span>
-      </button>
-      <div class="acc-body">
-        <strong>1. الإحرام من الميقات المعتبر شرعاً.</strong><br>
-        <strong>2. الحلق أو التقصير:</strong> للرجال الحلق أفضل، وللنساء قص قدر أنملة من أطراف الشعر.
-      </div>
-    </div>
-    <div class="acc-item">
-      <button class="acc-btn" onclick="toggleAcc(this)">
-        <span>⚠️ 3. محظورات الإحرام</span><span>▼</span>
-      </button>
-      <div class="acc-body">
-        إزالة الشعر، تقليم الأظافر، الطيب، تغطية الرأس للرجل، لبس المخيط للرجل، لبس النقاب والقفازين للمرأة، وعقد النكاح والجماع.
-      </div>
-    </div>
   </main>
 
-  <!-- 6. حقيبة دروس الحافلة كاملة (خاصة بالمرشدين) -->
+  <!-- 6. حقيبة دروس الحافلة كاملة -->
   <main id="view-dourous" class="view">
-    <div id="add-lesson-box" style="display:none; background:#131c31; border:1px solid #38bdf8; border-radius:12px; padding:12px; margin-bottom:14px; text-align:right;">
-      <div style="font-size:0.85rem; font-weight:bold; color:#38bdf8; margin-bottom:6px;">➕ إضافة درس جديد للحافلة:</div>
-      <div style="display:flex; gap:6px; margin-bottom:8px;">
-        <select id="new-lesson-category" class="auth-input" style="width:auto; padding:6px; margin:0; font-size:0.85rem;">
-          <option value="أخلاق">الأخلاق واللحمة 🤝</option>
-          <option value="تنظيم">المطار والتسكين 🧳</option>
-          <option value="صلاة">الصلاة والجنائز 🤲</option>
-          <option value="عمرة">دروس النسك 🕋</option>
-        </select>
-        <input type="text" id="new-lesson-title" class="auth-input" style="margin:0; padding:6px; flex:1;" placeholder="عنوان الدرس...">
-      </div>
-      <textarea id="new-lesson-content" class="auth-input" rows="3" style="padding:8px; margin-bottom:8px;" placeholder="نص الدرس كاملاً..."></textarea>
-      <button onclick="addNewLesson()" class="btn-main" style="padding:8px; font-size:0.85rem;">نشر وحفظ الدرس 📢</button>
-    </div>
     <div class="filter-bar">
-      <button class="filter-btn active" onclick="filterLessons('all')" id="flt-l-all">الكل</button>
-      <button class="filter-btn" onclick="filterLessons('أخلاق')" id="flt-l-akhlak">الأخلاق واللحمة 🤝</button>
-      <button class="filter-btn" onclick="filterLessons('تنظيم')" id="flt-l-org">المطار والتسكين 🧳</button>
-      <button class="filter-btn" onclick="filterLessons('صلاة')" id="flt-l-salah">الصلاة والجنائز 🤲</button>
-      <button class="filter-btn" onclick="filterLessons('عمرة')" id="flt-l-omrah">دروس النسك 🕋</button>
+      <button class="filter-btn active" onclick="filterLessons('all')">الكل</button>
+      <button class="filter-btn" onclick="filterLessons('أخلاق')">الأخلاق 🤝</button>
+      <button class="filter-btn" onclick="filterLessons('تنظيم')">التنظيم 🧳</button>
     </div>
     <div id="lessons-list"></div>
   </main>
 
-  <!-- 7. موسوعة المزارات الكبرى كاملة (خاصة بالمرشدين) -->
+  <!-- 7. موسوعة المزارات -->
   <main id="view-ziyarat" class="view">
-    <div id="add-place-box" style="display:none; background:#131c31; border:1px solid #10b981; border-radius:12px; padding:12px; margin-bottom:14px; text-align:right;">
-      <div style="font-size:0.85rem; font-weight:bold; color:#10b981; margin-bottom:6px;">➕ إضافة قصة أو مزار جديد:</div>
-      <div style="display:flex; gap:6px; margin-bottom:6px;">
-        <select id="new-place-city" class="auth-input" style="width:auto; padding:6px; margin:0; font-size:0.85rem;">
-          <option value="مكة">مكة المكرمة</option>
-          <option value="المدينة">المدينة المنورة</option>
-        </select>
-        <input type="text" id="new-place-title" class="auth-input" style="margin:0; padding:6px; flex:1;" placeholder="اسم المزار...">
-      </div>
-      <textarea id="new-place-story" class="auth-input" rows="3" style="padding:8px; margin-bottom:8px;" placeholder="سرد القصة والمكان بالتفصيل..."></textarea>
-      <button onclick="addNewPlace()" class="btn-main" style="background:#059669; padding:8px; font-size:0.85rem;">حفظ المزار 📍</button>
-    </div>
     <div class="filter-bar">
-      <button class="filter-btn active" onclick="filterPlaces('all')" id="flt-p-all">كل المزارات 📖</button>
-      <button class="filter-btn" onclick="filterPlaces('مكة')" id="flt-p-makkah">مكة المكرمة والمشاعر 🕋</button>
-      <button class="filter-btn" onclick="filterPlaces('المدينة')" id="flt-p-madinah">المدينة المنورة 🕌</button>
+      <button class="filter-btn active" onclick="filterPlaces('all')">كل المزارات 📖</button>
+      <button class="filter-btn" onclick="filterPlaces('مكة')">مكة المكرمة 🕋</button>
+      <button class="filter-btn" onclick="filterPlaces('المدينة')">المدينة المنورة 🕌</button>
     </div>
     <div id="places-list"></div>
   </main>
@@ -534,143 +402,127 @@
     let serverPilgrims = [];
     
     let serverHotels = {
-      "مكة": {
-        name: localStorage.getItem('om_h_makkah_name') || "فندق مكة المكرمة",
-        lat: parseFloat(localStorage.getItem('om_h_makkah_lat')) || 21.4225,
-        lng: parseFloat(localStorage.getItem('om_h_makkah_lng')) || 39.8262
-      },
-      "المدينة": {
-        name: localStorage.getItem('om_h_madinah_name') || "فندق المدينة المنورة",
-        lat: parseFloat(localStorage.getItem('om_h_madinah_lat')) || 24.4672,
-        lng: parseFloat(localStorage.getItem('om_h_madinah_lng')) || 39.6108
-      }
+      "مكة": { name: "فندق مكة المكرمة", lat: 21.4225, lng: 39.8262 },
+      "المدينة": { name: "فندق المدينة المنورة", lat: 24.4672, lng: 39.6108 }
     };
 
-    let userCurrentLat = 21.4225;
-    let userCurrentLng = 39.8262;
+    // عدم إعطاء أي موقع افتراضي - ننتظر التقاط الهاتف الحقيقي
+    let userCurrentLat = null;
+    let userCurrentLng = null;
+    let userGpsAccuracy = null;
+    let gpsWatchId = null;
 
     let autoTrackingInterval = null;
     let syncInterval = null;
-    let satTileLayerInstance = null;
-    let isSatelliteModeOn = false;
-    let makkahMapPin = null;
-    let madinahMapPin = null;
 
-    let busLocation = null;
-    let busMarkerInstance = null;
-    try {
-      const savedBus = localStorage.getItem('omrah_bus_location');
-      if (savedBus) busLocation = JSON.parse(savedBus);
-    } catch(e) {}
-
-    let isBatterySaverActive = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isPttRecording = false;
+    let lastPlayedPttId = 0;
+    let currentPttTarget = 'all';
+    let lastReceivedAudioUrl = null;
 
     function getAgencyPhone() {
       const stored = localStorage.getItem('omrah_agency_phone');
       return (stored && stored.trim()) ? stored.trim() : DEFAULT_AGENCY_PHONE;
     }
 
-    function extractCoordsFromText(rawText) {
-      if (!rawText) return null;
-      let t = rawText.trim();
-      let direct = t.match(/(-?\d{1,2}\.\d+)[,\s]+(-?\d{1,3}\.\d+)/);
-      if (direct) return { lat: parseFloat(direct[1]), lng: parseFloat(direct[2]) };
-      let atMatch = t.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (atMatch) return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
-      let qMatch = t.match(/[?&](?:q|ll|destination)=(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (qMatch) return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
-      return null;
+    function playWalkieBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.setValueAtTime(1200, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.16);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.16);
+      } catch(e) {}
     }
 
-    function toggleMapSatelliteMode() {
-      if (!mapInstance) return;
-      if (!satTileLayerInstance) {
-        satTileLayerInstance = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-          maxZoom: 19,
-          attribution: 'Esri Satellite'
-        });
+    function startAutoGpsTracking() {
+      if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
+      if (autoTrackingInterval) clearInterval(autoTrackingInterval);
+
+      if ("geolocation" in navigator) {
+        // قراءة فورية دقيقة
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            userCurrentLat = pos.coords.latitude;
+            userCurrentLng = pos.coords.longitude;
+            userGpsAccuracy = Math.round(pos.coords.accuracy);
+            sendLiveLocation();
+          },
+          err => console.log('Initial GPS err:', err),
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+
+        // مراقبة حية مستمرة لحركة المعتمر الحقيقية
+        gpsWatchId = navigator.geolocation.watchPosition(
+          pos => {
+            userCurrentLat = pos.coords.latitude;
+            userCurrentLng = pos.coords.longitude;
+            userGpsAccuracy = Math.round(pos.coords.accuracy);
+            sendLiveLocation();
+          },
+          err => console.log('Watch GPS err:', err),
+          { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+        );
       }
-      if (!isSatelliteModeOn) {
-        mapInstance.addLayer(satTileLayerInstance);
-        isSatelliteModeOn = true;
-      } else {
-        mapInstance.removeLayer(satTileLayerInstance);
-        isSatelliteModeOn = false;
-      }
+
+      autoTrackingInterval = setInterval(() => sendLiveLocation(), 15000);
     }
 
-    function processHotelLink(city) {
-      const isMakkah = (city === 'مكة');
-      const linkBox = document.getElementById(isMakkah ? 'hotel-makkah-link' : 'hotel-madinah-link');
-      const nameBox = document.getElementById(isMakkah ? 'hotel-makkah-name' : 'hotel-madinah-name');
-      
-      const rawLink = linkBox ? linkBox.value.trim() : '';
-      let nameVal = nameBox ? nameBox.value.trim() : '';
-      
-      if (rawLink) {
-        const coords = extractCoordsFromText(rawLink);
-        if (coords) {
-          serverHotels[city].lat = coords.lat;
-          serverHotels[city].lng = coords.lng;
-          localStorage.setItem(isMakkah ? 'om_h_makkah_lat' : 'om_h_madinah_lat', coords.lat);
-          localStorage.setItem(isMakkah ? 'om_h_makkah_lng' : 'om_h_madinah_lng', coords.lng);
+    async function sendLiveLocation() {
+      if (!currentUser || currentUser.role !== 'pilgrim') return;
+      if (!userCurrentLat || !userCurrentLng) return; // منع إرسال أي أصفار أو قيم كاذبة
+
+      let bat = 100;
+      try {
+        if ('getBattery' in navigator) {
+          const b = await navigator.getBattery();
+          bat = Math.round(b.level * 100);
         }
-        if (!nameVal) {
-          const pMatch = rawLink.match(/\/place\/([^\/@?]+)/);
-          if (pMatch && pMatch[1]) nameVal = decodeURIComponent(pMatch[1]).replace(/\+/g, ' ');
-        }
-      }
+      } catch(e) {}
 
-      if (!nameVal) nameVal = (isMakkah ? 'فندق مكة المكرمة' : 'فندق المدينة المنورة');
+      const payload = {
+        name: currentUser.name,
+        phone: currentUser.phone || 'غير مسجل',
+        group: currentUser.group || 'الفوج 1 (الرئيسي)',
+        lat: userCurrentLat,
+        lng: userCurrentLng,
+        accuracy: userGpsAccuracy,
+        battery: bat
+      };
 
-      serverHotels[city].name = nameVal;
-      localStorage.setItem(isMakkah ? 'om_h_makkah_name' : 'om_h_madinah_name', nameVal);
-      if (nameBox) nameBox.value = nameVal;
-
-      fetch(`${VPS_API}/api/hotels/update`, {
+      fetch(`${VPS_API}/api/pilgrims/location`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ city, name: nameVal, lat: serverHotels[city].lat, lng: serverHotels[city].lng })
-      }).catch(err => {});
-
-      renderMapHotelPins();
-      updatePilgrimHotelView();
-
-      if (mapInstance && serverHotels[city].lat && serverHotels[city].lng) {
-        mapInstance.flyTo([serverHotels[city].lat, serverHotels[city].lng], 16);
-      }
-
-      alert(`✅ تم تثبيت مقر إقامة ${city} بنجاح: (${nameVal})`);
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(() => {
+        updatePilgrimHotelView();
+        const statusElem = document.getElementById('auto-gps-text');
+        if (statusElem) {
+          const d = new Date();
+          statusElem.innerText = `📡 متصل بالسيرفر: تم رصد موقعك الفعلي بدقة (${userGpsAccuracy || 10}م) في (${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')})`;
+        }
+      })
+      .catch(() => {});
     }
 
-    function renderMapHotelPins() {
-      if (!mapInstance) return;
-      if (makkahMapPin) mapInstance.removeLayer(makkahMapPin);
-      if (madinahMapPin) mapInstance.removeLayer(madinahMapPin);
-
-      const mIcon = L.divIcon({
-        className: 'm-pin',
-        html: '<div style="background:#0284c7; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">🕋</div>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-      });
-
-      const dIcon = L.divIcon({
-        className: 'm-pin',
-        html: '<div style="background:#10b981; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">🕌</div>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-      });
-
-      if (serverHotels["مكة"] && serverHotels["مكة"].lat) {
-        makkahMapPin = L.marker([serverHotels["مكة"].lat, serverHotels["مكة"].lng], { icon: mIcon }).addTo(mapInstance)
-          .bindPopup(`<b>${serverHotels["مكة"].name}</b><br>مقر مكة المكرمة`);
-      }
-
-      if (serverHotels["المدينة"] && serverHotels["المدينة"].lat) {
-        madinahMapPin = L.marker([serverHotels["المدينة"].lat, serverHotels["المدينة"].lng], { icon: dIcon }).addTo(mapInstance)
-          .bindPopup(`<b>${serverHotels["المدينة"].name}</b><br>مقر المدينة المنورة`);
-      }
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
     }
 
     function updatePilgrimHotelView() {
@@ -680,7 +532,7 @@
       const disp = document.getElementById('hotel-name-display');
       if (disp && hotel) disp.innerText = `${hotel.name}`;
 
-      if (hotel && hotel.lat && hotel.lng) {
+      if (hotel && hotel.lat && hotel.lng && userCurrentLat && userCurrentLng) {
         const dist = calculateDistance(userCurrentLat, userCurrentLng, hotel.lat, hotel.lng);
         const distElem = document.getElementById('live-distance-val');
         const timeElem = document.getElementById('live-walk-time');
@@ -693,538 +545,80 @@
       }
     }
 
-    // مزامنة موقع الحافلة سحابياً
-    function syncBusToServer(locationData) {
-      busLocation = locationData;
-      if (locationData) {
-        localStorage.setItem('omrah_bus_location', JSON.stringify(locationData));
-      } else {
-        localStorage.removeItem('omrah_bus_location');
-      }
-      updateBusUI();
-
-      fetch(`${VPS_API}/api/bus/update`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(locationData || {})
-      }).catch(err => {});
-    }
-
-    function updateBusUI() {
-      const distEl = document.getElementById('bus-dist-val');
-      const nameEl = document.getElementById('bus-name-display');
-
-      if (busLocation && busLocation.lat && busLocation.lng) {
-        if (nameEl) nameEl.innerText = busLocation.name || 'موقف حافلة الفوج (محدد)';
-        if (distEl) {
-          const dist = calculateDistance(userCurrentLat, userCurrentLng, busLocation.lat, busLocation.lng);
-          distEl.innerText = (dist < 1000) ? `${dist} م` : `${(dist / 1000).toFixed(1)} كم`;
-        }
-      } else {
-        if (nameEl) nameEl.innerText = 'لم يحدد المرشد موقف الحافلة بعد';
-        if (distEl) distEl.innerText = '--';
-      }
-
-      renderBusMarker();
-    }
-
-    function renderBusMarker() {
-      if (!mapInstance) return;
-      if (busMarkerInstance) mapInstance.removeLayer(busMarkerInstance);
-
-      if (busLocation && busLocation.lat && busLocation.lng) {
-        const bIcon = L.divIcon({
-          className: 'bus-pin',
-          html: '<div style="background:#f59e0b; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px; box-shadow:0 2px 6px rgba(0,0,0,0.5);">🚌</div>',
-          iconSize: [32, 32],
-          iconAnchor: [16, 16]
-        });
-        busMarkerInstance = L.marker([busLocation.lat, busLocation.lng], { icon: bIcon }).addTo(mapInstance)
-          .bindPopup(`<b>موقف حافلة الفوج 🚌</b><br>محدد للمعتمرين`);
-      }
-    }
-
-    function setBusCurrentLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          const bData = { lat: pos.coords.latitude, lng: pos.coords.longitude, name: "موقف الحافلة (موقع المرشد)" };
-          syncBusToServer(bData);
-          if (mapInstance) mapInstance.flyTo([bData.lat, bData.lng], 17);
-          alert('✅ تم تثبيت ونشر موقع الحافلة لجميع المعتمرين بنجاح!');
-        }, () => alert('تعذر جلب موقع GPS'));
-      }
-    }
-
-    window.pickBusOnMap = function() {
-      if (!mapInstance) return alert('يرجى فتح الخريطة أولاً');
-      const mapEl = document.getElementById('map');
-      if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth' });
-
-      let toast = document.getElementById('bus-pick-toast');
-      if (toast) toast.remove();
-      toast = document.createElement('div');
-      toast.id = 'bus-pick-toast';
-      toast.style.cssText = 'position:fixed; top:75px; left:50%; transform:translateX(-50%); background:#d97706; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; z-index:999999; box-shadow:0 4px 15px rgba(0,0,0,0.5); pointer-events:none;';
-      toast.innerHTML = '👆 المس الآن موقع موقف الحافلة على الخريطة لتثبيته';
-      document.body.appendChild(toast);
-      setTimeout(() => { if (toast) toast.remove(); }, 5000);
-
-      mapInstance.once('click', function(e) {
-        if (toast) toast.remove();
-        const bData = { lat: e.latlng.lat, lng: e.latlng.lng, name: "موقف حافلة الفوج" };
-        syncBusToServer(bData);
-        if (mapInstance) mapInstance.flyTo([bData.lat, bData.lng], 17);
-        alert('✅ تم تثبيت ونشر موقع الحافلة على الخريطة لجميع المعتمرين!');
-      });
-    };
-
-    function setBusFromGmapsPrompt() {
-      const input = prompt('الصق رابط خرائط Google أو الإحداثيات مباشرة:');
-      if (!input) return;
-      const coords = extractCoordsFromText(input);
-      if (coords) {
-        const bData = { lat: coords.lat, lng: coords.lng, name: "موقف حافلة الفوج" };
-        syncBusToServer(bData);
-        if (mapInstance) mapInstance.flyTo([coords.lat, coords.lng], 17);
-        alert('✅ تم تثبيت ونشر موقف الحافلة بنجاح!');
-      } else {
-        alert('تعذر استخراج الإحداثيات من هذا الرابط.');
-      }
-    }
-
-    function clearBusLocation() {
-      if (confirm('هل تريد إلغاء تحديد موقف الحافلة لجميع المعتمرين؟')) {
-        syncBusToServer(null);
-        if (busMarkerInstance && mapInstance) mapInstance.removeLayer(busMarkerInstance);
-        alert('تم إلغاء موقف الحافلة');
-      }
-    }
-
-    function navigateBusLocation() {
-      if (busLocation && busLocation.lat && busLocation.lng) {
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${busLocation.lat},${busLocation.lng}&travelmode=walking`, '_system');
-      } else {
-        alert('لم يقم المرشد بتحديد موقف الحافلة بعد');
-      }
-    }
-
-    // البوصلة الذكية
-    let compassOrientationHandler = null;
-
-    function calculateBearing(lat1, lon1, lat2, lon2) {
-      const φ1 = lat1 * Math.PI / 180;
-      const φ2 = lat2 * Math.PI / 180;
-      const Δλ = (lon2 - lon1) * Math.PI / 180;
-      const y = Math.sin(Δλ) * Math.cos(φ2);
-      const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
-      return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-    }
-
-    window.openCompassModal = function() {
-      const old = document.getElementById('compass-modal-view');
-      if (old) old.remove();
-
-      const citySelect = document.getElementById('user-hotel-city');
-      const city = citySelect ? citySelect.value : 'مكة';
-      const hotel = serverHotels[city] || serverHotels['مكة'];
-
-      const kaabaCoords = { lat: 21.4225, lng: 39.8262 };
-      const qiblaBearing = calculateBearing(userCurrentLat, userCurrentLng, kaabaCoords.lat, kaabaCoords.lng);
-      const hotelBearing = hotel ? calculateBearing(userCurrentLat, userCurrentLng, hotel.lat, hotel.lng) : 0;
-      const hotelDist = hotel ? calculateDistance(userCurrentLat, userCurrentLng, hotel.lat, hotel.lng) : 0;
-
-      const modal = document.createElement('div');
-      modal.id = 'compass-modal-view';
-      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;';
-      modal.innerHTML = `
-        <div style="background:#131c31; border:2px solid #0284c7; border-radius:18px; width:100%; max-width:340px; padding:16px; text-align:center;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h4 style="color:#38bdf8; margin:0; font-size:1rem;">🧭 بوصلة الوجهة الحية</h4>
-            <button onclick="closeCompassModal()" style="background:#ef4444; border:none; color:#fff; border-radius:6px; width:26px; height:26px; cursor:pointer; font-weight:bold;">✕</button>
-          </div>
-          
-          <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:6px;">وجّه هاتفك أفقياً، السهم يدور تلقائياً مع حركتك</div>
-
-          <div class="compass-disc" id="live-compass-disc">
-            <div class="compass-center-dot"></div>
-            <div class="compass-needle-kaaba" id="needle-kaaba" title="اتجاه الكعبة"></div>
-            <div class="compass-needle-hotel" id="needle-hotel" title="اتجاه الفندق"></div>
-            <div style="position:absolute; top:8px; font-size:0.75rem; font-weight:bold; color:#ef4444;">شمال N</div>
-          </div>
-
-          <div style="background:#080e1e; border-radius:10px; padding:10px; text-align:right; font-size:0.8rem; margin-bottom:12px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-              <span style="color:#10b981; font-weight:bold;">🕋 اتجاه الكعبة (القبلة):</span>
-              <strong style="color:#fff;">${Math.round(qiblaBearing)}°</strong>
-            </div>
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-              <span style="color:#38bdf8; font-weight:bold;">🏨 اتجاه ${hotel ? hotel.name : 'الفندق'}:</span>
-              <strong style="color:#fff;">${hotelDist < 1000 ? hotelDist + 'م' : (hotelDist/1000).toFixed(1) + 'كم'}</strong>
-            </div>
-          </div>
-
-          <button onclick="closeCompassModal()" class="btn-sub" style="width:100%;">إغلاق البوصلة</button>
-        </div>
-      `;
-      document.body.appendChild(modal);
-      startCompassSensor(qiblaBearing, hotelBearing);
-    };
-
-    window.closeCompassModal = function() {
-      if (compassOrientationHandler) {
-        window.removeEventListener('deviceorientation', compassOrientationHandler, false);
-        compassOrientationHandler = null;
-      }
-      const modal = document.getElementById('compass-modal-view');
-      if (modal) modal.remove();
-    };
-
-    function startCompassSensor(qiblaBearing, hotelBearing) {
-      const disc = document.getElementById('live-compass-disc');
-      const nKaaba = document.getElementById('needle-kaaba');
-      const nHotel = document.getElementById('needle-hotel');
-
-      if (!disc || !nKaaba || !nHotel) return;
-
-      nKaaba.style.transform = `rotate(${qiblaBearing}deg)`;
-      nHotel.style.transform = `rotate(${hotelBearing}deg)`;
-
-      if (window.DeviceOrientationEvent) {
-        compassOrientationHandler = function(event) {
-          let heading = 0;
-          if (event.webkitCompassHeading) {
-            heading = event.webkitCompassHeading;
-          } else if (event.alpha !== null) {
-            heading = 360 - event.alpha;
-          }
-          if (disc) disc.style.transform = `rotate(${-heading}deg)`;
-        };
-        window.addEventListener('deviceorientation', compassOrientationHandler, false);
-      }
-    }
-
-    // إحصاء الحضور
-    window.openHeadcountModal = function() {
-      const old = document.getElementById('headcount-modal-view');
-      if (old) old.remove();
-
-      const filterSelect = document.getElementById('filter-group-select');
-      const selectedGroup = filterSelect ? filterSelect.value : 'all';
-
-      let list = serverPilgrims || [];
-      if (selectedGroup !== 'all') list = list.filter(p => p.group === selectedGroup);
-      if (list.length === 0) return alert('لا يوجد معتمرون مسجلون في هذا الفوج حالياً لإحصائهم.');
-
-      const citySelect = document.getElementById('user-hotel-city');
-      const city = citySelect ? citySelect.value : 'مكة';
-      const hotel = serverHotels[city] || serverHotels['مكة'];
-
-      const makkahHaram = { lat: 21.4225, lng: 39.8262 };
-      const madinahHaram = { lat: 24.4672, lng: 39.6108 };
-      const currentHaram = (city === 'المدينة') ? madinahHaram : makkahHaram;
-
-      let atHotelOrBus = [];
-      let atHaram = [];
-      let outside = [];
-
-      list.forEach(p => {
-        let distHotel = hotel ? calculateDistance(p.lat, p.lng, hotel.lat, hotel.lng) : 999999;
-        let distBus = (busLocation && busLocation.lat) ? calculateDistance(p.lat, p.lng, busLocation.lat, busLocation.lng) : 999999;
-        let distHaram = calculateDistance(p.lat, p.lng, currentHaram.lat, currentHaram.lng);
-
-        if (distHotel <= 300 || distBus <= 300) {
-          atHotelOrBus.push({ ...p, dist: Math.min(distHotel, distBus), spot: (distBus <= 300 ? 'عند الحافلة' : 'في الفندق') });
-        } else if (distHaram <= 1000) {
-          atHaram.push({ ...p, dist: distHaram, spot: 'في محيط الحرم' });
-        } else {
-          outside.push({ ...p, dist: distHotel, spot: 'بعيد / في الطريق' });
-        }
-      });
-
-      function renderPilgrimListGroup(arr) {
-        if (arr.length === 0) return '<div style="color:#64748b; font-size:0.75rem; padding:4px 0;">لا يوجد أحد</div>';
-        return arr.map(p => `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#0b1329; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:0.8rem;">
-            <div>
-              <strong style="color:#fff;">👤 ${p.name}</strong>
-              <span style="font-size:0.7rem; color:#94a3b8; margin-right:4px;">(${p.spot} - ${p.dist < 1000 ? p.dist + 'م' : (p.dist/1000).toFixed(1) + 'كم'})</span>
-            </div>
-            <div style="display:flex; gap:4px; align-items:center;">
-              <span class="battery-pill ${p.battery < 20 ? 'bat-low' : p.battery < 50 ? 'bat-med' : 'bat-high'}">🔋 ${p.battery || 100}%</span>
-              <button onclick="document.getElementById('headcount-modal-view').remove(); focusOnMap(${p.lat}, ${p.lng});" class="btn-sub" style="padding:2px 6px; font-size:0.7rem;">📍</button>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      const modal = document.createElement('div');
-      modal.id = 'headcount-modal-view';
-      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999999; display:flex; align-items:center; justify-content:center; padding:14px;';
-      modal.innerHTML = `
-        <div style="background:#131c31; border:2px solid #d97706; border-radius:16px; width:100%; max-width:400px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; text-align:right;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid #25334d; background:#0b1329;">
-            <h4 style="color:#fbbf24; margin:0; font-size:0.95rem;">📊 إحصاء الحضور (${selectedGroup === 'all' ? 'جميع الأفواج' : selectedGroup})</h4>
-            <button onclick="document.getElementById('headcount-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:6px; width:26px; height:26px; cursor:pointer; font-weight:bold;">✕</button>
-          </div>
-          
-          <div style="padding:12px 14px; overflow-y:auto; flex:1;">
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; text-align:center; margin-bottom:12px;">
-              <div style="background:#064e3b; border:1px solid #059669; padding:8px 4px; border-radius:8px;">
-                <div style="font-size:1.15rem; font-weight:bold; color:#a7f3d0;">${atHotelOrBus.length}</div>
-                <div style="font-size:0.7rem; color:#6ee7b7;">فندق / باص</div>
-              </div>
-              <div style="background:#1e3a8a; border:1px solid #2563eb; padding:8px 4px; border-radius:8px;">
-                <div style="font-size:1.15rem; font-weight:bold; color:#bfdbfe;">${atHaram.length}</div>
-                <div style="font-size:0.7rem; color:#93c5fd;">في الحرم</div>
-              </div>
-              <div style="background:#78350f; border:1px solid #b45309; padding:8px 4px; border-radius:8px;">
-                <div style="font-size:1.15rem; font-weight:bold; color:#fde68a;">${outside.length}</div>
-                <div style="font-size:0.7rem; color:#fcd34d;">بعيد / خارج</div>
-              </div>
-            </div>
-
-            <div style="margin-bottom:10px;">
-              <div style="font-size:0.8rem; font-weight:bold; color:#34d399; margin-bottom:4px;">🏨 متواجدون في الفندق أو الحافلة (${atHotelOrBus.length}):</div>
-              ${renderPilgrimListGroup(atHotelOrBus)}
-            </div>
-
-            <div style="margin-bottom:10px;">
-              <div style="font-size:0.8rem; font-weight:bold; color:#38bdf8; margin-bottom:4px;">🕋 متواجدون في الحرم الشريف (${atHaram.length}):</div>
-              ${renderPilgrimListGroup(atHaram)}
-            </div>
-
-            <div style="margin-bottom:10px;">
-              <div style="font-size:0.8rem; font-weight:bold; color:#f59e0b; margin-bottom:4px;">🚶 خارج النطاق أو في الطريق (${outside.length}):</div>
-              ${renderPilgrimListGroup(outside)}
-            </div>
-          </div>
-
-          <div style="padding:8px 14px; border-top:1px solid #25334d; background:#0b1329;">
-            <button onclick="document.getElementById('headcount-modal-view').remove()" class="btn-sub" style="width:100%;">إغلاق النافذة</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    };
-
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371e3;
-      const φ1 = lat1 * Math.PI / 180;
-      const φ2 = lat2 * Math.PI / 180;
-      const Δφ = (lat2 - lat1) * Math.PI / 180;
-      const Δλ = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-    }
-
     function navigateHotel() {
       const citySelect = document.getElementById('user-hotel-city');
       const city = citySelect ? citySelect.value : 'مكة';
       const hotel = serverHotels[city] || serverHotels['مكة'];
       if (hotel && hotel.lat && hotel.lng) {
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${hotel.lat},${hotel.lng}&travelmode=walking`, '_system');
-      } else {
-        alert("لم يقم المرشد بضبط موقع الفندق بعد");
       }
     }
 
-    // إدارة عدم الاتصال والتصفير
-    window.addEventListener('online', updateNetworkStatus);
-    window.addEventListener('offline', updateNetworkStatus);
-
-    function updateNetworkStatus() {
-      const bar = document.getElementById('offline-status-bar');
-      if (!bar) return;
-      if (!navigator.onLine) {
-        bar.style.display = 'block';
-      } else {
-        bar.style.display = 'none';
-        syncWithServer();
-      }
-    }
-
-    function saveOfflineCache(data) {
-      try {
-        if (data) localStorage.setItem('omrah_last_server_cache', JSON.stringify(data));
-      } catch(e) {}
-    }
-
-    function loadOfflineCache() {
-      try {
-        const cached = localStorage.getItem('omrah_last_server_cache');
-        if (cached) {
-          const data = JSON.parse(cached);
-          if (data.groups) serverGroups = data.groups;
-          if (data.hotels) {
-            serverHotels["مكة"] = Object.assign(serverHotels["مكة"], data.hotels["مكة"] || {});
-            serverHotels["المدينة"] = Object.assign(serverHotels["المدينة"], data.hotels["المدينة"] || {});
-          }
-          if (data.busLocation) {
-            busLocation = data.busLocation;
-          }
-          updateGroupsDropdowns();
-          updatePilgrimHotelView();
-          updateBusUI();
-        }
-      } catch(e) {}
-    }
-
-    window.resetAllTestDataConfirm = function() {
-      const ans = prompt("⚠️ تحذير: هذا الإجراء سيمسح قائمة المعتمرين التجريبيين وسجل التتبع من السيرفر لبدء الرحلة الحقيقية.\n\nلتأكيد المسح، اكتب كلمة: مسح");
-      if (ans && ans.trim() === 'مسح') {
-        fetch(`${VPS_API}/api/reset-test-data`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin: GUIDE_SECRET_PIN })
-        })
-        .then(res => res.json())
-        .then(res => {
-          localStorage.removeItem('omrah_broadcast_archive_data');
-          localStorage.removeItem('omrah_bus_location');
-          busLocation = null;
-          if (busMarkerInstance && mapInstance) mapInstance.removeLayer(busMarkerInstance);
-          updateBusUI();
-          syncWithServer();
-          alert('✅ تم تصفير بيانات التجربة بنجاح! السيرفر والتطبيق الآن نظيفان وجاهزان للمعتمرين.');
-        })
-        .catch(err => alert('تعذر تصفير السيرفر، تحقق من اتصال الخادم.'));
-      }
-    };
-
-    async function checkBatteryOptimization() {
-      const bat = await getBatteryLevel();
-      const statusElem = document.getElementById('auto-gps-text');
-
-      if (bat <= 20 && !isBatterySaverActive) {
-        isBatterySaverActive = true;
-        if (autoTrackingInterval) {
-          clearInterval(autoTrackingInterval);
-          autoTrackingInterval = setInterval(sendLiveLocation, 60000);
-        }
-        if (statusElem) {
-          statusElem.innerHTML = `⚠️ <strong style="color:#fca5a5;">وضع توفير الطاقة نشط (${bat}%)</strong>: تم تقليل وتيرة التتبع لحفظ البطارية`;
-        }
-      } else if (bat > 20 && isBatterySaverActive) {
-        isBatterySaverActive = false;
-        if (autoTrackingInterval) {
-          clearInterval(autoTrackingInterval);
-          autoTrackingInterval = setInterval(sendLiveLocation, 15000);
-        }
-      }
-    }
-
-    
-    // ==========================================
-    // رصد GPS الدقيق واللاسلكي النظيف
-    // ==========================================
-    let gpsWatchId = null;
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let isPttRecording = false;
-    let lastPlayedPttId = 0;
-    let currentPttTarget = 'all';
-    let lastPilgrimAudioUrl = null;
-
-    function playWalkieBeep() {
-      try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.setValueAtTime(800, ctx.currentTime);
-        osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(); osc.stop(ctx.currentTime + 0.15);
-      } catch(e) {}
-    }
-
-    function startAutoGpsTracking() {
-      if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
-      if (autoTrackingInterval) clearInterval(autoTrackingInterval);
-
+    function sendSOS() {
+      const status = document.getElementById('sos-status');
+      status.innerText = "⏳ جاري تحديد الموقع...";
       if ("geolocation" in navigator) {
-        gpsWatchId = navigator.geolocation.watchPosition(
-          pos => {
-            userCurrentLat = pos.coords.latitude;
-            userCurrentLng = pos.coords.longitude;
-            sendLiveLocation(pos.coords.accuracy);
-          },
-          err => {},
-          { enableHighAccuracy: true, maximumAge: 4000, timeout: 10000 }
-        );
+        navigator.geolocation.getCurrentPosition(pos => {
+          const msg = encodeURIComponent(`🚨 نداء استغاثة!\nالاسم: ${currentUser.name}\nالفوج: ${currentUser.group}\nhttps://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`);
+          window.location.href = `whatsapp://send?phone=${getAgencyPhone()}&text=${msg}`;
+        });
       }
-      autoTrackingInterval = setInterval(() => sendLiveLocation(), 15000);
     }
 
-    async function sendLiveLocation(acc = null) {
-      if (!currentUser || currentUser.role !== 'pilgrim') return;
-      if (!userCurrentLat || !userCurrentLng) return;
-      await checkBatteryOptimization();
-      const bat = await getBatteryLevel();
-
-      const payload = {
-        name: currentUser.name,
-        phone: currentUser.phone || 'غير مسجل',
-        group: currentUser.group || 'الفوج 1 (الرئيسي)',
-        lat: userCurrentLat,
-        lng: userCurrentLng,
-        accuracy: acc ? Math.round(acc) : null,
-        battery: bat
-      };
-      postToServer(payload);
-    }
-
-    function clearGuideAudioLog() {
-      const log = document.getElementById('guide-audio-log');
-      if (log) log.innerHTML = '<div style="color:#94a3b8; font-size:0.75rem; text-align:center;">تم تفريغ السجل.</div>';
-    }
-
-    function removePttCard(btn) {
-      const card = btn.closest('.ptt-call-card');
-      if (card) card.remove();
-    }
-
-    async function startPttRecording(btn, statusEl) {
+    // ==========================================
+    // محرك اللاسلكي السريع PTT
+    // ==========================================
+    async function startPttRecording(senderBtn, statusEl, targetRole = 'guide') {
       if (isPttRecording) return;
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
         audioChunks = [];
-        mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
-        mediaRecorder.onstop = () => {
-          stream.getTracks().forEach(t => t.stop());
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-          if (audioBlob.size > 1000) sendPttAudioToServer(audioBlob, statusEl);
+
+        mediaRecorder.ondataavailable = e => {
+          if (e.data && e.data.size > 0) audioChunks.push(e.data);
         };
+
+        mediaRecorder.onstop = () => {
+          stream.getTracks().forEach(track => track.stop());
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          if (audioBlob.size > 800) {
+            sendPttAudioToServer(audioBlob, targetRole, statusEl);
+          } else {
+            if (statusEl) statusEl.innerText = 'التسجيل كان قصيراً جداً';
+          }
+        };
+
         mediaRecorder.start();
         isPttRecording = true;
         playWalkieBeep();
-        if (btn) btn.classList.add('recording');
+        if (senderBtn) senderBtn.classList.add('recording');
         if (statusEl) statusEl.innerText = '🔴 جاري التسجيل.. تحدث الآن...';
       } catch(err) {
-        alert('يرجى منح إذن الميكروفون للتحدث.');
+        alert('يرجى منح إذن الميكروفون للتحدث عبر اللاسلكي.');
       }
     }
 
-    function stopPttRecording(btn, statusEl) {
+    function stopPttRecording(senderBtn, statusEl) {
       if (!isPttRecording) return;
       isPttRecording = false;
       playWalkieBeep();
-      if (btn) btn.classList.remove('recording');
-      if (statusEl) statusEl.innerText = '⏳ جاري الإرسال...';
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      if (senderBtn) senderBtn.classList.remove('recording');
+      if (statusEl) statusEl.innerText = '⏳ جاري إرسال صوتك للطرف الآخر...';
+
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
     }
 
-    function sendPttAudioToServer(blob, statusEl) {
+    function sendPttAudioToServer(blob, targetRole, statusEl) {
       const reader = new FileReader();
       reader.readAsDataURL(blob);
       reader.onloadend = () => {
         const base64data = reader.result;
         const now = new Date();
         const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
         const isGuide = currentUser && currentUser.role === 'guide';
         const target = isGuide ? currentPttTarget : 'guide';
 
@@ -1242,25 +636,37 @@
         })
         .then(res => res.json())
         .then(() => {
-          if (statusEl) statusEl.innerText = '✅ تم الإرسال بنجاح!';
+          if (statusEl) statusEl.innerText = '✅ تم وصول صوتك بنجاح!';
           setTimeout(() => { if (statusEl) statusEl.innerText = 'جاهز للتحدث'; }, 2500);
         })
-        .catch(() => { if (statusEl) statusEl.innerText = 'تعذر الإرسال!'; });
+        .catch(() => {
+          if (statusEl) statusEl.innerText = 'تعذر الإرسال، تحقق من الإنترنت';
+        });
       };
+    }
+
+    function clearGuideAudioLog() {
+      const log = document.getElementById('guide-audio-log');
+      if (log) log.innerHTML = '<div style="color:#94a3b8; font-size:0.75rem; text-align:center;">تم تفريغ السجل.</div>';
+    }
+
+    function removePttCard(btn) {
+      const card = btn.closest('.ptt-call-card');
+      if (card) card.remove();
     }
 
     function setupPttButtons() {
       const pBtn = document.getElementById('pilgrim-ptt-btn');
       const pStatus = document.getElementById('ptt-live-status');
       if (pBtn) {
-        pBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); currentPttTarget = 'guide'; startPttRecording(pBtn, pStatus); });
+        pBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); startPttRecording(pBtn, pStatus, 'guide'); });
         pBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopPttRecording(pBtn, pStatus); });
         pBtn.addEventListener('pointercancel', (e) => { e.preventDefault(); stopPttRecording(pBtn, pStatus); });
       }
 
       const gBtn = document.getElementById('guide-ptt-btn');
       if (gBtn) {
-        gBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); currentPttTarget = 'all'; startPttRecording(gBtn, null); });
+        gBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); currentPttTarget = 'all'; startPttRecording(gBtn, null, 'pilgrim'); });
         gBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopPttRecording(gBtn, null); });
         gBtn.addEventListener('pointercancel', (e) => { e.preventDefault(); stopPttRecording(gBtn, null); });
       }
@@ -1279,26 +685,29 @@
         if (isGuide && latest.role !== 'guide') {
           playWalkieBeep();
           new Audio(latest.audioData).play().catch(() => {});
+
           const log = document.getElementById('guide-audio-log');
           if (log) {
-            const cleanName = String(latest.sender || 'معتمر').replace(/[^a-zA-Z0-9؀-ۿ\s]/g, '');
-            const emptyTxt = log.querySelector('div');
-            if (emptyTxt && emptyTxt.innerText.includes('انتظار')) log.innerHTML = '';
+            const safeName = String(latest.sender || 'معتمر').replace(/[^\u0600-\u06FFa-zA-Z0-9\s]/g, '');
+            const emptyNotice = log.querySelector('div');
+            if (emptyNotice && emptyNotice.innerText.includes('انتظار')) log.innerHTML = '';
 
             const card = document.createElement('div');
             card.className = 'ptt-call-card';
-            card.style.cssText = 'background:#132342; border-right:4px solid #38bdf8; padding:8px 10px; border-radius:8px; margin-bottom:8px;';
+            card.style.cssText = 'background:#132342; border-right:4px solid #38bdf8; padding:10px 12px; border-radius:10px; margin-bottom:8px; text-align:right;';
             card.innerHTML = `
-              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">
-                <strong style="color:#fff;">📢 نداء من: <span style="color:#38bdf8;">${cleanName}</span></strong>
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:6px;">
+                <strong style="color:#fff;">📢 نداء من: <span style="color:#38bdf8; font-size:0.85rem;">${safeName}</span></strong>
                 <div style="display:flex; gap:6px; align-items:center;">
                   <span>⏱ ${latest.time}</span>
-                  <button type="button" onclick="removePttCard(this)" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer;">✕</button>
+                  <button type="button" onclick="removePttCard(this)" style="background:none; border:none; color:#ef4444; font-size:0.85rem; cursor:pointer;" title="حذف">✕</button>
                 </div>
               </div>
-              <div style="display:flex; gap:6px; align-items:center; margin-top:6px;">
-                <button type="button" onclick="new Audio('${latest.audioData}').play()" class="btn-sub" style="padding:4px 8px; font-size:0.75rem;">▶️ استماع</button>
-                <button type="button" id="reply-btn-${latest.id}" class="btn-main" style="background:#0284c7; padding:4px 10px; font-size:0.75rem; flex:1; user-select:none; touch-action:none;" oncontextmenu="return false;">🎙️ اضغط مطولاً للرد</button>
+              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <button type="button" onclick="new Audio('${latest.audioData}').play()" class="btn-sub" style="padding:6px 10px; font-size:0.75rem;">▶️ استماع</button>
+                <button type="button" id="reply-btn-${latest.id}" class="btn-main" style="background:#0284c7; padding:6px 12px; font-size:0.78rem; flex:1; user-select:none; touch-action:none;" oncontextmenu="return false;">
+                  🎙️ اضغط مطولاً للرد على ${safeName}
+                </button>
               </div>
             `;
             log.prepend(card);
@@ -1308,68 +717,54 @@
               if (rBtn) {
                 rBtn.addEventListener('pointerdown', (e) => {
                   e.preventDefault();
-                  currentPttTarget = cleanName;
+                  currentPttTarget = safeName;
                   rBtn.style.background = '#dc2626';
-                  rBtn.innerText = `🔴 تحدث للرد على ${cleanName}`;
-                  startPttRecording(rBtn, null);
+                  rBtn.innerText = `🔴 تحدث للرد على ${safeName}`;
+                  startPttRecording(rBtn, null, 'pilgrim');
                 });
-                const stopHandler = (e) => {
+                const endReply = (e) => {
                   e.preventDefault();
                   rBtn.style.background = '#0284c7';
-                  rBtn.innerText = `🎙️ اضغط مطولاً للرد`;
+                  rBtn.innerText = `🎙️ اضغط مطولاً للرد على ${safeName}`;
                   stopPttRecording(rBtn, null);
                   currentPttTarget = 'all';
                 };
-                rBtn.addEventListener('pointerup', stopHandler);
-                rBtn.addEventListener('pointercancel', stopHandler);
+                rBtn.addEventListener('pointerup', endReply);
+                rBtn.addEventListener('pointercancel', endReply);
               }
             }, 100);
           }
         } else if (!isGuide && latest.role === 'guide') {
           if (latest.targetPilgrim === 'all' || latest.targetPilgrim === currentUser.name) {
             playWalkieBeep();
-            lastPilgrimAudioUrl = latest.audioData;
+            lastReceivedAudioUrl = latest.audioData;
             new Audio(latest.audioData).play().catch(() => {});
-            const rBox = document.getElementById('pilgrim-reply-box');
-            const rTxt = document.getElementById('pilgrim-reply-text');
-            const rBtn = document.getElementById('btn-replay-audio');
-            if (rBox && rBtn) {
-              rBox.style.display = 'block';
-              if (rTxt) rTxt.innerText = `🔊 وصلك توجيه صوتي من المرشد (${latest.time})`;
-              rBtn.onclick = () => { if (lastPilgrimAudioUrl) new Audio(lastPilgrimAudioUrl).play(); };
+
+            const pStatus = document.getElementById('ptt-live-status');
+            if (pStatus) {
+              pStatus.innerHTML = `<span style="color:#38bdf8;">🔊 وصلك توجيه صوتي من المرشد (${latest.time})</span>`;
+            }
+
+            const pBox = document.getElementById('pilgrim-last-audio-box');
+            const pReplay = document.getElementById('btn-replay-pilgrim');
+            const pInfo = document.getElementById('pilgrim-last-audio-info');
+            if (pBox && pReplay) {
+              pBox.style.display = 'block';
+              if (pInfo) pInfo.innerText = `🔊 نداء صوتي من المرشد (${latest.time})`;
+              pReplay.onclick = () => { new Audio(lastReceivedAudioUrl).play().catch(()=>{}); };
             }
           }
         }
       }
     }
 
-    function playBroadcastAlert() {
-      try {
-        if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 400]);
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (AudioCtx) {
-          const ctx = new AudioCtx();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-          osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
-          gain.gain.setValueAtTime(0.25, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.5);
-        }
-      } catch (e) {}
-    }
-
+    // ==========================================
+    // مزامنة السيرفر والخريطة
+    // ==========================================
     function syncWithServer() {
       fetch(`${VPS_API}/api/sync`)
         .then(res => res.json())
         .then(data => {
-          saveOfflineCache(data);
-
           if (data.groups && Array.isArray(data.groups)) {
             serverGroups = data.groups;
             updateGroupsDropdowns();
@@ -1382,272 +777,22 @@
             serverHotels["مكة"] = Object.assign(serverHotels["مكة"], data.hotels["مكة"] || {});
             serverHotels["المدينة"] = Object.assign(serverHotels["المدينة"], data.hotels["المدينة"] || {});
             updatePilgrimHotelView();
-            renderMapHotelPins();
           }
-          if (data.pttMessages) { handleIncomingPttAudio(data.pttMessages); }
-          if (data.busLocation !== undefined) {
-            busLocation = data.busLocation;
-            if (busLocation) {
-              localStorage.setItem('omrah_bus_location', JSON.stringify(busLocation));
-            } else {
-              localStorage.removeItem('omrah_bus_location');
-            }
-            updateBusUI();
+          if (data.pttMessages) {
+            handleIncomingPttAudio(data.pttMessages);
           }
-
-          // مزامنة الدروس والمزارات السحابية خاصة بالمرشدين فقط
-          if (currentUser && currentUser.role === 'guide') {
-            if (data.customLessons && Array.isArray(data.customLessons) && data.customLessons.length > 0) {
-              activeLessons = data.customLessons;
-              localStorage.setItem('omrah_custom_lessons', JSON.stringify(activeLessons));
-              renderLessons(currentLessonFilter);
-            }
-            if (data.customPlaces && Array.isArray(data.customPlaces) && data.customPlaces.length > 0) {
-              activePlaces = data.customPlaces;
-              localStorage.setItem('omrah_custom_places', JSON.stringify(activePlaces));
-              renderPlaces(currentPlaceFilter);
-            }
-          }
-
           if (data.broadcasts && data.broadcasts.length > 0) {
             const b = data.broadcasts[0];
             const banner = document.getElementById('broadcast-banner');
-            const msgFull = `${b.text} (${b.time})`;
-            document.getElementById('broadcast-text').innerText = msgFull;
-
-            if (localStorage.getItem('omrah_dismissed_broadcast_val') === msgFull) {
-              banner.style.display = 'none';
-            } else {
-              banner.style.display = 'block';
-              if (!window.lastAlertedBroadcast || window.lastAlertedBroadcast !== msgFull) {
-                window.lastAlertedBroadcast = msgFull;
-                playBroadcastAlert();
-              }
-            }
+            document.getElementById('broadcast-text').innerText = `${b.text} (${b.time})`;
+            banner.style.display = 'block';
           }
         })
         .catch(err => console.log('Sync err:', err));
     }
 
     function dismissCurrentBroadcast() {
-      const banner = document.getElementById('broadcast-banner');
-      const textEl = document.getElementById('broadcast-text');
-      if (banner && textEl) {
-        localStorage.setItem('omrah_dismissed_broadcast_val', textEl.innerText.trim());
-        banner.style.display = 'none';
-      }
-    }
-
-    // أرشيف التعميمات
-    window.openOmrahArchiveModal = function() {
-      const oldModal = document.getElementById('archive-modal-view');
-      if (oldModal) oldModal.remove();
-
-      let historyData = [];
-      try {
-        historyData = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]');
-      } catch(e) { historyData = []; }
-
-      let itemsHtml = '<div style="color:#94a3b8; text-align:center; padding:20px; font-size:0.9rem;">لا توجد تعميمات سابقة مسجلة بالأرشيف.</div>';
-      if (historyData.length > 0) {
-        itemsHtml = historyData.map(item => `
-          <div style="background:#080e1e; border-right:4px solid #0284c7; padding:10px 12px; border-radius:8px; margin-bottom:10px; text-align:right;">
-            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; margin-bottom:6px;">
-              <span>📅 ${item.date || 'اليوم'}</span>
-              <span>⏱ ${item.time || ''}</span>
-            </div>
-            <div style="color:#f8fafc; font-size:0.9rem; font-weight:bold; line-height:1.5;">${item.text}</div>
-          </div>
-        `).join('');
-      }
-
-      const modal = document.createElement('div');
-      modal.id = 'archive-modal-view';
-      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; padding:16px;';
-      modal.innerHTML = `
-        <div style="background:#131c31; border:1px solid #38bdf8; border-radius:14px; width:100%; max-width:440px; max-height:80vh; display:flex; flex-direction:column; overflow:hidden;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #25334d; background:#0b1329;">
-            <h4 style="color:#38bdf8; margin:0; font-size:1rem;">📜 أرشيف تعميمات المرشد</h4>
-            <button onclick="document.getElementById('archive-modal-view').remove()" style="background:#ef4444; border:none; color:#fff; border-radius:6px; width:28px; height:28px; cursor:pointer; font-weight:bold;">✕</button>
-          </div>
-          <div style="padding:14px; overflow-y:auto; flex:1;">${itemsHtml}</div>
-          <div style="padding:10px 14px; border-top:1px solid #25334d; display:flex; gap:8px;">
-            <button onclick="clearArchiveHistory()" class="btn-danger-sm" style="flex:1; padding:8px;">🗑️ تفريغ الأرشيف</button>
-            <button onclick="document.getElementById('archive-modal-view').remove()" class="btn-sub" style="flex:1;">إغلاق</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    };
-
-    window.clearArchiveHistory = function() {
-      if (confirm('هل أنت متأكد من تفريغ سجل التعميمات؟')) {
-        localStorage.removeItem('omrah_broadcast_archive_data');
-        openOmrahArchiveModal();
-      }
-    };
-
-    function sendBroadcast() {
-      const input = document.getElementById('broadcast-input');
-      const text = input.value.trim();
-      if (!text) return;
-      fetch(`${VPS_API}/api/broadcast/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, sender: 'مرشد الفوج' })
-      }).then(() => {
-        try {
-          let hist = JSON.parse(localStorage.getItem('omrah_broadcast_archive_data') || '[]');
-          const now = new Date();
-          const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-          hist.unshift({ text: text, time: timeStr, date: now.toLocaleDateString('ar-DZ') });
-          if (hist.length > 50) hist.pop();
-          localStorage.setItem('omrah_broadcast_archive_data', JSON.stringify(hist));
-        } catch(e) {}
-
-        alert("تم إرسال التعميم وحفظه في الأرشيف بنجاح!");
-        input.value = '';
-        syncWithServer();
-      });
-    }
-
-    function generateGroupQRModal() {
-      const select = document.getElementById('filter-group-select');
-      const grp = (select && select.value !== 'all') ? select.value : 'الفوج 1 (الرئيسي)';
-      const qrData = 'OMRAH_GROUP:' + encodeURIComponent(grp);
-      const qrImgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + qrData + '&margin=10';
-
-      const old = document.getElementById('group-qr-modal');
-      if (old) old.remove();
-
-      const modal = document.createElement('div');
-      modal.id = 'group-qr-modal';
-      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;';
-      modal.innerHTML = `
-        <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:20px; width:100%; max-width:340px; text-align:center;">
-          <h3 style="color:#fff; margin-bottom:6px; font-size:1.1rem;">📲 ملصق QR لـ (${grp})</h3>
-          <p style="color:#94a3b8; font-size:0.75rem; margin-bottom:12px;">اطبع الملصق أو اعرضه في الحافلة؛ يمسحه المعتمر مباشرة لتحديد فوجه آلياً.</p>
-          <div style="background:#fff; padding:10px; border-radius:12px; display:inline-block; margin-bottom:14px;">
-            <img src="${qrImgUrl}" style="width:200px; height:200px; display:block; border-radius:8px;" />
-          </div>
-          <button type="button" onclick="document.getElementById('group-qr-modal').remove()" class="btn-sub" style="width:100%;">إغلاق</button>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    }
-
-    function openQrPickerModal() {
-      const old = document.getElementById('qr-picker-modal');
-      if (old) old.remove();
-
-      const modal = document.createElement('div');
-      modal.id = 'qr-picker-modal';
-      modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px;';
-      modal.innerHTML = `
-        <div style="background:#131c31; border:2px solid #38bdf8; border-radius:16px; padding:18px; width:100%; max-width:320px; text-align:center;">
-          <h3 style="color:#fff; margin-bottom:12px; font-size:1rem;">📷 مسح رمز الفوج</h3>
-          <div id="qr-scan-box-hidden" style="display:none;"></div>
-          <button type="button" onclick="document.getElementById('pick-qr-input-file').click()" class="btn-main" style="background:#0d9488; padding:10px; width:100%; font-size:0.9rem; margin-bottom:8px;">🖼️ اختيار صورة الـ QR من المعرض</button>
-          <input type="file" id="pick-qr-input-file" accept="image/*" style="display:none;" onchange="readQrImageFromStorage(this)" />
-          <button type="button" onclick="document.getElementById('qr-picker-modal').remove()" class="btn-sub" style="width:100%;">إلغاء</button>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    }
-
-    function readQrImageFromStorage(input) {
-      if (!input.files || !input.files[0]) return;
-      const file = input.files[0];
-      if (typeof Html5Qrcode === 'undefined') return alert('جاري تهيئة قارئ الصور...');
-      const scanner = new Html5Qrcode("qr-scan-box-hidden");
-      scanner.scanFile(file, true)
-        .then(decodedText => {
-          let grp = decodedText.trim();
-          if (grp.indexOf('OMRAH_GROUP:') === 0) grp = decodeURIComponent(grp.replace('OMRAH_GROUP:', ''));
-          else if (grp.indexOf('group=') !== -1) {
-            const m = grp.match(/[?&]group=([^&]+)/);
-            if (m && m[1]) grp = decodeURIComponent(m[1]);
-          }
-
-          const select = document.getElementById('user-group-select');
-          if (select) {
-            let exists = false;
-            for (let i = 0; i < select.options.length; i++) {
-              if (select.options[i].value === grp) { select.selectedIndex = i; exists = true; break; }
-            }
-            if (!exists) {
-              const opt = document.createElement('option');
-              opt.value = grp;
-              opt.innerText = grp;
-              select.appendChild(opt);
-              select.value = grp;
-            }
-          }
-          const modal = document.getElementById('qr-picker-modal');
-          if (modal) modal.remove();
-          alert('✅ تم تحديد الفوج بنجاح: ' + grp);
-        })
-        .catch(() => alert('لم يتم التعرف على الرمز، يرجى اختيار لقطة واضحة لصورة الـ QR.'))
-        .finally(() => { input.value = ''; });
-    }
-
-    async function getBatteryLevel() {
-      try {
-        if ('getBattery' in navigator) {
-          const b = await navigator.getBattery();
-          return Math.round(b.level * 100);
-        }
-      } catch(e) {}
-      return 100;
-    }
-
-    async function sendLiveLocation() {
-      if (!currentUser || currentUser.role !== 'pilgrim') return;
-      await checkBatteryOptimization();
-      const bat = await getBatteryLevel();
-      const payload = {
-        name: currentUser.name,
-        phone: currentUser.phone || 'غير مسجل',
-        group: currentUser.group || 'الفوج 1 (الرئيسي)',
-        lat: userCurrentLat,
-        lng: userCurrentLng,
-        battery: bat
-      };
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => {
-            userCurrentLat = pos.coords.latitude;
-            userCurrentLng = pos.coords.longitude;
-            payload.lat = userCurrentLat;
-            payload.lng = userCurrentLng;
-            postToServer(payload);
-          },
-          err => { postToServer(payload); },
-          { enableHighAccuracy: true, timeout: 5000 }
-        );
-      } else {
-        postToServer(payload);
-      }
-    }
-
-    function postToServer(payload) {
-      fetch(`${VPS_API}/api/pilgrims/location`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(data => {
-        updatePilgrimHotelView();
-        updateBusUI();
-        const statusElem = document.getElementById('auto-gps-text');
-        if (statusElem && !isBatterySaverActive) {
-          const d = new Date();
-          statusElem.innerText = `📡 متصل بالسيرفر: تم إرسال موقعك وشحن بطاريتك (${payload.battery}%) في (${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')})`;
-        }
-      })
-      .catch(err => {});
+      document.getElementById('broadcast-banner').style.display = 'none';
     }
 
     function renderPilgrimMarkers() {
@@ -1668,106 +813,52 @@
       if (countElem) countElem.innerText = list.length;
 
       if (list.length === 0) {
-        listContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: #94a3b8; font-size: 0.85rem;">لا يوجد معتمرون مسجلون في هذا الفوج حالياً.</div>`;
+        listContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: #94a3b8; font-size: 0.85rem;">لا يوجد معتمرون متصلون حالياً.</div>`;
         return;
       }
 
-      const citySelect = document.getElementById('user-hotel-city');
-      const city = citySelect ? citySelect.value : 'مكة';
-      const hotel = serverHotels[city] || serverHotels['مكة'];
-      const haramCoords = (city === 'المدينة') ? { lat: 24.4672, lng: 39.6108 } : { lat: 21.4225, lng: 39.8262 };
-
-      let hasOutOfZonePilgrim = false;
-
       list.forEach(p => {
-        let distH = hotel ? calculateDistance(p.lat, p.lng, hotel.lat, hotel.lng) : 0;
-        let distHaram = calculateDistance(p.lat, p.lng, haramCoords.lat, haramCoords.lng);
-        let minSafeDist = Math.min(distH, distHaram);
-
-        const isOutOfZone = (minSafeDist > 3500);
-        if (isOutOfZone) hasOutOfZonePilgrim = true;
-
-        let marker;
-        if (isOutOfZone) {
-          const alertIcon = L.divIcon({
-            className: 'alert-pin-wrapper',
-            html: '<div class="alert-marker-pin">🚨</div>',
-            iconSize: [34, 34],
-            iconAnchor: [17, 17]
-          });
-          marker = L.marker([p.lat, p.lng], { icon: alertIcon }).addTo(mapInstance)
-            .bindPopup(`<b>🚨 تنبيه خروج عن النطاق: ${p.name}</b><br>المسافة: ${(minSafeDist / 1000).toFixed(1)} كم عن الحرم/الفندق<br>🔋 البطارية: ${p.battery || 100}%<br>📞 ${p.phone}`);
-        } else {
-          marker = L.marker([p.lat, p.lng]).addTo(mapInstance)
-            .bindPopup(`<b>${p.name}</b><br>الفوج: ${p.group}<br>🔋 شحن الهاتف: ${p.battery || 100}%<br>آخر تحديث: ${p.time}`);
-        }
+        const marker = L.marker([p.lat, p.lng]).addTo(mapInstance)
+          .bindPopup(`<b>👤 ${p.name}</b><br>الفوج: ${p.group}<br>🔋 البطارية: ${p.battery || 100}%<br>${p.accuracy ? '🎯 دقة الرصد: ' + p.accuracy + ' متر<br>' : ''}آخر تحديث: ${p.time}`);
         mapMarkers.push(marker);
 
         const bat = p.battery !== undefined ? p.battery : 100;
-        let batClass = 'bat-high';
-        if (bat < 20) batClass = 'bat-low';
-        else if (bat < 50) batClass = 'bat-med';
+        let batClass = bat < 20 ? 'bat-low' : bat < 50 ? 'bat-med' : 'bat-high';
 
         listContainer.innerHTML += `
-          <div class="pilgrim-item" style="${isOutOfZone ? 'border: 1px solid #ef4444; background: rgba(127, 29, 29, 0.25);' : ''}">
+          <div class="pilgrim-item">
             <div>
               <div style="font-weight: bold; color: white; font-size: 0.95rem;">
                 👤 ${p.name} 
                 <span class="battery-pill ${batClass}">🔋 ${bat}%</span>
                 <span style="font-size: 0.7rem; background: #064e3b; color: #6ee7b7; padding: 1px 6px; border-radius: 4px;">${p.group}</span>
-                ${isOutOfZone ? `<span class="geofence-alert-badge">⚠️ مبتعد (${(minSafeDist / 1000).toFixed(1)} كم)</span>` : ''}
               </div>
               <div style="font-size: 0.75rem; color: #94a3b8;">📞 ${p.phone} • آخر رصد: <span style="color: #34d399; font-weight: bold;">${p.time}</span></div>
             </div>
             <div style="display: flex; gap: 6px; align-items: center;">
               <button onclick="focusOnMap(${p.lat}, ${p.lng})" class="btn-sub" style="font-size: 0.75rem; padding: 6px 10px;">📍 تحديد</button>
-              <button onclick="deletePilgrim('${p.name}')" class="btn-danger-sm" title="حذف من السيرفر">🗑️</button>
             </div>
           </div>
         `;
       });
 
-      if (hasOutOfZonePilgrim && !window.lastGeofenceAlertTime) {
-        window.lastGeofenceAlertTime = Date.now();
-        playBroadcastAlert();
-      } else if (!hasOutOfZonePilgrim) {
-        window.lastGeofenceAlertTime = null;
+      // ضبط نطاق الخريطة التلقائي ليشمل كل المعتمرين
+      if (mapMarkers.length > 0) {
+        const groupBounds = L.featureGroup(mapMarkers).getBounds();
+        mapInstance.fitBounds(groupBounds, { padding: [50, 50], maxZoom: 16 });
       }
     }
 
-    function createNewGroup() {
-      const name = prompt("أدخل اسم الفوج الجديد:");
-      if (name && name.trim()) {
-        fetch(`${VPS_API}/api/groups/add`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ groupName: name.trim() })
-        }).then(() => syncWithServer());
-      }
+    function focusOnMap(lat, lng) {
+      if (mapInstance) mapInstance.setView([lat, lng], 17);
     }
 
-    function deleteCurrentFilteredGroup() {
-      const select = document.getElementById('filter-group-select');
-      const groupToDelete = select.value;
-      if (groupToDelete === 'all') return alert("يرجى اختيار فوج محدد من القائمة لحذفه.");
-      if (confirm(`حذف فوج (${groupToDelete}) ومعتمريه نهائياً من السيرفر؟`)) {
-        fetch(`${VPS_API}/api/groups/delete`, {
+    function resetAllTestDataConfirm() {
+      if (confirm('هل تريد مسح سجل التتبع والمعتمرين التجريبيين لبدء رحلة نظيفة؟')) {
+        fetch(`${VPS_API}/api/reset-test-data`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ groupName: groupToDelete })
-        }).then(() => {
-          select.value = 'all';
-          syncWithServer();
-        });
-      }
-    }
-
-    function deletePilgrim(name) {
-      if (confirm(`حذف المعتمر (${name}) من السيرفر؟`)) {
-        fetch(`${VPS_API}/api/pilgrims/delete`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name })
+          body: JSON.stringify({ pin: GUIDE_SECRET_PIN })
         }).then(() => syncWithServer());
       }
     }
@@ -1784,10 +875,13 @@
     }
 
     function promptGuidePin() {
-      document.getElementById('pin-error').innerText = '';
-      document.getElementById('guide-pin-input').value = '';
-      document.getElementById('pin-modal').style.display = 'flex';
-      setTimeout(() => document.getElementById('guide-pin-input').focus(), 100);
+      const errEl = document.getElementById('pin-error');
+      const pinInp = document.getElementById('guide-pin-input');
+      const modal = document.getElementById('pin-modal');
+      if (errEl) errEl.innerText = '';
+      if (pinInp) pinInp.value = '';
+      if (modal) modal.style.display = 'flex';
+      setTimeout(() => { if (pinInp) pinInp.focus(); }, 150);
     }
 
     function closePinModal() { document.getElementById('pin-modal').style.display = 'none'; }
@@ -1807,7 +901,7 @@
     function toggleUserRole() {
       if (!currentUser) return;
       if (currentUser.role === 'guide') {
-        const name = prompt("أدخل اسم المعتمر للتحويل إلى وضع المعتمر:") || "معتمر";
+        const name = prompt("أدخل اسم المعتمر:") || "معتمر";
         currentUser = { name: name, phone: '', role: 'pilgrim', group: serverGroups[0] || 'الفوج 1 (الرئيسي)' };
         localStorage.setItem('omrah_user', JSON.stringify(currentUser));
         applyRoleUI();
@@ -1817,9 +911,12 @@
     }
 
     function setupProfile(role) {
-      const name = document.getElementById('user-name').value.trim() || (role === 'guide' ? 'مرشد الفوج' : 'معتمر');
-      const phone = document.getElementById('user-phone').value.trim() || 'غير مسجل';
+      const nameInput = document.getElementById('user-name');
+      const phoneInput = document.getElementById('user-phone');
       const groupSelect = document.getElementById('user-group-select');
+
+      const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : (role === 'guide' ? 'مرشد الفوج' : 'معتمر');
+      const phone = (phoneInput && phoneInput.value.trim()) ? phoneInput.value.trim() : 'غير مسجل';
       const group = (groupSelect && groupSelect.value) ? groupSelect.value : (serverGroups[0] || 'الفوج 1 (الرئيسي)');
 
       currentUser = { name, phone, role, group };
@@ -1828,14 +925,8 @@
       localStorage.setItem('omrah_user_name', name);
       localStorage.setItem('omrah_user_group', group);
 
-      if (role === 'pilgrim') sendLiveLocation();
+      if (role === 'pilgrim') startAutoGpsTracking();
       applyRoleUI();
-    }
-
-    function startAutoGpsTracking() {
-      if (autoTrackingInterval) clearInterval(autoTrackingInterval);
-      sendLiveLocation();
-      autoTrackingInterval = setInterval(sendLiveLocation, 15000);
     }
 
     function applyRoleUI() {
@@ -1850,17 +941,11 @@
       const nav = document.getElementById('nav-bar');
       const roleInd = document.getElementById('role-indicator');
       const appTitle = document.getElementById('app-title');
-      const headerArchive = document.getElementById('btn-header-archive');
-      const addLessonBox = document.getElementById('add-lesson-box');
-      const addPlaceBox = document.getElementById('add-place-box');
 
       document.getElementById('auth-screen').style.display = 'none';
 
       if (currentUser.role === 'guide') {
-        if (headerArchive) headerArchive.style.display = 'inline-block';
-        if (addLessonBox) addLessonBox.style.display = 'block';
-        if (addPlaceBox) addPlaceBox.style.display = 'block';
-
+        if (gpsWatchId) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
         roleInd.innerText = "مرشد الفوج 🛡️";
         roleInd.style.background = "#1e3a8a";
         roleInd.style.color = "#93c5fd";
@@ -1870,7 +955,7 @@
           <button onclick="switchTab('tawaf')" id="tab-tawaf">أدعية الطواف</button>
           <button onclick="switchTab('saey')" id="tab-saey">السعي</button>
           <button onclick="switchTab('dourous')" id="tab-dourous">حقيبة الحافلة</button>
-          <button onclick="switchTab('ziyarat')" id="tab-ziyarat">موسوعة المزارات الكبرى</button>
+          <button onclick="switchTab('ziyarat')" id="tab-ziyarat">موسوعة المزارات</button>
           <button onclick="switchTab('fiqh')" id="tab-fiqh">فقه العمرة</button>
         `;
         switchTab('map');
@@ -1879,10 +964,6 @@
         syncWithServer();
         if (!syncInterval) syncInterval = setInterval(syncWithServer, 5000);
       } else {
-        if (headerArchive) headerArchive.style.display = 'none';
-        if (addLessonBox) addLessonBox.style.display = 'none';
-        if (addPlaceBox) addPlaceBox.style.display = 'none';
-
         startAutoGpsTracking();
         roleInd.innerText = `معتمر: ${currentUser.name} (${currentUser.group || 'فوج عام'})`;
         roleInd.style.background = "#064e3b";
@@ -1896,7 +977,6 @@
         `;
         switchTab('sos');
         updatePilgrimHotelView();
-        updateBusUI();
         syncWithServer();
         if (!syncInterval) syncInterval = setInterval(syncWithServer, 5000);
       }
@@ -1905,16 +985,13 @@
     function initMap() {
       setTimeout(() => {
         if (!mapInstance) {
-          mapInstance = L.map('map').setView([21.4225, 39.8262], 16);
+          // الخريطة تبدأ بمشهد محايد ثم تركز فوراً على موقع المعتمرين الحقيقيين
+          mapInstance = L.map('map').setView([36.7538, 3.0588], 6);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
         }
-        renderMapHotelPins();
-        renderBusMarker();
         renderPilgrimMarkers();
       }, 300);
     }
-
-    function focusOnMap(lat, lng) { if (mapInstance) mapInstance.setView([lat, lng], 18); }
 
     function switchTab(tabId) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -1933,28 +1010,11 @@
       arrow.innerText = body.classList.contains('active') ? '▲' : '▼';
     }
 
-    function sendSOS() {
-      const status = document.getElementById('sos-status');
-      status.innerText = "⏳ جاري تحديد الموقع...";
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          const msg = encodeURIComponent(`🚨 نداء استغاثة!\nالاسم: ${currentUser.name}\nالفوج: ${currentUser.group}\nhttps://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`);
-          window.location.href = `whatsapp://send?phone=${getAgencyPhone()}&text=${msg}`;
-        });
-      }
-    }
-
-    // الطواف والسعي
+    // الطواف والسعي والدروس
     const allTawafDuas = (typeof tawafDuas !== 'undefined' && tawafDuas.length > 0) ? tawafDuas : [
       "بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ، اللَّهُمَّ إِيمَاناً بِكَ وَتَصْدِيقاً بِكِتَابِكَ وَوَفَاءً بِعَهْدِكَ وَاتِّبَاعاً لِسُنَّةِ نَبِيِّكَ مُحَمَّدٍ ﷺ.",
       "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ."
     ];
-
-    const allSaiDuas = (typeof saiDuas !== 'undefined' && saiDuas.length > 0) ? saiDuas : [
-      "أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ: إِنَّ الصَّفَا وَالمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ.. لا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لا شَرِيكَ لَهُ.",
-      "رَبِّ اغْفِرْ وَارْحَمْ، وَتَجَاوَزْ عَمَّا تَعْلَمْ، إِنَّكَ أَنْتَ الأَعَزُّ الأَكْرَمُ."
-    ];
-
     let currentTawaf = 1;
     let currentDuaIdx = 0;
     function handleTawafCircleClick() {
@@ -1966,232 +1026,73 @@
     function updateTawafUI() {
       document.getElementById('tawaf-count').innerText = currentTawaf;
       document.getElementById('tawaf-progress').innerText = `الشوط ${currentTawaf} من 7`;
-      document.getElementById('tawaf-title').innerText = `الشوط ${currentTawaf}: يبدأ من محاذاة الحجر الأسود`;
-      renderDua();
-    }
-    function renderDua() {
       document.getElementById('active-dua-text').innerText = `"${allTawafDuas[currentDuaIdx % allTawafDuas.length]}"`;
-      document.getElementById('dua-counter').innerText = `دعاء ${currentDuaIdx + 1} من ${allTawafDuas.length}`;
     }
-    function nextDua() { currentDuaIdx = (currentDuaIdx + 1) % allTawafDuas.length; renderDua(); }
-    function prevDua() { currentDuaIdx = (currentDuaIdx - 1 + allTawafDuas.length) % allTawafDuas.length; renderDua(); }
+    function nextDua() { currentDuaIdx = (currentDuaIdx + 1) % allTawafDuas.length; updateTawafUI(); }
+    function prevDua() { currentDuaIdx = (currentDuaIdx - 1 + allTawafDuas.length) % allTawafDuas.length; updateTawafUI(); }
 
+    const allSaiDuas = (typeof saiDuas !== 'undefined' && saiDuas.length > 0) ? saiDuas : [
+      "أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ: إِنَّ الصَّفَا وَالمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ.. لا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لا شَرِيكَ لَهُ.",
+      "رَبِّ اغْفِرْ وَارْحَمْ، وَتَجَاوَزْ عَمَّا تَعْلَمْ، إِنَّكَ أَنْتَ الأَعَزُّ الأَكْرَمُ."
+    ];
     let currentSaey = 1;
     let currentSaeyDuaIdx = 0;
     function handleSaeyCircleClick() {
       if (currentSaey < 7) { currentSaey++; updateSaeyUI(); }
-      else alert("🎉 أتممت السعي تماماً! بقي لك الحلق أو التقصير للتحلل.");
+      else alert("🎉 أتممت السعي تماماً!");
     }
     function prevSaey() { if (currentSaey > 1) { currentSaey--; updateSaeyUI(); } }
     function resetSaey() { if (confirm("إعادة السعي؟")) { currentSaey = 1; updateSaeyUI(); } }
     function updateSaeyUI() {
       document.getElementById('saey-count').innerText = currentSaey;
       document.getElementById('saey-progress').innerText = `الشوط ${currentSaey} من 7`;
-      document.getElementById('saey-direction').innerText = (currentSaey % 2 !== 0) ? `الشوط ${currentSaey}: من الصفا نحو المروة` : `الشوط ${currentSaey}: من المروة نحو الصفا`;
-      renderSaeyDua();
-    }
-    function renderSaeyDua() {
       document.getElementById('active-saey-dua-text').innerText = `"${allSaiDuas[currentSaeyDuaIdx % allSaiDuas.length]}"`;
-      document.getElementById('saey-dua-counter').innerText = `دعاء السعي ${currentSaeyDuaIdx + 1} من ${allSaiDuas.length}`;
     }
-    function nextSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx + 1) % allSaiDuas.length; renderSaeyDua(); }
-    function prevSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx - 1 + allSaiDuas.length) % allSaiDuas.length; renderSaeyDua(); }
+    function nextSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx + 1) % allSaiDuas.length; updateSaeyUI(); }
+    function prevSaeyDua() { currentSaeyDuaIdx = (currentSaeyDuaIdx - 1 + allSaiDuas.length) % allSaiDuas.length; updateSaeyUI(); }
 
-    // ==========================================
-    // حقيبة الدروس والمزارات المحفوظة سحابياً للمرشدين
-    // ==========================================
-    function getStoredLessons() {
-      try {
-        const stored = localStorage.getItem('omrah_custom_lessons');
-        if (stored) return JSON.parse(stored);
-      } catch(e) {}
-      return (typeof lessonsData !== 'undefined') ? lessonsData : [];
-    }
-
-    function getStoredPlaces() {
-      try {
-        const stored = localStorage.getItem('omrah_custom_places');
-        if (stored) return JSON.parse(stored);
-      } catch(e) {}
-      return (typeof ziyaratData !== 'undefined') ? ziyaratData : [];
-    }
-
-    function syncContentToServer() {
-      fetch(`${VPS_API}/api/lessons/save`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lessons: activeLessons, places: activePlaces })
-      }).catch(err => {});
-    }
-
-    let activeLessons = getStoredLessons();
-    let activePlaces = getStoredPlaces();
-    let currentLessonFilter = 'all';
-    let currentPlaceFilter = 'all';
-
-    function renderLessons(filter = 'all') {
-      currentLessonFilter = filter;
+    function renderLessons(filter) {
       const c = document.getElementById('lessons-list');
       if (!c) return;
-      
-      const list = filter === 'all' ? activeLessons : activeLessons.filter(l => l.category === filter);
-      const isGuide = currentUser && currentUser.role === 'guide';
-
-      if (list.length === 0) {
-        c.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8; font-size:0.85rem;">لا توجد دروس متوفرة في هذا القسم حالياً.</div>';
-        return;
-      }
-
-      c.innerHTML = list.map((l, idx) => `
+      const list = (typeof lessonsData !== 'undefined') ? lessonsData : [];
+      c.innerHTML = list.map(l => `
         <div class="item-card">
-          <div class="item-header">
-            <span class="badge ${l.badge || 'badge-purple'}">${l.category}</span>
-            <span class="tag-time">${l.time || '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق'}</span>
-          </div>
+          <div class="item-header"><span class="badge ${l.badge || 'badge-purple'}">${l.category}</span></div>
           <div class="item-title">${l.title}</div>
           <div class="item-content">${l.content}</div>
-          ${isGuide ? `<button onclick="deleteLesson(${idx})" class="btn-danger-sm" style="margin-top:10px;">حذف الدرس 🗑️</button>` : ''}
         </div>
       `).join('');
     }
 
-    function filterLessons(cat) {
-      document.querySelectorAll('#view-dourous .filter-btn').forEach(b => b.classList.remove('active'));
-      const activeBtn = document.getElementById(`flt-l-${cat === 'أخلاق' ? 'akhlak' : cat === 'تنظيم' ? 'org' : cat === 'صلاة' ? 'salah' : cat === 'عمرة' ? 'omrah' : 'all'}`);
-      if (activeBtn) activeBtn.classList.add('active');
-      renderLessons(cat);
-    }
-
-    function addNewLesson() {
-      const catEl = document.getElementById('new-lesson-category');
-      const cat = catEl ? catEl.value : 'أخلاق';
-      const t = document.getElementById('new-lesson-title').value.trim();
-      const b = document.getElementById('new-lesson-content').value.trim().replace(/\n/g, '<br>');
-      if (!t || !b) return alert('يرجى كتابة العنوان والمحتوى');
-
-      const badgeMap = {
-        'أخلاق': 'badge-purple',
-        'تنظيم': 'badge-amber',
-        'صلاة': 'badge-green',
-        'عمرة': 'badge-green'
-      };
-
-      activeLessons.unshift({
-        title: t,
-        content: b,
-        category: cat,
-        badge: badgeMap[cat] || 'badge-purple',
-        time: '⏱ وقت الإلقاء: دقيقتان إلى 3 دقائق'
-      });
-
-      localStorage.setItem('omrah_custom_lessons', JSON.stringify(activeLessons));
-      syncContentToServer();
-
-      document.getElementById('new-lesson-title').value = '';
-      document.getElementById('new-lesson-content').value = '';
-      
-      filterLessons(cat);
-      alert('✅ تم حفظ الدرس وتصنيفه بنجاح في السيرفر والهاتف!');
-    }
-
-    function deleteLesson(idx) {
-      if (confirm('حذف هذا الدرس نهائياً؟')) {
-        const target = (currentLessonFilter === 'all') ? activeLessons[idx] : activeLessons.filter(l => l.category === currentLessonFilter)[idx];
-        activeLessons = activeLessons.filter(l => l !== target);
-        localStorage.setItem('omrah_custom_lessons', JSON.stringify(activeLessons));
-        syncContentToServer();
-        renderLessons(currentLessonFilter);
-      }
-    }
-
-    function renderPlaces(filter = 'all') {
-      currentPlaceFilter = filter;
+    function renderPlaces(filter) {
       const c = document.getElementById('places-list');
       if (!c) return;
-      
-      const list = filter === 'all' ? activePlaces : activePlaces.filter(p => p.city === filter);
-      const isGuide = currentUser && currentUser.role === 'guide';
-
-      if (list.length === 0) {
-        c.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8; font-size:0.85rem;">لا توجد مزارات متوفرة في هذا القسم حالياً.</div>';
-        return;
-      }
-
-      c.innerHTML = list.map((p, idx) => `
+      const list = (typeof ziyaratData !== 'undefined') ? ziyaratData : [];
+      c.innerHTML = list.map(p => `
         <div class="item-card">
-          <div class="item-header">
-            <span class="badge ${p.city === 'مكة' ? 'badge-amber' : 'badge-green'}">${p.city === 'مكة' ? 'مكة المكرمة' : 'المدينة المنورة'}</span>
-          </div>
           <div class="item-title">📍 ${p.title}</div>
           <div class="item-content">${p.story}</div>
-          ${isGuide ? `<button onclick="deletePlace(${idx})" class="btn-danger-sm" style="margin-top:10px;">حذف المزار 🗑️</button>` : ''}
         </div>
       `).join('');
     }
 
-    function filterPlaces(city) {
-      document.querySelectorAll('#view-ziyarat .filter-btn').forEach(b => b.classList.remove('active'));
-      const activeBtn = document.getElementById(`flt-p-${city === 'مكة' ? 'makkah' : city === 'المدينة' ? 'madinah' : 'all'}`);
-      if (activeBtn) activeBtn.classList.add('active');
-      renderPlaces(city);
-    }
-
-    function addNewPlace() {
-      const c = document.getElementById('new-place-city').value;
-      const t = document.getElementById('new-place-title').value.trim();
-      const s = document.getElementById('new-place-story').value.trim().replace(/\n/g, '<br>');
-      if (!t || !s) return alert('يرجى ملء اسم المزار والقصة');
-
-      activePlaces.unshift({ city: c, title: t, story: s });
-      localStorage.setItem('omrah_custom_places', JSON.stringify(activePlaces));
-      syncContentToServer();
-      
-      document.getElementById('new-place-title').value = '';
-      document.getElementById('new-place-story').value = '';
-      
-      filterPlaces(c);
-      alert('✅ تم حفظ المزار بنجاح في السيرفر والهاتف!');
-    }
-
-    function deletePlace(idx) {
-      if (confirm('حذف هذا المزار نهائياً؟')) {
-        const target = (currentPlaceFilter === 'all') ? activePlaces[idx] : activePlaces.filter(p => p.city === currentPlaceFilter)[idx];
-        activePlaces = activePlaces.filter(p => p !== target);
-        localStorage.setItem('omrah_custom_places', JSON.stringify(activePlaces));
-        syncContentToServer();
-        renderPlaces(currentPlaceFilter);
-      }
-    }
-
-    // بدء التشغيل
-    window.addEventListener('load', function() {
+    window.addEventListener('DOMContentLoaded', function() {
       try {
         const pInput = document.getElementById('user-phone');
         const nInput = document.getElementById('user-name');
         const gSelect = document.getElementById('user-group-select');
 
-        const sPhone = localStorage.getItem('omrah_user_phone');
-        const sName = localStorage.getItem('omrah_user_name');
-        const sGroup = localStorage.getItem('omrah_user_group');
-
-        if (pInput && sPhone) pInput.value = sPhone;
-        if (nInput && sName) nInput.value = sName;
-        if (gSelect && sGroup) gSelect.value = sGroup;
-
-        const makName = document.getElementById('hotel-makkah-name');
-        const madName = document.getElementById('hotel-madinah-name');
-        if (makName) makName.value = serverHotels["مكة"].name;
-        if (madName) madName.value = serverHotels["المدينة"].name;
+        if (pInput) pInput.value = localStorage.getItem('omrah_user_phone') || '';
+        if (nInput) nInput.value = localStorage.getItem('omrah_user_name') || '';
+        if (gSelect) gSelect.value = localStorage.getItem('omrah_user_group') || '';
       } catch(e) {}
 
-      loadOfflineCache();
-      updateNetworkStatus();
+      setupPttButtons();
       applyRoleUI();
       updateTawafUI();
       updateSaeyUI();
       renderLessons('all');
       renderPlaces('all');
-      setupPttButtons();
     });
   </script>
 </body>
