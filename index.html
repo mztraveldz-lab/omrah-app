@@ -613,6 +613,21 @@
     let mediaRecorder = null;
     let audioChunks = [];
     let isPttRecording = false;
+
+    // نظام إبقاء اتصال اللاسلكي حياً أثناء قفل الشاشة (Background Audio Session)
+    let bgAudioKeeper = null;
+    function initBackgroundAudioKeeper() {
+      if (!bgAudioKeeper) {
+        // نغمة صامتة قصيرة جداً بنظام Data URI لإبقاء محرك الصوت متيقظاً
+        bgAudioKeeper = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+        bgAudioKeeper.loop = true;
+        bgAudioKeeper.volume = 0.01;
+      }
+      bgAudioKeeper.play().catch(() => {});
+    }
+    document.addEventListener('click', initBackgroundAudioKeeper, { once: true });
+    document.addEventListener('touchstart', initBackgroundAudioKeeper, { once: true });
+
     let lastPlayedPttId = 0;
     let currentPttTarget = 'all';
     let lastReceivedAudioUrl = null;
@@ -1453,14 +1468,39 @@
             }, 100);
           }
         } else if (!isGuide && latest.role === 'guide') {
-          if (latest.targetPilgrim === 'all' || latest.targetPilgrim === currentUser.name) {
+          // فحص هل النداء عام أو خاص بهذا المعتمر بالاسم
+          const myName = currentUser ? currentUser.name.trim() : '';
+          const target = latest.targetPilgrim ? latest.targetPilgrim.trim() : 'all';
+
+          const isForMe = (target === 'all') || (myName && target.toLowerCase() === myName.toLowerCase());
+
+          if (isForMe) {
             playWalkieBeep();
             lastReceivedAudioUrl = latest.audioData;
-            new Audio(latest.audioData).play().catch(() => {});
+            
+            // تشغيل الصوت مباشرة
+            const incomingAudio = new Audio(latest.audioData);
+            incomingAudio.play().catch(() => {});
+
+            // إيقاظ الشاشة بإشعار النظام والاهتزاز حتى لو كان الهاتف في الجيب
+            if ('vibrate' in navigator) {
+              navigator.vibrate([400, 200, 400, 200, 600]);
+            }
+            if ('Notification' in window && Notification.permission === 'granted') {
+              try {
+                const title = (target === 'all') ? '📢 نداء عام من المرشد' : '🎙️ رد صوتي خاص من المرشد إليك';
+                new Notification(title, {
+                  body: 'وصلتك رسالة صوتية الآن - اضغط للاستماع',
+                  icon: 'icon.png',
+                  tag: 'ptt-urgent',
+                  renotify: true
+                });
+              } catch(e) {}
+            }
 
             const pStatus = document.getElementById('ptt-live-status');
             if (pStatus) {
-              pStatus.innerHTML = `<span style="color:#38bdf8;">🔊 وصلك توجيه صوتي من المرشد (${latest.time})</span>`;
+              pStatus.innerHTML = `<span style="color:#38bdf8;">🔊 وصلك توجيه ${target === 'all' ? 'عام' : 'خاص'} (${latest.time})</span>`;
             }
 
             const pBox = document.getElementById('pilgrim-last-audio-box');
@@ -1468,10 +1508,11 @@
             const pInfo = document.getElementById('pilgrim-last-audio-info');
             if (pBox && pReplay) {
               pBox.style.display = 'block';
-              if (pInfo) pInfo.innerText = `🔊 نداء صوتي من المرشد (${latest.time})`;
+              if (pInfo) pInfo.innerText = `🔊 نداء المرشد (${latest.time})`;
               pReplay.onclick = () => { new Audio(lastReceivedAudioUrl).play().catch(()=>{}); };
             }
           }
+        }
         }
       }
     }
@@ -1851,6 +1892,7 @@
         currentUser = { name: 'مرشد الفوج', phone: '', role: 'guide', group: 'إدارة الأفواج' };
         localStorage.setItem('omrah_user', JSON.stringify(currentUser));
         applyRoleUI();
+      if ('Notification' in window && Notification.permission === 'default') { Notification.requestPermission().catch(()=>{}); }
       } else {
         document.getElementById('pin-error').innerText = "❌ الرمز السري غير صحيح!";
       }
@@ -1863,6 +1905,7 @@
         currentUser = { name: name, phone: '', role: 'pilgrim', group: serverGroups[0] || 'الفوج 1 (الرئيسي)' };
         localStorage.setItem('omrah_user', JSON.stringify(currentUser));
         applyRoleUI();
+      if ('Notification' in window && Notification.permission === 'default') { Notification.requestPermission().catch(()=>{}); }
       } else {
         promptGuidePin();
       }
@@ -1885,6 +1928,7 @@
 
       if (role === 'pilgrim') startAutoGpsTracking();
       applyRoleUI();
+      if ('Notification' in window && Notification.permission === 'default') { Notification.requestPermission().catch(()=>{}); }
     }
 
     function applyRoleUI() {
@@ -2204,6 +2248,7 @@
       loadOfflineCache();
       setupPttButtons();
       applyRoleUI();
+      if ('Notification' in window && Notification.permission === 'default') { Notification.requestPermission().catch(()=>{}); }
       updateTawafUI();
       updateSaeyUI();
       renderLessons('all');
