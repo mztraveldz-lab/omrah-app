@@ -1477,11 +1477,21 @@
             playWalkieBeep();
             lastReceivedAudioUrl = latest.audioData;
 
-            // تشغيل الصوت بقوة ورفع الصوت عبر مسار الوسائط المفتوح
+            // تشغيل الصوت فوراً بنظام التنبيه العاجل كالأذان
             try {
+              if (window.navigator && window.navigator.wakeLock) {
+                window.navigator.wakeLock.request('screen').catch(() => {});
+              }
               const voiceAudio = new Audio(latest.audioData);
               voiceAudio.volume = 1.0;
-              voiceAudio.play().catch(e => console.log('Audio autoplay retry:', e));
+              // إجبار التشغيل عبر سياق الصوت
+              const playPromise = voiceAudio.play();
+              if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                  // إذا حظر النظام التشغيل التلقائي يتم تشغيله فور أول لمس أو عبر سياق AudioContext
+                  document.addEventListener('touchstart', () => { voiceAudio.play(); }, { once: true });
+                });
+              }
             } catch(e) {}
 
             // اهتزاز ثلاثي قوي لإيقاظ الهاتف في الجيب
